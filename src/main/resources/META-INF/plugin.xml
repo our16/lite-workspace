@@ -25,12 +25,17 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-
+        <notificationGroup id="Lite Workspace"
+                           displayType="BALLOON"
+                           isLogByDefault="true"/>
     </extensions>
 
     <actions>
-        <action class="org.example.liteworkspace.TestAction" id = "testAction">
-            <add-to-group group-id="ToolsGroup" anchor="first"/>
+        <action id="testAction"
+                class="org.example.liteworkspace.TestAction"
+                text="Lite 测试通知"
+                description="测试发送通知">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
     </actions>
 </idea-plugin>
