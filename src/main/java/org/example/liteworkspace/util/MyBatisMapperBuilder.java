@@ -1,6 +1,10 @@
 package org.example.liteworkspace.util;
 
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 
 import java.io.*;
@@ -61,7 +65,10 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
     }
 
     private String loadDataSourceFromSpringConfig() {
-        File resourceDir = new File("src/main/resources");
+        Project project = ProjectManager.getInstance().getOpenProjects()[0];
+        String basePath = project.getBasePath();
+        if (basePath == null) return null;
+        File resourceDir = new File(basePath, "src/main/resources");
         File yml = new File(resourceDir, "application.yml");
         File props = new File(resourceDir, "application.properties");
 
