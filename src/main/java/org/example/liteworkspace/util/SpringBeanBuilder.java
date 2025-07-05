@@ -14,7 +14,9 @@ public class SpringBeanBuilder implements BeanDefinitionBuilder {
 
     @Override
     public void buildBeanXml(PsiClass clazz, Set<String> visited, Map<String, String> beanMap, XmlBeanAssembler assembler) {
-        if (!supports(clazz) || visited.contains(clazz.getQualifiedName())) return;
+        if (!supports(clazz) || visited.contains(clazz.getQualifiedName())) {
+            return;
+        }
         visited.add(clazz.getQualifiedName());
 
         String id = decapitalize(clazz.getName());

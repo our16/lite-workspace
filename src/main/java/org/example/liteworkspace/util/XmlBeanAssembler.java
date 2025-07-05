@@ -26,9 +26,9 @@ public class XmlBeanAssembler {
 
     public void buildBeanIfNecessary(PsiClass clazz) {
         String qName = clazz.getQualifiedName();
-        if (qName == null || visited.contains(qName)) return;
-
-        visited.add(qName);
+        if (qName == null || visited.contains(qName)) {
+            return;
+        }
         for (BeanDefinitionBuilder builder : builders) {
             if (builder.supports(clazz)) {
                 builder.buildBeanXml(clazz, visited, beanMap, this);
