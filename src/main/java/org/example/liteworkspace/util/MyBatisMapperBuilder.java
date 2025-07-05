@@ -29,8 +29,26 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
 
     @Override
     public boolean supports(PsiClass clazz) {
-        return clazz.isInterface() && clazz.getName() != null && clazz.getName().endsWith("Mapper");
+        if (clazz == null || !clazz.isInterface() || clazz.getQualifiedName() == null) return false;
+
+        String name = clazz.getName();
+        String qualifiedName = clazz.getQualifiedName();
+
+        // 允许的结尾关键词，可根据需要扩展
+        List<String> suffixes = Arrays.asList("Mapper", "Dao");
+
+        // 判断是否注解了 @Mapper 注解（只看类注解名后缀，避免依赖 spring 包）
+        boolean hasMapperAnnotation = Arrays.stream(clazz.getAnnotations())
+                .map(PsiAnnotation::getQualifiedName)
+                .filter(Objects::nonNull)
+                .anyMatch(qn -> qn.endsWith(".Mapper"));
+
+        // 判断类名是否以可接受的后缀结尾
+        boolean hasValidSuffix = suffixes.stream().anyMatch(name::endsWith);
+
+        return hasMapperAnnotation || hasValidSuffix;
     }
+
 
     @Override
     public void buildBeanXml(PsiClass clazz, Set<String> visited, Map<String, String> beanMap, XmlBeanAssembler assembler) {
