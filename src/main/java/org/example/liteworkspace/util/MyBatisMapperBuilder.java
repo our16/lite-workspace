@@ -3,7 +3,9 @@ package org.example.liteworkspace.util;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMethod;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -50,18 +52,49 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
         String className = clazz.getQualifiedName();
         String id = decapitalize(clazz.getName());
 
-        String mapperBean =
-                "    <bean id=\"" + id + "\" class=\"org.mybatis.spring.mapper.MapperFactoryBean\">\n" +
-                        "        <property name=\"mapperInterface\" value=\"" + className + "\"/>\n" +
-                        "        <property name=\"sqlSessionFactory\" ref=\"sqlSessionFactory\"/>\n" +
-                        "    </bean>";
+        boolean isAnnotated = isAnnotatedMapper(clazz);
 
-        assembler.putBeanXml(id, mapperBean);
+        StringBuilder mapperBean = new StringBuilder();
+        mapperBean.append("    <bean id=\"").append(id).append("\" ");
+        if (isAnnotated) {
+            mapperBean.append("class=\"").append(className).append("\"/>");
+        } else {
+            mapperBean.append("class=\"org.mybatis.spring.mapper.MapperFactoryBean\">\n")
+                    .append("        <property name=\"mapperInterface\" value=\"").append(className).append("\"/>\n")
+                    .append("        <property name=\"sqlSessionFactory\" ref=\"sqlSessionFactory\"/>\n")
+                    .append("    </bean>");
+        }
+        assembler.putBeanXml(id, mapperBean.toString());
 
         if (!hasSessionFactory) {
             assembler.putBeanXml("sqlSessionFactory", getDefaultSqlSessionFactoryBean());
         }
     }
+
+    private boolean isAnnotatedMapper(PsiClass clazz) {
+        if (clazz == null || !clazz.isInterface()) return false;
+
+        // 只有当类上有 @Mapper 且方法上含有 @Select/@Insert/... 才认为是注解模式
+        boolean hasMapperAnnotation = Arrays.stream(clazz.getAnnotations())
+                .map(PsiAnnotation::getQualifiedName)
+                .anyMatch(q -> q != null && q.endsWith(".Mapper"));
+
+        if (!hasMapperAnnotation) return false;
+
+        for (PsiMethod method : clazz.getMethods()) {
+            for (PsiAnnotation annotation : method.getAnnotations()) {
+                String qn = annotation.getQualifiedName();
+                if (qn != null && (qn.endsWith(".Select") || qn.endsWith(".Insert")
+                        || qn.endsWith(".Update") || qn.endsWith(".Delete"))) {
+                    return true; // 至少一个方法有注解，才是真正的注解 Mapper
+                }
+            }
+        }
+
+        return false; // 否则仍走 XML 配置
+    }
+
+
 
     private String getDefaultSqlSessionFactoryBean() {
         StringBuilder bean = new StringBuilder();
