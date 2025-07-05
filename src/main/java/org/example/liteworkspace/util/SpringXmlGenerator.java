@@ -52,7 +52,7 @@ public class SpringXmlGenerator {
 
         File outputFile = new File(
                 testRes.substring(0, testRes.indexOf("src" + File.separator + "test" + File.separator + "resources") + "src/test/resources".length()) +
-                        File.separator + packagePath + File.separator + clazz.getName() + ".xml"
+                        File.separator + packagePath + File.separator + clazz.getName() + "Test.xml"
         );
 
         outputFile.getParentFile().mkdirs();
@@ -93,7 +93,7 @@ public class SpringXmlGenerator {
                     .append("import javax.annotation.Resource;\n\n")
                     .append("@RunWith(SpringRunner.class)\n")
                     .append("@ContextConfiguration(locations = \"classpath:")
-                    .append(packageName.replace('.', '/')).append("/").append(className).append(".xml\")\n")
+                    .append(packageName.replace('.', '/')).append("/").append(testClassName).append(".xml\")\n")
                     .append("public class ").append(testClassName).append(" {\n\n")
                     .append("    @Resource\n")
                     .append("    private ").append(className).append(" ").append(fieldName).append(";\n\n")

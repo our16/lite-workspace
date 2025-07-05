@@ -25,7 +25,7 @@ intellij {
     version.set("2024.1.7")
     type.set("IC") // Target IDE Platform
     plugins.set(listOf(/* Plugin Dependencies */))
-    plugins.set(listOf("java")) // 👈 关键：启用 Java PSI 模块
+    plugins.set(listOf("com.intellij.java", "JUnit"))
 }
 
 tasks {
