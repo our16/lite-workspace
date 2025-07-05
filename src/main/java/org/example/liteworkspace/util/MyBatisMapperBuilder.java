@@ -116,13 +116,24 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
     }
 
     private String buildDataSourceBean(String driver, String url, String username, String password) {
-        return "    <bean id=\"dataSource\" class=\"org.apache.commons.dbcp2.BasicDataSource\">\n" +
-                "        <property name=\"driverClassName\" value=\"" + driver + "\"/>\n" +
-                "        <property name=\"url\" value=\"" + url + "\"/>\n" +
-                "        <property name=\"username\" value=\"" + username + "\"/>\n" +
-                (password != null ? "        <property name=\"password\" value=\"" + password + "\"/>\n" : "") +
+        return "    <bean id=\"dataSource\" class=\"com.zaxxer.hikari.HikariDataSource\">\n" +
+                "        <property name=\"driverClassName\" value=\"" + escapeXml(driver) + "\"/>\n" +
+                "        <property name=\"jdbcUrl\" value=\"" + escapeXml(url) + "\"/>\n" +
+                "        <property name=\"username\" value=\"" + escapeXml(username) + "\"/>\n" +
+                (password != null ? "        <property name=\"password\" value=\"" + escapeXml(password) + "\"/>\n" : "") +
                 "    </bean>";
     }
+
+    private String escapeXml(String value) {
+        if (value == null) return "";
+        return value.replace("&", "&amp;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
+    }
+
+
 
     private String promptAndCacheXmlPath() {
         String cached = loadCachedXmlPath();
