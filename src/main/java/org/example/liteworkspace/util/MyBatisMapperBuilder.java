@@ -11,7 +11,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
-
     private final Set<String> knownDataSourceClasses;
     private final Set<String> knownSqlSessionFactoryClasses;
     private final Map<String, String> mapperClassToXmlPath = new HashMap<>();
@@ -21,6 +20,7 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
         Properties props = loadProperties();
         this.knownDataSourceClasses = parseClasses(props.getProperty("datasource.classes"));
         this.knownSqlSessionFactoryClasses = parseClasses(props.getProperty("sqlsessionfactory.classes"));
+        scanAllMapperXml(); // 自动扫描 mapper XML 文件
     }
 
     @Override
@@ -49,7 +49,6 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
 
         String className = clazz.getQualifiedName();
         String id = decapitalize(clazz.getName());
-        mapperClassToXmlPath.put(className, className.replace('.', '/') + ".xml");
 
         String mapperBean =
                 "    <bean id=\"" + id + "\" class=\"org.mybatis.spring.mapper.MapperFactoryBean\">\n" +
@@ -84,17 +83,46 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
         return bean.toString();
     }
 
-    private List<String> findMapperXmlPaths() {
+    private void scanAllMapperXml() {
         Project project = ProjectManager.getInstance().getOpenProjects()[0];
         File resourceDir = new File(project.getBasePath(), "src/main/resources");
-        List<String> paths = new ArrayList<>();
-        for (String relPath : mapperClassToXmlPath.values()) {
-            File f = new File(resourceDir, relPath);
-            if (f.exists()) {
-                paths.add(relPath);
+
+        if (!resourceDir.exists()) return;
+
+        List<File> xmlFiles = new ArrayList<>();
+        collectXmlFiles(resourceDir, xmlFiles);
+
+        for (File xmlFile : xmlFiles) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(xmlFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
+                    if (line.startsWith("<mapper") && line.contains("namespace=")) {
+                        String namespace = line.replaceAll(".*namespace\\s*=\\s*\"([^\"]+)\".*", "$1");
+                        String relativePath = xmlFile.getAbsolutePath()
+                                .replace(resourceDir.getAbsolutePath() + File.separator, "")
+                                .replace(File.separatorChar, '/');
+                        mapperClassToXmlPath.put(namespace, relativePath);
+                        break;
+                    }
+                }
+            } catch (IOException ignored) {
             }
         }
-        return paths;
+    }
+
+    private void collectXmlFiles(File dir, List<File> files) {
+        for (File file : Objects.requireNonNull(dir.listFiles())) {
+            if (file.isDirectory()) {
+                collectXmlFiles(file, files);
+            } else if (file.getName().endsWith(".xml")) {
+                files.add(file);
+            }
+        }
+    }
+
+    private List<String> findMapperXmlPaths() {
+        return new ArrayList<>(mapperClassToXmlPath.values());
     }
 
     private String loadDataSourceFromSpringConfig() {
@@ -236,9 +264,9 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
     }
 
     private String getDefaultDataSourceBean() {
-        return "    <bean id=\"dataSource\" class=\"org.apache.commons.dbcp2.BasicDataSource\">\n" +
+        return "    <bean id=\"dataSource\" class=\"com.zaxxer.hikari.HikariDataSource\">\n" +
                 "        <property name=\"driverClassName\" value=\"com.mysql.cj.jdbc.Driver\"/>\n" +
-                "        <property name=\"url\" value=\"jdbc:mysql://localhost:3306/test\"/>\n" +
+                "        <property name=\"jdbcUrl\" value=\"jdbc:mysql://localhost:3306/test\"/>\n" +
                 "        <property name=\"username\" value=\"root\"/>\n" +
                 "        <property name=\"password\" value=\"123456\"/>\n" +
                 "    </bean>";
@@ -249,4 +277,6 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
                 ? name
                 : Character.toLowerCase(name.charAt(0)) + name.substring(1);
     }
+
 }
+
