@@ -32,6 +32,12 @@
                            isLogByDefault="true"/>
     </extensions>
 
+    <projectListeners>
+        <listener class="org.example.liteworkspace.listener.MinimalTestExecutionListener"
+                  topic="com.intellij.execution.ExecutionListener"/>
+    </projectListeners>
+
+
     <actions>
         <action id="testAction"
                 class="org.example.liteworkspace.TestAction"
