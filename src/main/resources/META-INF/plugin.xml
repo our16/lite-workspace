@@ -48,8 +48,8 @@
         </action>
         <action id="parseClassDependenceAction"
                 class="org.example.liteworkspace.ParseClassDependenceAction"
-                text="Lite 分析依赖"
-                description="测试分析依赖">
+                text="Lite 生成单测和依赖配置文件"
+                description="生成单测和依赖配置文件">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
     </actions>

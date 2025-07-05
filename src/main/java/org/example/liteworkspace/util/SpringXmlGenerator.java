@@ -14,7 +14,7 @@ public class SpringXmlGenerator {
 
     public static void generateXmlForClass(Project project, PsiClass clazz) {
         CompileFileRecorder recorder = new CompileFileRecorder(project);
-        XmlBeanAssembler assembler = new XmlBeanAssembler(recorder);
+        XmlBeanAssembler assembler = new XmlBeanAssembler(recorder, project);
         Map<String, String> beanMap = assembler.buildAll(clazz);
 
         StringBuilder xml = new StringBuilder();

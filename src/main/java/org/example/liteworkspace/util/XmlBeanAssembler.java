@@ -1,5 +1,6 @@
 package org.example.liteworkspace.util;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 
 import java.util.*;
@@ -11,9 +12,9 @@ public class XmlBeanAssembler {
     private final Set<String> visited;
     private final CompileFileRecorder recorder;
 
-    public XmlBeanAssembler(CompileFileRecorder recorder) {
+    public XmlBeanAssembler(CompileFileRecorder recorder, Project project) {
         this.builders = Collections.unmodifiableList(Arrays.asList(
-                new SpringBeanBuilder(),
+                new SpringBeanBuilder(project),
                 new MyBatisMapperBuilder()
         ));
         this.beanMap = new LinkedHashMap<>();

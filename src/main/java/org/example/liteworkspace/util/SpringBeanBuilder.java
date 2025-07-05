@@ -1,24 +1,31 @@
 package org.example.liteworkspace.util;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.ClassInheritorsSearch;
+import com.intellij.util.Query;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class SpringBeanBuilder implements BeanDefinitionBuilder {
 
-    private static final Set<String> INJECT_ANNOTATIONS = Set.of(
-            "Autowired", "Resource", "Inject", "Qualifier"
-    );
+    private Project project;
+
+    public SpringBeanBuilder(Project project) {
+        this.project = project;
+    }
 
     @Override
     public boolean supports(PsiClass clazz) {
-        return clazz != null && !clazz.isInterface() && clazz.getQualifiedName() != null;
+        return clazz != null && clazz.getQualifiedName() != null;
     }
 
     @Override
     public void buildBeanXml(PsiClass clazz, Set<String> visited, Map<String, String> beanMap, XmlBeanAssembler assembler) {
-        if (!supports(clazz) || visited.contains(clazz.getQualifiedName())) return;
+        if (!supports(clazz) || visited.contains(clazz.getQualifiedName())) {
+            return;
+        }
         visited.add(clazz.getQualifiedName());
 
         String id = decapitalize(clazz.getName());
@@ -26,43 +33,71 @@ public class SpringBeanBuilder implements BeanDefinitionBuilder {
         StringBuilder beanXml = new StringBuilder();
         beanXml.append("    <bean id=\"").append(id).append("\" class=\"").append(className).append("\"/>\n");
 
-        // 扫描构造器依赖（但不生成 constructor-arg，只标记依赖）
+        // 构造器依赖
         for (PsiMethod constructor : clazz.getConstructors()) {
             for (PsiParameter param : constructor.getParameterList().getParameters()) {
-                PsiClass dep = resolveInjectableClass(param.getType());
-                if (dep != null) {
-                    assembler.buildBeanIfNecessary(dep); // 加入依赖
-                }
+                resolveAndBuildDependency(param.getType(), assembler);
             }
         }
 
-        // 扫描字段依赖（不管有没有注解，都不生成 property，但记录依赖）
+        // 字段依赖
         for (PsiField field : clazz.getFields()) {
-            if (field.hasModifierProperty(PsiModifier.STATIC) || field.hasModifierProperty(PsiModifier.FINAL)) {
-                continue;
-            }
-            PsiClass dep = resolveInjectableClass(field.getType());
-            if (dep != null) {
-                assembler.buildBeanIfNecessary(dep);
-            }
+            if (field.hasModifierProperty(PsiModifier.STATIC) || field.hasModifierProperty(PsiModifier.FINAL)) continue;
+            resolveAndBuildDependency(field.getType(), assembler);
         }
 
         assembler.putBeanXml(id, beanXml.toString());
     }
 
-    private PsiClass resolveInjectableClass(PsiType type) {
-        if (!(type instanceof PsiClassType)) return null;
+    private void resolveAndBuildDependency(PsiType type, XmlBeanAssembler assembler) {
+        if (!(type instanceof PsiClassType)) {
+            return;
+        }
         PsiClass clazz = ((PsiClassType) type).resolve();
-        if (clazz == null) return null;
+        if (clazz == null || clazz.getQualifiedName() == null) {
+            return;
+        }
+        if (clazz.isEnum() || clazz.isAnnotationType() || clazz instanceof PsiTypeParameter) {
+            return;
+        }
+        if (clazz.getQualifiedName().startsWith("java.")) {
+            return;
+        }
 
+        if (clazz.isInterface()) {
+            if (isMyBatisMapper(clazz)) {
+                return;
+            }
+            for (PsiClass impl : findImplementations(clazz)) {
+                assembler.buildBeanIfNecessary(impl);
+            }
+        } else {
+            assembler.buildBeanIfNecessary(clazz);
+        }
+    }
+
+    private boolean isMyBatisMapper(PsiClass clazz) {
+        PsiModifierList modifiers = clazz.getModifierList();
+        if (modifiers != null) {
+            for (PsiAnnotation ann : modifiers.getAnnotations()) {
+                if ("org.apache.ibatis.annotations.Mapper".equals(ann.getQualifiedName())) {
+                    return true;
+                }
+            }
+        }
         String qName = clazz.getQualifiedName();
-        if (qName == null) return null;
+        return qName != null && qName.contains(".mapper");
+    }
 
-        if (clazz.isEnum() || clazz.isAnnotationType()) return null;
-        if (qName.startsWith("java.lang.") || qName.startsWith("java.util.")) return null;
-        if (clazz instanceof PsiTypeParameter) return null;
-
-        return clazz;
+    private List<PsiClass> findImplementations(PsiClass iface) {
+        List<PsiClass> result = new ArrayList<>();
+        Query<PsiClass> query = ClassInheritorsSearch.search(iface, GlobalSearchScope.projectScope(project), true);
+        for (PsiClass cls : query) {
+            if (!cls.isInterface()) {
+                result.add(cls);
+            }
+        }
+        return result;
     }
 
     private String decapitalize(String name) {
