@@ -1,5 +1,6 @@
 package org.example.liteworkspace.util;
 
+import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiClass;
 
 import java.io.*;
@@ -11,6 +12,7 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
 
     private final Set<String> knownDataSourceClasses;
     private final Set<String> knownSqlSessionFactoryClasses;
+    private static final String CUSTOM_XML_CACHE = System.getProperty("user.home") + "/.lite-workspace/custom-xml-path.cache";
 
     public MyBatisMapperBuilder() {
         Properties props = loadProperties();
@@ -28,11 +30,15 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
         if (!supports(clazz) || visited.contains(clazz.getQualifiedName())) return;
         visited.add(clazz.getQualifiedName());
 
+        String xmlPath = promptAndCacheXmlPath();
+        XmlBeanParser parser = xmlPath != null ? new XmlBeanParser(new File(xmlPath)) : null;
+
         // 检查是否已存在数据源或SqlSessionFactory类（根据类型而非id）
-        boolean hasDataSource = beanMap.values().stream().anyMatch(xml ->
-                knownDataSourceClasses.stream().anyMatch(xml::contains));
-        boolean hasSessionFactory = beanMap.values().stream().anyMatch(xml ->
-                knownSqlSessionFactoryClasses.stream().anyMatch(xml::contains));
+        boolean hasDataSource = (parser != null && parser.containsClass(knownDataSourceClasses)) ||
+                beanMap.values().stream().anyMatch(xml -> knownDataSourceClasses.stream().anyMatch(xml::contains));
+
+        boolean hasSessionFactory = (parser != null && parser.containsClass(knownSqlSessionFactoryClasses)) ||
+                beanMap.values().stream().anyMatch(xml -> knownSqlSessionFactoryClasses.stream().anyMatch(xml::contains));
 
         if (!hasDataSource) {
             assembler.putBeanXml("dataSource", getDefaultDataSourceBean());
@@ -52,6 +58,42 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
                         "    </bean>";
 
         assembler.putBeanXml(id, mapperBean);
+    }
+
+    private String promptAndCacheXmlPath() {
+        String cached = loadCachedXmlPath();
+        String input = Messages.showInputDialog(
+                "请输入自定义 Spring XML 配置文件路径：",
+                "MyBatis 配置文件路径",
+                Messages.getQuestionIcon(),
+                cached,
+                null
+        );
+        if (input != null && !input.trim().isEmpty()) {
+            cacheXmlPath(input.trim());
+            return input.trim();
+        }
+        return cached;
+    }
+
+    private String loadCachedXmlPath() {
+        File file = new File(CUSTOM_XML_CACHE);
+        if (file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+                return reader.readLine();
+            } catch (IOException ignored) {}
+        }
+        return "";
+    }
+
+    private void cacheXmlPath(String path) {
+        try {
+            File dir = new File(System.getProperty("user.home"), ".lite-workspace");
+            if (!dir.exists()) dir.mkdirs();
+            try (Writer writer = new OutputStreamWriter(new FileOutputStream(CUSTOM_XML_CACHE), StandardCharsets.UTF_8)) {
+                writer.write(path);
+            }
+        } catch (IOException ignored) {}
     }
 
     private Properties loadProperties() {
