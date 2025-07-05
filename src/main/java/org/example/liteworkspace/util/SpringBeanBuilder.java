@@ -27,7 +27,7 @@ public class SpringBeanBuilder implements BeanDefinitionBuilder {
         // 构造器依赖
         for (PsiMethod constructor : clazz.getConstructors()) {
             for (PsiParameter param : constructor.getParameterList().getParameters()) {
-                PsiClass dep = resolveClass(param.getType());
+                PsiClass dep = resolveInjectableClass(param.getType());
                 if (dep != null) {
                     String ref = decapitalize(dep.getName());
                     beanXml.append("        <constructor-arg ref=\"").append(ref).append("\"/>\n");
@@ -38,7 +38,11 @@ public class SpringBeanBuilder implements BeanDefinitionBuilder {
 
         // 字段注入
         for (PsiField field : clazz.getFields()) {
-            PsiClass dep = resolveClass(field.getType());
+            if (field.hasModifierProperty(PsiModifier.STATIC) || field.hasModifierProperty(PsiModifier.FINAL)) {
+                continue; // 排除常量
+            }
+
+            PsiClass dep = resolveInjectableClass(field.getType());
             if (dep != null) {
                 String ref = decapitalize(dep.getName());
                 beanXml.append("        <property name=\"").append(field.getName()).append("\" ref=\"").append(ref).append("\"/>\n");
@@ -50,11 +54,20 @@ public class SpringBeanBuilder implements BeanDefinitionBuilder {
         assembler.putBeanXml(id, beanXml.toString());
     }
 
-    private PsiClass resolveClass(PsiType type) {
-        if (type instanceof PsiClassType) {
-            return ((PsiClassType) type).resolve();
-        }
-        return null;
+    private PsiClass resolveInjectableClass(PsiType type) {
+        if (!(type instanceof PsiClassType)) return null;
+
+        PsiClass clazz = ((PsiClassType) type).resolve();
+        if (clazz == null) return null;
+
+        String qName = clazz.getQualifiedName();
+        if (qName == null) return null;
+
+        if (clazz.isEnum() || clazz.isAnnotationType()) return null;
+        if (qName.startsWith("java.lang.") || qName.startsWith("java.util.")) return null;
+        if (clazz instanceof PsiTypeParameter) return null;
+
+        return clazz;
     }
 
     private String decapitalize(String name) {
