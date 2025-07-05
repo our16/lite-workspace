@@ -33,7 +33,6 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
         String xmlPath = promptAndCacheXmlPath();
         XmlBeanParser parser = xmlPath != null ? new XmlBeanParser(new File(xmlPath)) : null;
 
-        // 检查是否已存在数据源或SqlSessionFactory类（根据类型而非id）
         boolean hasDataSource = (parser != null && parser.containsClass(knownDataSourceClasses)) ||
                 beanMap.values().stream().anyMatch(xml -> knownDataSourceClasses.stream().anyMatch(xml::contains));
 
@@ -41,7 +40,8 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
                 beanMap.values().stream().anyMatch(xml -> knownSqlSessionFactoryClasses.stream().anyMatch(xml::contains));
 
         if (!hasDataSource) {
-            assembler.putBeanXml("dataSource", getDefaultDataSourceBean());
+            String dsXml = loadDataSourceFromSpringConfig();
+            assembler.putBeanXml("dataSource", dsXml != null ? dsXml : getDefaultDataSourceBean());
         }
 
         if (!hasSessionFactory) {
@@ -58,6 +58,63 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
                         "    </bean>";
 
         assembler.putBeanXml(id, mapperBean);
+    }
+
+    private String loadDataSourceFromSpringConfig() {
+        File resourceDir = new File("src/main/resources");
+        File yml = new File(resourceDir, "application.yml");
+        File props = new File(resourceDir, "application.properties");
+
+        try {
+            if (yml.exists()) {
+                return parseYamlForDataSource(yml);
+            } else if (props.exists()) {
+                return parsePropertiesForDataSource(props);
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    private String parseYamlForDataSource(File file) throws IOException {
+        List<String> lines = java.nio.file.Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+        Map<String, String> map = new HashMap<>();
+        for (String line : lines) {
+            line = line.trim();
+            if (line.contains(":")) {
+                String[] kv = line.split(":", 2);
+                map.put(kv[0].trim(), kv[1].trim().replaceAll("\"", ""));
+            }
+        }
+        if (map.containsKey("url") && map.containsKey("username")) {
+            return buildDataSourceBean(map.get("driver-class-name"), map.get("url"), map.get("username"), map.get("password"));
+        }
+        return null;
+    }
+
+    private String parsePropertiesForDataSource(File file) throws IOException {
+        Properties props = new Properties();
+        try (InputStream in = new FileInputStream(file)) {
+            props.load(new InputStreamReader(in, StandardCharsets.UTF_8));
+        }
+        String url = props.getProperty("spring.datasource.url");
+        String username = props.getProperty("spring.datasource.username");
+        String password = props.getProperty("spring.datasource.password");
+        String driver = props.getProperty("spring.datasource.driver-class-name", "com.mysql.cj.jdbc.Driver");
+
+        if (url != null && username != null) {
+            return buildDataSourceBean(driver, url, username, password);
+        }
+        return null;
+    }
+
+    private String buildDataSourceBean(String driver, String url, String username, String password) {
+        return "    <bean id=\"dataSource\" class=\"org.apache.commons.dbcp2.BasicDataSource\">\n" +
+                "        <property name=\"driverClassName\" value=\"" + driver + "\"/>\n" +
+                "        <property name=\"url\" value=\"" + url + "\"/>\n" +
+                "        <property name=\"username\" value=\"" + username + "\"/>\n" +
+                (password != null ? "        <property name=\"password\" value=\"" + password + "\"/>\n" : "") +
+                "    </bean>";
     }
 
     private String promptAndCacheXmlPath() {
@@ -81,7 +138,8 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
         if (file.exists()) {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
                 return reader.readLine();
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
         }
         return "";
     }
@@ -93,20 +151,20 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
             try (Writer writer = new OutputStreamWriter(new FileOutputStream(CUSTOM_XML_CACHE), StandardCharsets.UTF_8)) {
                 writer.write(path);
             }
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
     }
 
     private Properties loadProperties() {
         Properties props = new Properties();
 
-        // Step 1: 先加载默认配置
         try (InputStream in = getClass().getClassLoader().getResourceAsStream("datasource.properties")) {
             if (in != null) {
                 props.load(new InputStreamReader(in, StandardCharsets.UTF_8));
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
-        // Step 2: 再加载用户配置（覆盖默认）
         try {
             File custom = new File(System.getProperty("user.home"), ".lite-workspace/datasource.properties");
             if (custom.exists()) {
@@ -114,11 +172,11 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
                     props.load(new InputStreamReader(in, StandardCharsets.UTF_8));
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         return props;
     }
-
 
     private Set<String> parseClasses(String raw) {
         if (raw == null || raw.isEmpty()) return Collections.emptySet();
