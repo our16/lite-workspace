@@ -30,6 +30,7 @@ public class SpringXmlGenerator {
         xml.append("</beans>\n");
 
         writeXmlToResources(clazz, xml.toString());
+        generateTestClass(clazz); // ✅ 生成测试类
     }
 
     private static void buildBean(PsiClass clazz, Map<String, String> beanMap, Set<String> visited) {
@@ -54,7 +55,7 @@ public class SpringXmlGenerator {
             }
         }
 
-        // 字段依赖
+        // 字段注入
         for (PsiField field : clazz.getFields()) {
             PsiClass dep = resolveClass(field.getType());
             if (dep != null) {
@@ -101,6 +102,47 @@ public class SpringXmlGenerator {
         try (FileWriter fw = new FileWriter(outputFile)) {
             fw.write(content);
             System.out.println("✅ XML 写入成功: " + outputFile.getAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void generateTestClass(PsiClass clazz) {
+        String packageName = clazz.getQualifiedName().replace("." + clazz.getName(), "");
+        String className = clazz.getName();
+        String testClassName = className + "Test";
+
+        String testCode = "package " + packageName + ";\n\n" +
+                "import org.junit.Test;\n" +
+                "import org.junit.runner.RunWith;\n" +
+                "import org.springframework.test.context.ContextConfiguration;\n" +
+                "import org.springframework.test.context.junit4.SpringRunner;\n" +
+                "import javax.annotation.Resource;\n\n" +
+                "@RunWith(SpringRunner.class)\n" +
+                "@ContextConfiguration(locations = \"classpath:" + packageName.replace('.', '/') + "/" + className + ".xml\")\n" +
+                "public class " + testClassName + " {\n\n" +
+                "    @Resource\n" +
+                "    private " + className + " " + decapitalize(className) + ";\n\n" +
+                "    @Test\n" +
+                "    public void testContextLoads() {\n" +
+                "        System.out.println(\"" + decapitalize(className) + " = \" + " + decapitalize(className) + ");\n" +
+                "    }\n" +
+                "}";
+
+        PsiFile psiFile = clazz.getContainingFile();
+        VirtualFile virtualFile = psiFile.getVirtualFile();
+        File sourceFile = new File(virtualFile.getPath());
+        String testJavaPath = sourceFile.getAbsolutePath()
+                .replace("src\\main\\java", "src\\test\\java")
+                .replace("src/main/java", "src/test/java")
+                .replace(className + ".java", testClassName + ".java");
+
+        File outputFile = new File(testJavaPath);
+        outputFile.getParentFile().mkdirs();
+
+        try (FileWriter fw = new FileWriter(outputFile)) {
+            fw.write(testCode);
+            System.out.println("✅ Test 类写入成功: " + outputFile.getAbsolutePath());
         } catch (Exception e) {
             e.printStackTrace();
         }
