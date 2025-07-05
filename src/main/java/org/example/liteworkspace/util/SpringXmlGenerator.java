@@ -13,7 +13,8 @@ import java.util.Map;
 public class SpringXmlGenerator {
 
     public static void generateXmlForClass(Project project, PsiClass clazz) {
-        XmlBeanAssembler assembler = new XmlBeanAssembler();
+        CompileFileRecorder recorder = new CompileFileRecorder(project);
+        XmlBeanAssembler assembler = new XmlBeanAssembler(recorder);
         Map<String, String> beanMap = assembler.buildAll(clazz);
 
         StringBuilder xml = new StringBuilder();

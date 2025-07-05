@@ -9,14 +9,16 @@ public class XmlBeanAssembler {
     private final List<BeanDefinitionBuilder> builders;
     private final Map<String, String> beanMap;
     private final Set<String> visited;
+    private final CompileFileRecorder recorder;
 
-    public XmlBeanAssembler() {
+    public XmlBeanAssembler(CompileFileRecorder recorder) {
         this.builders = Collections.unmodifiableList(Arrays.asList(
                 new SpringBeanBuilder(),
                 new MyBatisMapperBuilder()
         ));
         this.beanMap = new LinkedHashMap<>();
         this.visited = new HashSet<>();
+        this.recorder = recorder;
     }
 
     public Map<String, String> buildAll(PsiClass root) {
@@ -29,6 +31,8 @@ public class XmlBeanAssembler {
         if (qName == null || visited.contains(qName)) {
             return;
         }
+        // ✅ 记录依赖
+        recorder.tryRecord(clazz);
         for (BeanDefinitionBuilder builder : builders) {
             if (builder.supports(clazz)) {
                 builder.buildBeanXml(clazz, visited, beanMap, this);
@@ -39,9 +43,5 @@ public class XmlBeanAssembler {
 
     public void putBeanXml(String id, String xml) {
         beanMap.putIfAbsent(id, xml);
-    }
-
-    private String decapitalize(String name) {
-        return name == null || name.isEmpty() ? name : Character.toLowerCase(name.charAt(0)) + name.substring(1);
     }
 }
