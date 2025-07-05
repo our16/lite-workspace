@@ -70,8 +70,6 @@ public class SpringXmlGenerator {
         String testClassName = className + "Test";
 
         String fieldName = decapitalize(className);
-        String relativePath = packageName.replace('.', '/') + "/" + testClassName + ".java";
-
         PsiFile psiFile = clazz.getContainingFile();
         VirtualFile virtualFile = psiFile.getVirtualFile();
         File sourceFile = new File(virtualFile.getPath());

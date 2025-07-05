@@ -17,8 +17,10 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
     private final Set<String> knownSqlSessionFactoryClasses;
     private final Map<String, String> mapperClassToXmlPath = new HashMap<>();
     private static final String CUSTOM_XML_CACHE = System.getProperty("user.home") + "/.lite-workspace/custom-xml-path.cache";
+    private final String xmlPath;
 
     public MyBatisMapperBuilder() {
+        this.xmlPath = promptAndCacheXmlPath();
         Properties props = loadProperties();
         this.knownDataSourceClasses = parseClasses(props.getProperty("datasource.classes"));
         this.knownSqlSessionFactoryClasses = parseClasses(props.getProperty("sqlsessionfactory.classes"));
@@ -34,8 +36,6 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
     public void buildBeanXml(PsiClass clazz, Set<String> visited, Map<String, String> beanMap, XmlBeanAssembler assembler) {
         if (!supports(clazz) || visited.contains(clazz.getQualifiedName())) return;
         visited.add(clazz.getQualifiedName());
-
-        String xmlPath = promptAndCacheXmlPath();
         XmlBeanParser parser = xmlPath != null ? new XmlBeanParser(new File(xmlPath)) : null;
 
         boolean hasDataSource = (parser != null && parser.containsClass(knownDataSourceClasses)) ||
