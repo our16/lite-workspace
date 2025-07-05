@@ -4,6 +4,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 
+
 import java.io.File;
 import java.io.FileWriter;
 import java.util.Map;
@@ -14,21 +15,10 @@ public class SpringXmlGenerator {
         XmlBeanAssembler assembler = new XmlBeanAssembler();
         Map<String, String> beanMap = assembler.buildAll(clazz);
 
-        StringBuilder xml = new StringBuilder();
-        xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        xml.append("<beans xmlns=\"http://www.springframework.org/schema/beans\"\n");
-        xml.append("       xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
-        xml.append("       xsi:schemaLocation=\"http://www.springframework.org/schema/beans\n");
-        xml.append("        https://www.springframework.org/schema/beans/spring-beans.xsd\">\n\n");
+        String xml = XmlBeanWriter.generateXml(beanMap);
 
-        for (String beanXml : beanMap.values()) {
-            xml.append(beanXml).append("\n");
-        }
-
-        xml.append("</beans>\n");
-
-        writeXmlToResources(clazz, xml.toString());
-        generateTestClass(clazz); // ✅ 自动生成测试类
+        writeXmlToResources(clazz, xml);
+        generateTestClass(clazz); // ✅ 生成测试类
     }
 
     private static void writeXmlToResources(PsiClass clazz, String content) {
