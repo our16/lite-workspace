@@ -2,9 +2,7 @@ package org.example.liteworkspace.util;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 
 import java.io.*;
@@ -16,6 +14,7 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
 
     private final Set<String> knownDataSourceClasses;
     private final Set<String> knownSqlSessionFactoryClasses;
+    private final Map<String, String> mapperClassToXmlPath = new HashMap<>();
     private static final String CUSTOM_XML_CACHE = System.getProperty("user.home") + "/.lite-workspace/custom-xml-path.cache";
 
     public MyBatisMapperBuilder() {
@@ -48,12 +47,9 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
             assembler.putBeanXml("dataSource", dsXml != null ? dsXml : getDefaultDataSourceBean());
         }
 
-        if (!hasSessionFactory) {
-            assembler.putBeanXml("sqlSessionFactory", getDefaultSqlSessionFactoryBean());
-        }
-
-        String id = decapitalize(clazz.getName());
         String className = clazz.getQualifiedName();
+        String id = decapitalize(clazz.getName());
+        mapperClassToXmlPath.put(className, className.replace('.', '/') + ".xml");
 
         String mapperBean =
                 "    <bean id=\"" + id + "\" class=\"org.mybatis.spring.mapper.MapperFactoryBean\">\n" +
@@ -62,6 +58,43 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
                         "    </bean>";
 
         assembler.putBeanXml(id, mapperBean);
+
+        if (!hasSessionFactory) {
+            assembler.putBeanXml("sqlSessionFactory", getDefaultSqlSessionFactoryBean());
+        }
+    }
+
+    private String getDefaultSqlSessionFactoryBean() {
+        StringBuilder bean = new StringBuilder();
+        bean.append("    <bean id=\"sqlSessionFactory\" class=\"org.mybatis.spring.SqlSessionFactoryBean\">\n")
+                .append("        <property name=\"dataSource\" ref=\"dataSource\"/>\n");
+
+        List<String> mapperPaths = findMapperXmlPaths();
+        if (!mapperPaths.isEmpty()) {
+            bean.append("        <property name=\"mapperLocations\">\n")
+                    .append("            <list>\n");
+            for (String path : mapperPaths) {
+                bean.append("                <value>classpath:").append(path).append("</value>\n");
+            }
+            bean.append("            </list>\n")
+                    .append("        </property>\n");
+        }
+
+        bean.append("    </bean>");
+        return bean.toString();
+    }
+
+    private List<String> findMapperXmlPaths() {
+        Project project = ProjectManager.getInstance().getOpenProjects()[0];
+        File resourceDir = new File(project.getBasePath(), "src/main/resources");
+        List<String> paths = new ArrayList<>();
+        for (String relPath : mapperClassToXmlPath.values()) {
+            File f = new File(resourceDir, relPath);
+            if (f.exists()) {
+                paths.add(relPath);
+            }
+        }
+        return paths;
     }
 
     private String loadDataSourceFromSpringConfig() {
@@ -132,8 +165,6 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
                 .replace("<", "&lt;")
                 .replace(">", "&gt;");
     }
-
-
 
     private String promptAndCacheXmlPath() {
         String cached = loadCachedXmlPath();
@@ -210,12 +241,6 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
                 "        <property name=\"url\" value=\"jdbc:mysql://localhost:3306/test\"/>\n" +
                 "        <property name=\"username\" value=\"root\"/>\n" +
                 "        <property name=\"password\" value=\"123456\"/>\n" +
-                "    </bean>";
-    }
-
-    private String getDefaultSqlSessionFactoryBean() {
-        return "    <bean id=\"sqlSessionFactory\" class=\"org.mybatis.spring.SqlSessionFactoryBean\">\n" +
-                "        <property name=\"dataSource\" ref=\"dataSource\"/>\n" +
                 "    </bean>";
     }
 
