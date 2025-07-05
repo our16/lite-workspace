@@ -21,6 +21,8 @@
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
@@ -35,6 +37,12 @@
                 class="org.example.liteworkspace.TestAction"
                 text="Lite 测试通知"
                 description="测试发送通知">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
+        <action id="parseClassDependenceAction"
+                class="org.example.liteworkspace.ParseClassDependenceAction"
+                text="Lite 分析依赖"
+                description="测试分析依赖">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
     </actions>
