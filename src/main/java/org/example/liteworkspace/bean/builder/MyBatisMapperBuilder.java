@@ -11,7 +11,9 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
 
     @Override
     public void buildBean(PsiClass clazz, BeanRegistry registry) {
-        if (!isMyBatisMapper(clazz)) return;
+        if (!isMyBatisMapper(clazz)) {
+            return;
+        }
 
         String fqcn = clazz.getQualifiedName();
         if (fqcn == null) return;

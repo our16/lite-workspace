@@ -69,65 +69,138 @@ public class LiteScanAction extends AnAction {
         // 扫描和注册
         coordinator.scanAndBuild(targetClass, registry);
         // 写入到文件
-        writeBeanXmlToTestResources(project, targetClass, registry.getBeanXmlMap());
+        // ✅ 写入 XML
+        writeXml(project, targetClass, registry.getBeanXmlMap());
     }
 
-    public void writeBeanXmlToTestResources(Project project, PsiClass clazz, Map<String, String> beanXmlMap) {
+    private void writeXml(Project project, PsiClass clazz, Map<String, String> beanMap) {
         try {
-            // ✅ 获取所属 Module
             Module module = ModuleUtilCore.findModuleForPsiElement(clazz);
-            if (module == null) {
-                Messages.showErrorDialog(project, "未能找到类所属的 Module", "LiteWorkspace 错误");
-                return;
-            }
+            if (module == null) return;
 
-            // ✅ 查找 test/resources 根目录
-            VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots();
-            VirtualFile testResourceDir = null;
+            String qualifiedName = clazz.getQualifiedName();
+            String className = clazz.getName();
+            String packageName = qualifiedName.substring(0, qualifiedName.lastIndexOf('.'));
+            String testClassName = className + "Test";
+            String relativePath = packageName.replace('.', '/');
 
-            for (VirtualFile root : sourceRoots) {
+            // 定位 test/resources 和 test/java 目录
+            VirtualFile[] roots = ModuleRootManager.getInstance(module).getSourceRoots();
+            VirtualFile testJava = null, testRes = null;
+            for (VirtualFile root : roots) {
                 String path = root.getPath().replace("\\", "/");
-                if (path.contains("/src/test/resources")) {
-                    testResourceDir = root;
-                    break;
-                }
+                if (path.endsWith("/src/test/java")) testJava = root;
+                if (path.endsWith("/src/test/resources")) testRes = root;
             }
 
-            if (testResourceDir == null) {
-                Messages.showErrorDialog(project, "未找到 test/resources 目录，请确认项目结构", "LiteWorkspace 错误");
+            if (testJava == null || testRes == null) {
+                Messages.showErrorDialog(project, "未找到 test/java 或 test/resources 目录", "LiteWorkspace 错误");
                 return;
             }
 
-            // ✅ 构造 XML 内容
-            StringBuilder result = new StringBuilder();
-            result.append("<beans xmlns=\"http://www.springframework.org/schema/beans\"\n");
-            result.append("       xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
-            result.append("       xsi:schemaLocation=\"http://www.springframework.org/schema/beans\n");
-            result.append("        http://www.springframework.org/schema/beans/spring-beans.xsd\">\n\n");
+            File javaDir = new File(testJava.getPath(), relativePath);
+            File resDir = new File(testRes.getPath(), relativePath);
+            javaDir.mkdirs();
+            resDir.mkdirs();
 
-            for (String xml : beanXmlMap.values()) {
-                result.append(xml).append("\n");
-            }
-            result.append("</beans>");
+            File xmlFile = writeSpringXmlFile(beanMap, resDir, testClassName);
+            File testFile = writeJUnitTestFile(packageName, className, testClassName, relativePath, javaDir);
 
-            // ✅ 写入文件
-            File targetFile = new File(testResourceDir.getPath(), "spring.xml");
-            try (FileWriter writer = new FileWriter(targetFile)) {
-                writer.write(result.toString());
-            }
+            VfsUtil.findFileByIoFile(xmlFile, true).refresh(false, false);
+            VfsUtil.findFileByIoFile(testFile, true).refresh(false, false);
 
             Messages.showInfoMessage(project,
-                    "✅ Spring XML 生成成功：\n" + targetFile.getAbsolutePath(),
+                    "✅ 已生成：\n" + testFile.getAbsolutePath(),
                     "LiteWorkspace");
-
-            // ✅ 刷新 VirtualFileSystem，让 IDEA 识别新文件
-            VfsUtil.findFileByIoFile(targetFile, true).refresh(false, false);
 
         } catch (Exception ex) {
             Messages.showErrorDialog(project,
-                    "❌ 写入 spring.xml 失败：" + ex.getMessage(),
-                    "LiteWorkspace 错误");
+                    "❌ 生成失败：" + ex.getMessage(),
+                    "LiteWorkspace");
         }
     }
+
+    private File writeSpringXmlFile(Map<String, String> beanMap, File resDir, String testClassName) throws Exception {
+        File xmlFile = new File(resDir, testClassName + ".xml");
+
+        try (FileWriter fw = new FileWriter(xmlFile)) {
+            fw.write("<beans xmlns=\"http://www.springframework.org/schema/beans\"\n");
+            fw.write("       xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
+            fw.write("       xsi:schemaLocation=\"http://www.springframework.org/schema/beans\n");
+            fw.write("        http://www.springframework.org/schema/beans/spring-beans.xsd\">\n\n");
+
+            for (String xml : beanMap.values()) {
+                fw.write(xml);
+                fw.write("\n");
+            }
+
+            fw.write("</beans>");
+        }
+
+        return xmlFile;
+    }
+
+    private File writeJUnitTestFile(String packageName, String className, String testClassName,
+                                    String relativePath, File javaDir) throws Exception {
+        File testFile = new File(javaDir, testClassName + ".java");
+        String configLine = String.format("@ContextConfiguration(locations = \"classpath:%s/%s.xml\")",
+                relativePath, testClassName + ".xml");
+
+        if (!testFile.exists()) {
+            try (FileWriter fw = new FileWriter(testFile)) {
+                fw.write(String.format("""
+                package %s;
+
+                import org.junit.Test;
+                import org.junit.runner.RunWith;
+                import org.springframework.test.context.ContextConfiguration;
+                import org.springframework.test.context.junit4.SpringRunner;
+                import javax.annotation.Resource;
+
+                @RunWith(SpringRunner.class)
+                %s
+                public class %s {
+
+                    @Resource
+                    private %s %s;
+
+                    @Test
+                    public void testContextLoads() {
+                        System.out.println("%s = " + %s);
+                    }
+                }
+                """,
+                        packageName,
+                        configLine,
+                        testClassName,
+                        className,
+                        decapitalize(className),
+                        decapitalize(className),
+                        decapitalize(className)
+                ));
+            }
+        } else {
+            // 替换注解
+            String content = new String(java.nio.file.Files.readAllBytes(testFile.toPath()));
+            content = content.replaceAll(
+                    "@ContextConfiguration\\(locations\\s*=\\s*\"[^\"]*\"\\)",
+                    configLine
+            );
+            try (FileWriter fw = new FileWriter(testFile)) {
+                fw.write(content);
+            }
+        }
+
+        return testFile;
+    }
+
+
+
+
+    private String decapitalize(String name) {
+        if (name == null || name.isEmpty()) return name;
+        return Character.toLowerCase(name.charAt(0)) + name.substring(1);
+    }
+
 
 }
