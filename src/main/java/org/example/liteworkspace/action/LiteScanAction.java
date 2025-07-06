@@ -144,7 +144,7 @@ public class LiteScanAction extends AnAction {
                                     String relativePath, File javaDir) throws Exception {
         File testFile = new File(javaDir, testClassName + ".java");
         String configLine = String.format("@ContextConfiguration(locations = \"classpath:%s/%s.xml\")",
-                relativePath, testClassName + ".xml");
+                relativePath, testClassName);
 
         if (!testFile.exists()) {
             try (FileWriter fw = new FileWriter(testFile)) {

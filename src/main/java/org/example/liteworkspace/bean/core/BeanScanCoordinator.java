@@ -4,6 +4,7 @@ import com.intellij.psi.PsiClass;
 import org.example.liteworkspace.bean.BeanDefinitionBuilder;
 import org.example.liteworkspace.bean.BeanDependencyResolver;
 import org.example.liteworkspace.bean.BeanDefinitionResolver;
+import org.example.liteworkspace.bean.builder.MyBatisMapperBuilder;
 import org.example.liteworkspace.bean.resolver.BeanMethodResolver;
 
 import java.util.List;
@@ -24,7 +25,9 @@ public class BeanScanCoordinator {
     public void scanAndBuild(PsiClass root, BeanRegistry registry) {
         if (root == null || root.getQualifiedName() == null) return;
         String fqcn = root.getQualifiedName();
-        if (registry.isVisited(fqcn)) return;
+        if (registry.isVisited(fqcn)) {
+            return;
+        }
 
         registry.markVisited(fqcn);
 
@@ -43,6 +46,19 @@ public class BeanScanCoordinator {
             }
         }
 
+        // ✅ 添加对 MyBatis Mapper 的识别和构建（如果还未注册）
+        if (!registry.contains(root.getQualifiedName())) {
+            for (BeanDefinitionBuilder builder : builders) {
+                if (builder instanceof MyBatisMapperBuilder mapperBuilder
+                        && mapperBuilder.supports(root)) {
+                    builder.buildBean(root, registry);
+                    break;
+                }
+            }
+        }
+
+
+        // ✅ 递归解析依赖项
         for (BeanDependencyResolver depResolver : dependencyResolvers) {
             for (PsiClass dep : depResolver.resolveDependencies(root)) {
                 scanAndBuild(dep, registry);

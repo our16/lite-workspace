@@ -27,4 +27,8 @@ public class BeanRegistry {
     public Map<String, BeanOrigin> getOrigins() {
         return origins;
     }
+
+    public boolean contains(String beanName) {
+        return beanXmlMap.containsKey(beanName);
+    }
 }
