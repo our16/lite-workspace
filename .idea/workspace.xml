@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="重构2.0">
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="删除无用类">
+      <change afterPath="$PROJECT_DIR$/todo_list.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/builder/AnnotationBeanBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/builder/AnnotationBeanBuilder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/recognizer/AnnotationBeanRecognizer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/recognizer/AnnotationBeanRecognizer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -507,7 +506,23 @@
       <option name="project" value="LOCAL" />
       <updated>1751804875748</updated>
     </task>
-    <option name="localTasksCounter" value="39" />
+    <task id="LOCAL-00039" summary="支持扫描接口类">
+      <option name="closed" value="true" />
+      <created>1751806006929</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1751806006929</updated>
+    </task>
+    <task id="LOCAL-00040" summary="删除无用类">
+      <option name="closed" value="true" />
+      <created>1751806165820</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1751806165820</updated>
+    </task>
+    <option name="localTasksCounter" value="41" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -522,7 +537,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="缓存配置" />
     <MESSAGE value="从当前项目的配置文件中解析数据库配置" />
     <MESSAGE value="排除常量依赖" />
     <MESSAGE value="TODO 每个datasource 参数不一样，需要解决" />
@@ -531,7 +545,6 @@
     <MESSAGE value="依赖包搞好了了" />
     <MESSAGE value="依赖包搞好了；支持扫描mapper.xml" />
     <MESSAGE value="支持注解形态，并区分是否xml和注解交叉，实际还是只能走一个形式" />
-    <MESSAGE value="删除无用类" />
     <MESSAGE value="xml 配置在初始时加载一次就行了" />
     <MESSAGE value="适配其他类型的dao声明" />
     <MESSAGE value="注册执行回调" />
@@ -547,7 +560,9 @@
     <MESSAGE value="依赖更新" />
     <MESSAGE value="测试类生成" />
     <MESSAGE value="重构2.0" />
-    <option name="LAST_COMMIT_MESSAGE" value="重构2.0" />
+    <MESSAGE value="支持扫描接口类" />
+    <MESSAGE value="删除无用类" />
+    <option name="LAST_COMMIT_MESSAGE" value="删除无用类" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
