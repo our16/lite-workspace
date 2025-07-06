@@ -1,56 +1,27 @@
-<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
-    <id>org.example.lite-workspace</id>
+    <id>org.example.liteworkspace</id>
+    <name>LiteWorkspace</name>
+    <vendor email="dev@example.com" url="http://example.com">Example</vendor>
 
-    <!-- Public plugin name should be written in Title Case.
-         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
-    <name>Lite-workspace</name>
-
-    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor email="mongezheng@gmail.com" url="https://github.com/our16">mongezheng</vendor>
-
-    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
-         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
-         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
-    <description><![CDATA[
-    Enter short description for your plugin here.<br>
-    <em>most HTML tags may be used</em>
-  ]]></description>
-
-    <!-- Product and plugin compatibility requirements.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
-    <depends>com.intellij.modules.java</depends>
-    <depends>JUnit</depends>
+    <depends>com.intellij.modules.lang</depends>
 
 
-    <!-- Extension points defined by the plugin.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <notificationGroup id="Lite Workspace"
-                           displayType="BALLOON"
-                           isLogByDefault="true"/>
-        <fileBasedIndex implementation="org.example.liteworkspace.index.BeanReturnTypeStubIndexExtension"/>
+        <!-- your plugin extensions -->
     </extensions>
-
-    <projectListeners>
-        <listener class="org.example.liteworkspace.listener.MinimalTestExecutionListener"
-                  topic="com.intellij.execution.ExecutionListener"/>
-    </projectListeners>
-
 
     <actions>
         <action id="testAction"
-                class="org.example.liteworkspace.TestAction"
-                text="Lite 测试通知"
-                description="测试发送通知">
+                class="org.example.liteworkspace.action.TestAction"
+                text="测试action"
+                description="测试action">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
-        <action id="parseClassDependenceAction"
-                class="org.example.liteworkspace.ParseClassDependenceAction"
-                text="Lite 生成单测和依赖配置文件"
-                description="生成单测和依赖配置文件">
+        <action id="LiteScanAction"
+                class="org.example.liteworkspace.action.LiteScanAction"
+                text="扫描并生成 Spring Bean XML"
+                description="扫描依赖并生成 XML Bean 片段">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
     </actions>
