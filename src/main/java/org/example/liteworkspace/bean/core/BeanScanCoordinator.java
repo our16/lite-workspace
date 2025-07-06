@@ -8,13 +8,17 @@ import java.util.List;
 public class BeanScanCoordinator {
     private final List<BeanRecognizer> recognizers;
     private final List<BeanDependencyResolver> dependencyResolvers;
-    private final List<BeanDefinitionBuilder> builders;
+    private List<BeanDefinitionBuilder> builders;
 
     public BeanScanCoordinator(List<BeanRecognizer> recognizers,
                                List<BeanDependencyResolver> dependencyResolvers,
                                List<BeanDefinitionBuilder> builders) {
         this.recognizers = recognizers;
         this.dependencyResolvers = dependencyResolvers;
+        this.builders = builders;
+    }
+
+    public void setBuilders(List<BeanDefinitionBuilder> builders) {
         this.builders = builders;
     }
 

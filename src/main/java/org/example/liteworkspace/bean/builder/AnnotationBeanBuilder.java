@@ -7,10 +7,17 @@ import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import org.example.liteworkspace.bean.BeanDefinitionBuilder;
 import org.example.liteworkspace.bean.core.BeanOrigin;
 import org.example.liteworkspace.bean.core.BeanRegistry;
+import org.example.liteworkspace.bean.core.BeanScanCoordinator;
 
 import java.util.Collection;
 
 public class AnnotationBeanBuilder implements BeanDefinitionBuilder {
+
+    private final BeanScanCoordinator coordinator;
+
+    public AnnotationBeanBuilder(BeanScanCoordinator coordinator) {
+        this.coordinator = coordinator;
+    }
 
     @Override
     public void buildBean(PsiClass clazz, BeanRegistry registry) {
@@ -47,6 +54,9 @@ public class AnnotationBeanBuilder implements BeanDefinitionBuilder {
         String id = decapitalize(clazz.getName());
         String xml = "    <bean id=\"" + id + "\" class=\"" + fqcn + "\"/>";
         registry.register(id, xml, BeanOrigin.ANNOTATION);
+
+        // ✅ 扫描并构建依赖
+        coordinator.scanAndBuild(clazz, registry);
     }
 
     private String decapitalize(String name) {
