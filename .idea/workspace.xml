@@ -5,10 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="测试类生成">
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/BeanRecognizer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/SupportAware.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/resolver/AnnotationBeanRecognizer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/resolver/BeanMethodRecognizer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/resolver/XmlBeanRecognizer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/builder/MyBatisMapperBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/builder/MyBatisMapperBuilder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/BeanOrigin.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/BeanOrigin.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/BeanRegistry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/BeanRegistry.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/BeanScanCoordinator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/BeanScanCoordinator.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -188,10 +191,10 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
-        <item itemvalue="Gradle.lite-workspace [clean]" />
         <item itemvalue="Gradle.lite-workspace [clean]" />
         <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
+        <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
+        <item itemvalue="Gradle.lite-workspace [clean]" />
         <item itemvalue="Gradle.lite-workspace [clean]" />
       </list>
     </recent_temporary>
@@ -550,21 +553,6 @@
           <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/parse/BeanMethodResolver.java</url>
           <line>42</line>
           <option name="timeStamp" value="4" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/builder/MyBatisMapperBuilder.java</url>
-          <line>111</line>
-          <option name="timeStamp" value="17" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/builder/MyBatisMapperBuilder.java</url>
-          <line>115</line>
-          <option name="timeStamp" value="18" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/builder/MyBatisMapperBuilder.java</url>
-          <line>112</line>
-          <option name="timeStamp" value="19" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

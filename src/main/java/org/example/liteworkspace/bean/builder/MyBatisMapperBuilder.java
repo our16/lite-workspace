@@ -6,6 +6,7 @@ import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import org.example.liteworkspace.bean.BeanDefinitionBuilder;
+import org.example.liteworkspace.bean.SupportAware;
 import org.example.liteworkspace.bean.core.BeanOrigin;
 import org.example.liteworkspace.bean.core.BeanRegistry;
 
@@ -14,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class MyBatisMapperBuilder implements BeanDefinitionBuilder {
+public class MyBatisMapperBuilder implements BeanDefinitionBuilder, SupportAware {
 
     private final Set<String> knownDataSourceClasses;
     private final Set<String> knownSqlSessionFactoryClasses;

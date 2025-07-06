@@ -11,10 +11,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import org.example.liteworkspace.bean.builder.AnnotationBeanBuilder;
+import org.example.liteworkspace.bean.builder.MyBatisMapperBuilder;
+import org.example.liteworkspace.bean.builder.XmlBeanBuilder;
 import org.example.liteworkspace.bean.core.*;
+import org.example.liteworkspace.bean.recognizer.AnnotationBeanRecognizer;
+import org.example.liteworkspace.bean.recognizer.BeanMethodRecognizer;
+import org.example.liteworkspace.bean.recognizer.XmlBeanRecognizer;
 import org.example.liteworkspace.bean.resolver.*;
 import org.example.liteworkspace.bean.dependency.*;
-import org.example.liteworkspace.bean.builder.*;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -51,19 +56,17 @@ public class LiteScanAction extends AnAction {
 
         // 初始化组件
         BeanRegistry registry = new BeanRegistry();
-        XmlBeanResolver xmlResolver = new XmlBeanResolver(project);
-
         BeanScanCoordinator coordinator = new BeanScanCoordinator(
                 List.of(
-                        new AnnotationBeanResolver(),
-                        new BeanMethodResolver(project),
-                        xmlResolver
+                        new AnnotationBeanRecognizer(),
+                        new BeanMethodRecognizer(project),
+                        new XmlBeanRecognizer(project)
                 ),
                 List.of(new DefaultDependencyResolver(project)),
                 List.of(
                         new AnnotationBeanBuilder(),
-                        new XmlBeanBuilder(xmlResolver),
-                        new MyBatisMapperBuilder()
+                        new MyBatisMapperBuilder(),
+                        new XmlBeanBuilder(new XmlBeanResolver(project))
                 )
         );
         // 扫描和注册

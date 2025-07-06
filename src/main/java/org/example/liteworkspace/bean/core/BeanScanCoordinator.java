@@ -1,23 +1,19 @@
 package org.example.liteworkspace.bean.core;
 
 import com.intellij.psi.PsiClass;
-import org.example.liteworkspace.bean.BeanDefinitionBuilder;
-import org.example.liteworkspace.bean.BeanDependencyResolver;
-import org.example.liteworkspace.bean.BeanDefinitionResolver;
-import org.example.liteworkspace.bean.builder.MyBatisMapperBuilder;
-import org.example.liteworkspace.bean.resolver.BeanMethodResolver;
+import org.example.liteworkspace.bean.*;
 
 import java.util.List;
 
 public class BeanScanCoordinator {
-    private final List<BeanDefinitionResolver> resolvers;
+    private final List<BeanRecognizer> recognizers;
     private final List<BeanDependencyResolver> dependencyResolvers;
     private final List<BeanDefinitionBuilder> builders;
 
-    public BeanScanCoordinator(List<BeanDefinitionResolver> resolvers,
+    public BeanScanCoordinator(List<BeanRecognizer> recognizers,
                                List<BeanDependencyResolver> dependencyResolvers,
                                List<BeanDefinitionBuilder> builders) {
-        this.resolvers = resolvers;
+        this.recognizers = recognizers;
         this.dependencyResolvers = dependencyResolvers;
         this.builders = builders;
     }
@@ -28,51 +24,34 @@ public class BeanScanCoordinator {
         if (registry.isVisited(fqcn)) {
             return;
         }
-
         registry.markVisited(fqcn);
-
-        for (BeanDefinitionResolver resolver : resolvers) {
-            if (resolver.isProvidedByBeanMethod(root)) {
-                buildProviderClass(root, registry);
-                return;
-            }
-            if (resolver.isXmlDefined(root)) {
-                invokeBuilder(root, BeanOrigin.XML, registry);
-                break;
-            }
-            if (resolver.isBean(root)) {
-                invokeBuilder(root, BeanOrigin.ANNOTATION, registry);
+        // 识别 Bean 并根据来源调用 Builder 构建
+        for (BeanRecognizer recognizer : recognizers) {
+            if (recognizer.isBean(root)) {
+                BeanOrigin origin = recognizer.getOrigin(root);
+                PsiClass provider = recognizer.getProviderClass(root);
+                if (provider != null) {
+                    scanAndBuild(provider, registry); // 先处理提供者类
+                }
+                invokeBuilder(root, origin, registry);
                 break;
             }
         }
 
-        // ✅ 添加对 MyBatis Mapper 的识别和构建（如果还未注册）
-        if (!registry.contains(root.getQualifiedName())) {
+        // 如果尚未注册，尝试通过支持类型的 builder 构建（如 MyBatis）
+        if (!registry.contains(fqcn)) {
             for (BeanDefinitionBuilder builder : builders) {
-                if (builder instanceof MyBatisMapperBuilder mapperBuilder
-                        && mapperBuilder.supports(root)) {
+                if (builder instanceof SupportAware supportAware && supportAware.supports(root)) {
                     builder.buildBean(root, registry);
                     break;
                 }
             }
         }
 
-
-        // ✅ 递归解析依赖项
+        // 递归依赖
         for (BeanDependencyResolver depResolver : dependencyResolvers) {
             for (PsiClass dep : depResolver.resolveDependencies(root)) {
                 scanAndBuild(dep, registry);
-            }
-        }
-    }
-
-    private void buildProviderClass(PsiClass beanClass, BeanRegistry registry) {
-        for (BeanDefinitionResolver resolver : resolvers) {
-            if (resolver instanceof BeanMethodResolver) {
-                PsiClass config = ((BeanMethodResolver) resolver).getProvidingConfiguration(beanClass);
-                if (config != null) {
-                    scanAndBuild(config, registry);
-                }
             }
         }
     }
