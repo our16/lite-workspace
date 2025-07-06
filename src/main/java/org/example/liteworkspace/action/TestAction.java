@@ -2,26 +2,26 @@ package org.example.liteworkspace.action;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 
+/**
+ * 通过 Plugins Devkit 创建的 Action，继承自 AnAction。
+ */
 public class TestAction extends AnAction {
 
+    /**
+     * 点击菜单或按钮触发此事件。
+     */
     @Override
     public void actionPerformed(AnActionEvent e) {
-        Project project = e.getProject();
-        if (project == null) return;
-
-        PsiElement element = e.getData(com.intellij.openapi.actionSystem.CommonDataKeys.PSI_ELEMENT);
-        PsiClass clazz = PsiTreeUtil.getParentOfType(element, PsiClass.class);
-        if (clazz == null) {
-            Messages.showInfoMessage("请右键在类名上运行", "LiteWorkspace");
-            return;
-        }
-
-        Messages.showInfoMessage("找到类：" + clazz.getQualifiedName(), "LiteWorkspace");
+        Notification notification = new Notification(
+                "Lite Workspace",         // groupId: 建议在 plugin.xml 中注册
+                "测试通知标题",              // title
+                "这是一条测试通知内容。",     // content
+                NotificationType.INFORMATION  // 类型：INFORMATION, WARNING, ERROR
+        );
+        Notifications.Bus.notify(notification);
     }
 }

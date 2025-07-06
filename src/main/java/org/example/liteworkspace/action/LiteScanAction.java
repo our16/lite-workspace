@@ -6,7 +6,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.example.liteworkspace.bean.core.*;
 import org.example.liteworkspace.bean.resolver.*;
 import org.example.liteworkspace.bean.dependency.*;
@@ -19,15 +18,26 @@ public class LiteScanAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
         Project project = e.getProject();
-        if (project == null) return;
-
-        // 获取当前选中的 PsiClass（类）
         PsiFile psiFile = e.getData(CommonDataKeys.PSI_FILE);
-        PsiElement element = e.getData(CommonDataKeys.PSI_ELEMENT);
 
-        PsiClass targetClass = PsiTreeUtil.getParentOfType(element, PsiClass.class);
+        if (project == null || !(psiFile instanceof PsiJavaFile)) {
+            return;
+        }
+
+        PsiClass[] classes = ((PsiJavaFile) psiFile).getClasses();
+        if (classes.length == 0) return;
+
+        PsiClass targetClass = classes[0];
+
         if (targetClass == null) {
-            Messages.showInfoMessage(project, "请在 Java 类上右键使用此操作。", "LiteWorkspace");
+            Messages.showDialog(
+                    project,
+                    "请右键在类名上运行LiteWorkspace",
+                    "LiteWorkspace 工具",
+                    new String[]{"确定"},
+                    0,
+                    Messages.getInformationIcon()
+            );
             return;
         }
 
@@ -56,14 +66,13 @@ public class LiteScanAction extends AnAction {
         for (String xml : registry.getBeanXmlMap().values()) {
             result.append(xml).append("\n");
         }
-
-        Messages.showMultilineInputDialog(
+        Messages.showDialog(
                 project,
-                result.toString(),                     // 内容
-                "生成的 Spring Bean XML",             // 弹窗标题
-                "",                                    // 提示信息
-                null,                                  // icon
-                null                                   // validator
+                result.toString(),
+                "生成的 Spring Bean XML",
+                new String[]{"确定"},
+                0,
+                Messages.getInformationIcon()
         );
 
     }
