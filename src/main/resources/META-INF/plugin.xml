@@ -4,7 +4,8 @@
     <vendor email="dev@example.com" url="http://example.com">Example</vendor>
 
     <depends>com.intellij.modules.platform</depends>
-    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>JUnit</depends>
 
 
     <extensions defaultExtensionNs="com.intellij">
