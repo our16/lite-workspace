@@ -57,40 +57,4 @@ public class BeanScanUtils {
         return configClasses.iterator().next(); // 通常只有一个配置类
     }
 
-
-
-    public static PsiClass findConfigurationClassOfBean(Project project, PsiClass beanClass) {
-        String fqcn = beanClass.getQualifiedName();
-        if (fqcn == null) return null;
-
-        Map<String, PsiClass> cache = configBeanCache.computeIfAbsent(project, p -> new HashMap<>());
-        if (cache.containsKey(fqcn)) {
-            return cache.get(fqcn); // ✅ 命中缓存（可能为 null）
-        }
-
-        GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
-        PsiShortNamesCache shortNamesCache = PsiShortNamesCache.getInstance(project);
-
-        for (String methodName : shortNamesCache.getAllMethodNames()) {
-            for (PsiMethod method : shortNamesCache.getMethodsByName(methodName, scope)) {
-                if (!method.hasAnnotation("org.springframework.context.annotation.Bean")) continue;
-
-                PsiType returnType = method.getReturnType();
-                if (!(returnType instanceof PsiClassType)) continue;
-
-                PsiClass returnClass = ((PsiClassType) returnType).resolve();
-                if (returnClass == null || !fqcn.equals(returnClass.getQualifiedName())) continue;
-
-                PsiClass configClass = method.getContainingClass();
-                if (configClass != null && configClass.hasAnnotation("org.springframework.context.annotation.Configuration")) {
-                    cache.put(fqcn, configClass); // ✅ 缓存结果
-                    return configClass;
-                }
-            }
-        }
-
-        cache.put(fqcn, null); // ✅ 缓存未命中结果，避免下次重复查
-        return null;
-    }
-
 }
