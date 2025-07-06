@@ -8,9 +8,12 @@ import com.intellij.util.Query;
 
 import java.util.*;
 
+import static org.example.liteworkspace.util.BeanScanUtils.getBeanProvidingConfiguration;
+import static org.example.liteworkspace.util.BeanScanUtils.isBeanProvidedBySpring;
+
 public class SpringBeanBuilder implements BeanDefinitionBuilder {
 
-    private Project project;
+    private final Project project;
 
     public SpringBeanBuilder(Project project) {
         this.project = project;
@@ -23,51 +26,68 @@ public class SpringBeanBuilder implements BeanDefinitionBuilder {
 
     @Override
     public void buildBeanXml(PsiClass clazz, Set<String> visited, Map<String, String> beanMap, XmlBeanAssembler assembler) {
-        if (!supports(clazz) || visited.contains(clazz.getQualifiedName())) {
-            return;
+        String qName = clazz.getQualifiedName();
+        if (!supports(clazz) || visited.contains(qName)) return;
+        visited.add(qName);
+
+        boolean providedByBean = isBeanProvidedBySpring(project, clazz);
+
+        // ⚠ 如果由 @Bean 提供，则需要找出其配置类，构建该配置类的 bean
+        if (providedByBean) {
+            PsiClass configClass = getBeanProvidingConfiguration(project, clazz);
+            if (configClass != null) {
+                assembler.buildBeanIfNecessary(configClass);
+            }
         }
-        visited.add(clazz.getQualifiedName());
 
-        String id = decapitalize(clazz.getName());
-        String className = clazz.getQualifiedName();
-        StringBuilder beanXml = new StringBuilder();
-        beanXml.append("    <bean id=\"").append(id).append("\" class=\"").append(className).append("\"/>\n");
-
-        // 构造器依赖
+        // 继续处理字段/构造器依赖
         for (PsiMethod constructor : clazz.getConstructors()) {
             for (PsiParameter param : constructor.getParameterList().getParameters()) {
                 resolveAndBuildDependency(param.getType(), assembler);
             }
         }
 
-        // 字段依赖
         for (PsiField field : clazz.getFields()) {
             if (field.hasModifierProperty(PsiModifier.STATIC) || field.hasModifierProperty(PsiModifier.FINAL)) continue;
             resolveAndBuildDependency(field.getType(), assembler);
         }
 
-        assembler.putBeanXml(id, beanXml.toString());
+        // 处理 @Bean 方法（只做依赖，不生成 bean）
+        for (PsiMethod method : clazz.getMethods()) {
+            if (method.hasAnnotation("org.springframework.context.annotation.Bean")) {
+                resolveAndBuildDependency(method.getReturnType(), assembler);
+                method.accept(new JavaRecursiveElementWalkingVisitor() {
+                    @Override
+                    public void visitMethodCallExpression(PsiMethodCallExpression expression) {
+                        PsiMethod called = expression.resolveMethod();
+                        if (called != null && called.getContainingClass() != null
+                                && called.getContainingClass().equals(clazz)) {
+                            resolveAndBuildDependency(called.getReturnType(), assembler);
+                        }
+                    }
+                });
+            }
+        }
+
+        // ✅ 只有不由 @Bean 提供时，才输出 bean
+        if (!providedByBean) {
+            String id = decapitalize(clazz.getName());
+            StringBuilder beanXml = new StringBuilder();
+            beanXml.append("    <bean id=\"").append(id).append("\" class=\"").append(qName).append("\"/>\n");
+            assembler.putBeanXml(id, beanXml.toString());
+        }
     }
 
     private void resolveAndBuildDependency(PsiType type, XmlBeanAssembler assembler) {
-        if (!(type instanceof PsiClassType)) {
-            return;
-        }
+        if (!(type instanceof PsiClassType)) return;
+
         PsiClass clazz = ((PsiClassType) type).resolve();
-        if (clazz == null || clazz.getQualifiedName() == null) {
-            return;
-        }
-        if (clazz.isEnum() || clazz.isAnnotationType() || clazz instanceof PsiTypeParameter) {
-            return;
-        }
-        if (clazz.getQualifiedName().startsWith("java.")) {
-            return;
-        }
+        if (clazz == null || clazz.getQualifiedName() == null) return;
+        if (clazz.isEnum() || clazz.isAnnotationType() || clazz instanceof PsiTypeParameter) return;
+        if (clazz.getQualifiedName().startsWith("java.")) return;
 
         if (clazz.isInterface()) {
-            if (isMyBatisMapper(clazz)) {
-                return;
-            }
+            if (isMyBatisMapper(clazz)) return;
             for (PsiClass impl : findImplementations(clazz)) {
                 assembler.buildBeanIfNecessary(impl);
             }

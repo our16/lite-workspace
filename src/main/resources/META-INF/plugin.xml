@@ -31,6 +31,7 @@
         <notificationGroup id="Lite Workspace"
                            displayType="BALLOON"
                            isLogByDefault="true"/>
+        <fileBasedIndex implementation="org.example.liteworkspace.index.BeanReturnTypeStubIndexExtension"/>
     </extensions>
 
     <projectListeners>
