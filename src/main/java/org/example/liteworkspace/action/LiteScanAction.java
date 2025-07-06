@@ -3,8 +3,13 @@ package org.example.liteworkspace.action;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import org.example.liteworkspace.bean.core.*;
 import org.example.liteworkspace.bean.resolver.*;
@@ -12,6 +17,7 @@ import org.example.liteworkspace.bean.dependency.*;
 import org.example.liteworkspace.bean.builder.*;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.util.List;
 import java.util.Map;
 

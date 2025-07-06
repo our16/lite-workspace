@@ -1,31 +1,38 @@
 @echo off
 setlocal
 
-REM ✅ 配置版本号
+:: 设置 Gradle 缓存目录（可修改）
+set GRADLE_HOME=%USERPROFILE%\.gradle
+
+:: Gradle wrapper 版本
 set GRADLE_VERSION=8.11.1
-set GRADLE_DIST=gradle-%GRADLE_VERSION%-bin.zip
+set GRADLE_ZIP_URL=https://services.gradle.org/distributions/gradle-%GRADLE_VERSION%-bin.zip
 
-REM ✅ 配置缓存路径（Gradle 默认缓存）
-set GRADLE_CACHE=%USERPROFILE%\.gradle\wrapper\dists\gradle-%GRADLE_VERSION%-bin
+:: IntelliJ Plugin Gradle 插件版本（与你项目中保持一致）
+set INTELLIJ_PLUGIN_VERSION=1.17.4
 
-REM ✅ 阿里云镜像地址
-set ALIYUN_URL=https://mirrors.aliyun.com/gradle/%GRADLE_VERSION%/%GRADLE_DIST%
+:: 下载 Gradle ZIP 包
+echo Downloading Gradle %GRADLE_VERSION%...
+curl -o gradle-%GRADLE_VERSION%-bin.zip %GRADLE_ZIP_URL%
 
-echo Downloading %GRADLE_DIST% from Aliyun...
-powershell -Command "Invoke-WebRequest -Uri %ALIYUN_URL% -OutFile %GRADLE_DIST%"
+:: 解压到 Gradle wrapper 缓存目录
+mkdir "%GRADLE_HOME%\wrapper\dists\gradle-%GRADLE_VERSION%-bin"
+powershell -Command "Expand-Archive -Path gradle-%GRADLE_VERSION%-bin.zip -DestinationPath '%GRADLE_HOME%\wrapper\dists\gradle-%GRADLE_VERSION%-bin'"
 
-REM ✅ 创建缓存结构
-echo Creating Gradle cache structure...
-for /f %%i in ('certutil -hashfile %GRADLE_DIST% SHA256 ^| find /i /v "SHA256" ^| find /i /v "CertUtil"') do set HASH=%%i
-set CACHE_DIR=%GRADLE_CACHE%\%HASH%
+:: 用 init 临时工程拉取 IntelliJ 插件依赖
+mkdir .tmp-init
+cd .tmp-init
+echo plugins { id("org.jetbrains.intellij") version "%INTELLIJ_PLUGIN_VERSION%" } > build.gradle.kts
+echo {} > settings.gradle.kts
 
-mkdir "%CACHE_DIR%"
-echo Extracting zip to %CACHE_DIR% ...
-powershell -Command "Expand-Archive -Path %GRADLE_DIST% -DestinationPath '%CACHE_DIR%'"
+:: 执行依赖解析
+gradle build -x test || gradlew build -x test
 
-del %GRADLE_DIST%
-echo ✅ Done. Gradle %GRADLE_VERSION% cached at:
-echo %CACHE_DIR%
+cd ..
+rd /s /q .tmp-init
+del gradle-%GRADLE_VERSION%-bin.zip
+
+echo Done! IntelliJ Gradle 插件开发依赖已缓存到 %GRADLE_HOME%
 
 endlocal
 pause
