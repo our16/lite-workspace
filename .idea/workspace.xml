@@ -4,15 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="测试类生成">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/BeanRecognizer.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/SupportAware.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/resolver/AnnotationBeanRecognizer.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/resolver/BeanMethodRecognizer.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/resolver/XmlBeanRecognizer.java" afterDir="false" />
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="重构2.0">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/BeanScanCoordinator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/BeanScanCoordinator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/builder/AnnotationBeanBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/builder/AnnotationBeanBuilder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/recognizer/AnnotationBeanRecognizer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/recognizer/AnnotationBeanRecognizer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -106,7 +101,7 @@
     "Batch.download-gradle.executor": "Debug",
     "Gradle.Build lite-workspace.executor": "Run",
     "Gradle.Run Plugin.executor": "Debug",
-    "Gradle.lite-workspace [buildPlugin].executor": "Debug",
+    "Gradle.lite-workspace [buildPlugin].executor": "Run",
     "Gradle.lite-workspace [clean].executor": "Run",
     "Gradle.lite-workspace [setupDependencies].executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
@@ -191,10 +186,10 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
         <item itemvalue="Gradle.lite-workspace [clean]" />
         <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
         <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
-        <item itemvalue="Gradle.lite-workspace [clean]" />
         <item itemvalue="Gradle.lite-workspace [clean]" />
       </list>
     </recent_temporary>
@@ -504,7 +499,15 @@
       <option name="project" value="LOCAL" />
       <updated>1751796153840</updated>
     </task>
-    <option name="localTasksCounter" value="38" />
+    <task id="LOCAL-00038" summary="重构2.0">
+      <option name="closed" value="true" />
+      <created>1751804875748</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1751804875748</updated>
+    </task>
+    <option name="localTasksCounter" value="39" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -519,7 +522,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="只是数据源的多样性" />
     <MESSAGE value="缓存配置" />
     <MESSAGE value="从当前项目的配置文件中解析数据库配置" />
     <MESSAGE value="排除常量依赖" />
@@ -544,7 +546,8 @@
     <MESSAGE value="写入到文件" />
     <MESSAGE value="依赖更新" />
     <MESSAGE value="测试类生成" />
-    <option name="LAST_COMMIT_MESSAGE" value="测试类生成" />
+    <MESSAGE value="重构2.0" />
+    <option name="LAST_COMMIT_MESSAGE" value="重构2.0" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
