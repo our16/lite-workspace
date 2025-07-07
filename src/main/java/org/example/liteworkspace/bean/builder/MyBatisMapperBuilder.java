@@ -121,7 +121,9 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder, SupportAware
     private void scanAllMapperXml() {
         Project project = ProjectManager.getInstance().getOpenProjects()[0];
         File resourceDir = new File(project.getBasePath(), "src/main/resources");
-        if (!resourceDir.exists()) return;
+        if (!resourceDir.exists()) {
+            return;
+        }
 
         List<File> xmlFiles = new ArrayList<>();
         collectXmlFiles(resourceDir, xmlFiles);
@@ -146,8 +148,11 @@ public class MyBatisMapperBuilder implements BeanDefinitionBuilder, SupportAware
 
     private void collectXmlFiles(File dir, List<File> files) {
         for (File file : Objects.requireNonNull(dir.listFiles())) {
-            if (file.isDirectory()) collectXmlFiles(file, files);
-            else if (file.getName().endsWith(".xml")) files.add(file);
+            if (file.isDirectory()) {
+                collectXmlFiles(file, files);
+            } else if (file.getName().endsWith(".xml")) {
+                files.add(file);
+            }
         }
     }
 

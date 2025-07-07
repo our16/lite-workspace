@@ -3,6 +3,7 @@ package org.example.liteworkspace.action;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -103,20 +105,32 @@ public class LiteScanAction extends AnAction {
 
             // 定位 test/resources 和 test/java 目录
             VirtualFile[] roots = ModuleRootManager.getInstance(module).getSourceRoots();
-            VirtualFile testJava = null, testRes = null;
+            final VirtualFile[] testJava = {null};
+            final VirtualFile[] testRes = { null };
+
             for (VirtualFile root : roots) {
                 String path = root.getPath().replace("\\", "/");
-                if (path.endsWith("/src/test/java")) testJava = root;
-                if (path.endsWith("/src/test/resources")) testRes = root;
+                if (path.endsWith("/src/test/java")) {
+                    testJava[0] = root;
+                }
+                if (path.endsWith("/src/test/resources")) {
+                    testRes[0] = root;
+                }
             }
 
-            if (testJava == null || testRes == null) {
-                Messages.showErrorDialog(project, "未找到 test/java 或 test/resources 目录", "LiteWorkspace 错误");
-                return;
+            if (testJava[0] == null || testRes[0] == null) {
+                // 获取 module 的 baseDir（通常是 src 的上级）
+                VirtualFile baseDir = module.getModuleFile() != null ? module.getModuleFile().getParent() : null;
+                if (baseDir == null) {
+                    Messages.showErrorDialog(project, "无法确定 module 路径", "LiteWorkspace 错误");
+                    return;
+                }
+                createTestPath(project, baseDir, testJava, testRes);
             }
 
-            File javaDir = new File(testJava.getPath(), relativePath);
-            File resDir = new File(testRes.getPath(), relativePath);
+
+            File javaDir = new File(testJava[0].getPath(), relativePath);
+            File resDir = new File(testRes[0].getPath(), relativePath);
             javaDir.mkdirs();
             resDir.mkdirs();
 
@@ -135,6 +149,43 @@ public class LiteScanAction extends AnAction {
                     "❌ 生成失败：" + ex.getMessage(),
                     "LiteWorkspace");
         }
+    }
+
+    private static void createTestPath(Project project, VirtualFile baseDir, VirtualFile[] testJava, VirtualFile[] testRes) {
+        WriteCommandAction.runWriteCommandAction(project, () -> {
+            try {
+                VirtualFile srcDir = baseDir.findChild("src");
+                if (srcDir == null) {
+                    srcDir = baseDir.createChildDirectory(null, "src");
+                }
+
+                VirtualFile testDir = srcDir.findChild("test");
+                if (testDir == null) {
+                    testDir = srcDir.createChildDirectory(null, "test");
+                }
+
+                if (testJava[0] == null) {
+                    VirtualFile javaDir = testDir.findChild("java");
+                    if (javaDir == null) {
+                        testJava[0] = testDir.createChildDirectory(null, "java");
+                    } else {
+                        testJava[0] = javaDir;
+                    }
+                }
+
+                if (testRes[0] == null) {
+                    VirtualFile resDir = testDir.findChild("resources");
+                    if (resDir == null) {
+                        testRes[0] = testDir.createChildDirectory(null, "resources");
+                    } else {
+                        testRes[0] = resDir;
+                    }
+                }
+
+            } catch (IOException e) {
+                Messages.showErrorDialog(project, "创建目录失败: " + e.getMessage(), "LiteWorkspace 错误");
+            }
+        });
     }
 
     private File writeSpringXmlFile(Map<String, String> beanMap, File resDir, String testClassName) throws Exception {

@@ -4,9 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="删除无用类">
-      <change afterPath="$PROJECT_DIR$/todo_list.txt" afterDir="false" />
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="递归扫描依赖">
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/builder/MyBatisMapperBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/builder/MyBatisMapperBuilder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/recognizer/BeanMethodRecognizer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/recognizer/BeanMethodRecognizer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,7 +61,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="master" />
+        <entry key="$PROJECT_DIR$" value="feature_20250706_rebuild" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -100,12 +103,12 @@
     "Batch.download-gradle.executor": "Debug",
     "Gradle.Build lite-workspace.executor": "Run",
     "Gradle.Run Plugin.executor": "Debug",
-    "Gradle.lite-workspace [buildPlugin].executor": "Run",
+    "Gradle.lite-workspace [buildPlugin].executor": "Debug",
     "Gradle.lite-workspace [clean].executor": "Run",
     "Gradle.lite-workspace [setupDependencies].executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "feature__20250706__rebuild",
+    "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/project/gitidea/lite-workspace/settings.gradle.kts",
     "project.structure.last.edited": "SDKs",
@@ -172,24 +175,13 @@
       <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="lite-workspace" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="lite-workspace" />
-      <option name="filePath" />
-      <method v="2" />
-    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
+        <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
         <item itemvalue="Gradle.lite-workspace [clean]" />
         <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
         <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
-        <item itemvalue="Gradle.lite-workspace [clean]" />
       </list>
     </recent_temporary>
   </component>
@@ -522,7 +514,23 @@
       <option name="project" value="LOCAL" />
       <updated>1751806165820</updated>
     </task>
-    <option name="localTasksCounter" value="41" />
+    <task id="LOCAL-00041" summary="lombok 构造器注入">
+      <option name="closed" value="true" />
+      <created>1751808367730</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1751808367730</updated>
+    </task>
+    <task id="LOCAL-00042" summary="递归扫描依赖">
+      <option name="closed" value="true" />
+      <created>1751809337906</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1751809337906</updated>
+    </task>
+    <option name="localTasksCounter" value="43" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -537,8 +545,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="从当前项目的配置文件中解析数据库配置" />
-    <MESSAGE value="排除常量依赖" />
     <MESSAGE value="TODO 每个datasource 参数不一样，需要解决" />
     <MESSAGE value="可以跑通的一个版本" />
     <MESSAGE value="覆盖生成，保留原内容" />
@@ -562,7 +568,9 @@
     <MESSAGE value="重构2.0" />
     <MESSAGE value="支持扫描接口类" />
     <MESSAGE value="删除无用类" />
-    <option name="LAST_COMMIT_MESSAGE" value="删除无用类" />
+    <MESSAGE value="lombok 构造器注入" />
+    <MESSAGE value="递归扫描依赖" />
+    <option name="LAST_COMMIT_MESSAGE" value="递归扫描依赖" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

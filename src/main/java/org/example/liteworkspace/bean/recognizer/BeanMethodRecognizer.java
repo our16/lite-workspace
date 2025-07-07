@@ -26,25 +26,27 @@ public class BeanMethodRecognizer implements BeanRecognizer {
         return getProviderClass(clazz) != null ? BeanOrigin.BEAN_METHOD : null;
     }
 
-    @Override
-    public PsiClass getProviderClass(PsiClass clazz) {
-        String fqcn = clazz.getQualifiedName();
-        if (fqcn == null) return null;
-
-        for (PsiClass conf : AllClassesSearch.search(GlobalSearchScope.projectScope(project), project)) {
-            if (!hasConfigurationAnnotation(conf)) continue;
-
-            for (PsiMethod method : conf.getMethods()) {
-                if (!method.hasAnnotation("org.springframework.context.annotation.Bean")) continue;
-                PsiType type = method.getReturnType();
-                if (type instanceof PsiClassType clsType &&
-                        fqcn.equals(clsType.resolve().getQualifiedName())) {
-                    return conf;
-                }
-            }
-        }
-        return null;
-    }
+//    @Override
+//    public PsiClass getProviderClass(PsiClass clazz) {
+//        String fqcn = clazz.getQualifiedName();
+//        if (fqcn == null) return null;
+//
+//        for (PsiClass conf : AllClassesSearch.search(GlobalSearchScope.projectScope(project), project)) {
+//            if (!hasConfigurationAnnotation(conf)) {
+//                continue;
+//            }
+//
+//            for (PsiMethod method : conf.getMethods()) {
+//                if (!method.hasAnnotation("org.springframework.context.annotation.Bean")) continue;
+//                PsiType type = method.getReturnType();
+//                if (type instanceof PsiClassType clsType &&
+//                        fqcn.equals(clsType.resolve().getQualifiedName())) {
+//                    return conf;
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
     private boolean hasConfigurationAnnotation(PsiClass cls) {
         PsiModifierList list = cls.getModifierList();
