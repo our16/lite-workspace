@@ -21,6 +21,7 @@ public class LiteProjectContext {
 
     private final Set<String> springScanPackages = new HashSet<>();
     private final Set<String> mybatisMapperLocations = new HashSet<>();
+    private final Map<String, String> mybatisNamespaceMap = new HashMap<>();
 
     private final Set<String> configProvidedClassFqns = new HashSet<>(); // 存储由 JavaConfig 提供的 FQCN
 
@@ -37,6 +38,8 @@ public class LiteProjectContext {
         Map<String, Object> springMeta = resourceAnalyzer.analyzeSpringConfig();
         springScanPackages.addAll((Collection<String>) springMeta.getOrDefault("componentScan", List.of()));
         mybatisMapperLocations.addAll((Collection<String>) springMeta.getOrDefault("mapperLocations", List.of()));
+        // 初始化 mapper namespace 映射
+        mybatisNamespaceMap.putAll(resourceAnalyzer.analyzeMyBatisMapperXml());
     }
 
     public Project getProject() {

@@ -44,6 +44,25 @@ public class ResourceConfigAnalyzer {
         result.put("sourceFiles", new ArrayList<>(processedFiles));
         return result;
     }
+    public Map<String, String>  analyzeMyBatisMapperXml() {
+        final Map<String, String> mapperNamespaceToFile = new HashMap<>();
+        Collection<VirtualFile> files = FilenameIndex.getAllFilesByExt(project, "xml", GlobalSearchScope.projectScope(project));
+        for (VirtualFile file : files) {
+            if (!file.getPath().contains("/resources/")) continue;
+
+            PsiFile psi = PsiManager.getInstance(project).findFile(file);
+            if (!(psi instanceof XmlFile xmlFile)) continue;
+
+            XmlTag root = xmlFile.getRootTag();
+            if (root != null && "mapper".equals(root.getName())) {
+                String namespace = root.getAttributeValue("namespace");
+                if (namespace != null) {
+                    mapperNamespaceToFile.put(namespace, file.getPath());
+                }
+            }
+        }
+        return mapperNamespaceToFile;
+    }
 
     private void resolveXmlRecursive(VirtualFile file,
                                      Set<String> scanPackages,

@@ -4,16 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="初始化扫描">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" afterDir="false" />
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="init">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteBeanScanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteBeanScanner.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteFileWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteFileWriter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/scanner/impl/AnnotationBeanScanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/scanner/impl/AnnotationBeanScanner.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/scanner/impl/JavaConfigBeanScanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/scanner/impl/JavaConfigBeanScanner.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/scanner/impl/MyBatisMapperScanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/scanner/impl/MyBatisMapperScanner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,6 +35,22 @@
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="lite-workspace" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="lite-workspace" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="lite-workspace" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="build" type="c8890929:TasksNode$1" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="lite-workspace" type="f1a62948:ProjectNode" />
+                <item name="Dependencies" type="6de06a37:ExternalSystemViewDefaultContributor$MyDependenciesNode" />
               </path>
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
@@ -218,14 +228,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00008" summary="规整代码，mybatis 支持加数据源">
-      <option name="closed" value="true" />
-      <created>1751694823643</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1751694823643</updated>
     </task>
     <task id="LOCAL-00009" summary="demo1">
       <option name="closed" value="true" />
@@ -611,7 +613,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753025469151</updated>
     </task>
-    <option name="localTasksCounter" value="57" />
+    <task id="LOCAL-00057" summary="init">
+      <option name="closed" value="true" />
+      <created>1753029143969</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1753029143969</updated>
+    </task>
+    <option name="localTasksCounter" value="58" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -626,7 +636,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="生成文件都以Test结尾" />
     <MESSAGE value="统计基础依赖包" />
     <MESSAGE value="适配spring 接口注入" />
     <MESSAGE value="性能优化" />
@@ -651,7 +660,8 @@
     <MESSAGE value="按照优先级扫描" />
     <MESSAGE value="只扫描resource" />
     <MESSAGE value="初始化扫描" />
-    <option name="LAST_COMMIT_MESSAGE" value="初始化扫描" />
+    <MESSAGE value="init" />
+    <option name="LAST_COMMIT_MESSAGE" value="init" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
