@@ -1,0 +1,38 @@
+<idea-plugin>
+    <id>org.example.lite-workspace</id>
+    <name>Lite-workspace</name>
+    <vendor email="dev@example.com" url="http://example.com">Example</vendor>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>JUnit</depends>
+
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceImplementation="org.example.liteworkspace.config.LiteWorkspaceSettings"/>
+        <!-- your plugin extensions -->
+        <applicationConfigurable instance="org.example.liteworkspace.config.LiteWorkspaceSettingsConfigurable"
+                                 displayName="LiteWorkspaceConfig"/>
+    </extensions>
+
+    <actions>
+        <action id="testAction"
+                class="org.example.liteworkspace.action.TestAction"
+                text="测试action"
+                description="测试action">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
+        <action id="LiteScanAction"
+                class="org.example.liteworkspace.action.LiteScanAction"
+                text="扫描并生成 Spring Bean XML"
+                description="扫描依赖并生成 XML Bean 片段">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
+        <action id="com.example.llm.AnalyzeAction"
+                class="org.example.liteworkspace.action.LlmCodeAnalyzerPlugin"
+                text="使用 LLM 分析 Java 代码"
+                description="调用本地模型分析代码质量与依赖">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>

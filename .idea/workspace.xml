@@ -1,0 +1,672 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="初始化扫描">
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteBeanScanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteBeanScanner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteFileWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteFileWriter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/scanner/impl/AnnotationBeanScanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/scanner/impl/AnnotationBeanScanner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/scanner/impl/JavaConfigBeanScanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/scanner/impl/JavaConfigBeanScanner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/scanner/impl/MyBatisMapperScanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/scanner/impl/MyBatisMapperScanner.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$">
+          <activation>
+            <after_sync>
+              <task name="setupDependencies" />
+            </after_sync>
+          </activation>
+        </task>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="lite-workspace" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="lite-workspace" type="f1a62948:ProjectNode" />
+                <item name="Run Configurations" type="7b0102dc:RunConfigurationsNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Enum" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="feature_20250706_rebuild" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="MIXED" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;our16&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:our16/lite-workspace.git&quot;,
+    &quot;accountId&quot;: &quot;d9944243-1b2f-4651-93df-75490d2b0cb6&quot;
+  }
+}</component>
+  <component name="LogFilters">
+    <option name="FILTER_ERRORS" value="false" />
+    <option name="FILTER_WARNINGS" value="false" />
+    <option name="FILTER_INFO" value="true" />
+    <option name="FILTER_DEBUG" value="true" />
+    <option name="CUSTOM_FILTER" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="2zPn8zjQpEraRFHR8A50kYLUPuq" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Application.TestRun.executor&quot;: &quot;Run&quot;,
+    &quot;Batch.download-gradle.executor&quot;: &quot;Debug&quot;,
+    &quot;Gradle.Build lite-workspace.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Run Plugin.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.lite-workspace [buildPlugin].executor&quot;: &quot;Debug&quot;,
+    &quot;Gradle.lite-workspace [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.lite-workspace [setupDependencies].executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/project/gitidea/lite-workspace/src/main/java/org/example/liteworkspace/bean/builder&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;SDKs&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="org.example.liteworkspace" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\project\gitidea\lite-workspace\src\main\java\org\example\liteworkspace\bean\builder" />
+      <recent name="D:\project\gitidea\lite-workspace\src\main\java\org\example\liteworkspace\bean\core" />
+      <recent name="D:\project\gitidea\lite-workspace\src\main\resources" />
+      <recent name="D:\project\gitidea\lite-workspace\src\main\resources\model" />
+      <recent name="D:\project\gitidea\lite-workspace" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\project\gitidea\lite-workspace" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="org.example.liteworkspace.bean.core" />
+      <recent name="org.example.liteworkspace.bean.resolver" />
+      <recent name="org.example.liteworkspace" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Gradle.Run Plugin">
+    <configuration name="TestRun" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="org.example.liteworkspace.action.TestRun" />
+      <module name="lite-workspace.main" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="org.example.liteworkspace.action.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="lite-workspace [buildPlugin]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="buildPlugin" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="lite-workspace [clean]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="clean" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.TestRun" />
+        <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
+        <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
+        <item itemvalue="Gradle.lite-workspace [clean]" />
+        <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="" />
+      <created>1751641421534</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1751641421534</updated>
+    </task>
+    <task id="LOCAL-00008" summary="规整代码，mybatis 支持加数据源">
+      <option name="closed" value="true" />
+      <created>1751694823643</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1751694823643</updated>
+    </task>
+    <task id="LOCAL-00009" summary="demo1">
+      <option name="closed" value="true" />
+      <created>1751695394238</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1751695394238</updated>
+    </task>
+    <task id="LOCAL-00010" summary="只是数据源的多样性">
+      <option name="closed" value="true" />
+      <created>1751696648478</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1751696648478</updated>
+    </task>
+    <task id="LOCAL-00011" summary="缓存配置">
+      <option name="closed" value="true" />
+      <created>1751697020792</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1751697020792</updated>
+    </task>
+    <task id="LOCAL-00012" summary="从当前项目的配置文件中解析数据库配置">
+      <option name="closed" value="true" />
+      <created>1751697668564</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1751697668564</updated>
+    </task>
+    <task id="LOCAL-00013" summary="从当前项目的配置文件中解析数据库配置">
+      <option name="closed" value="true" />
+      <created>1751698039783</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1751698039783</updated>
+    </task>
+    <task id="LOCAL-00014" summary="排除常量依赖">
+      <option name="closed" value="true" />
+      <created>1751707105939</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1751707105939</updated>
+    </task>
+    <task id="LOCAL-00015" summary="TODO 每个datasource 参数不一样，需要解决">
+      <option name="closed" value="true" />
+      <created>1751709173871</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1751709173871</updated>
+    </task>
+    <task id="LOCAL-00016" summary="可以跑通的一个版本">
+      <option name="closed" value="true" />
+      <created>1751709788454</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1751709788454</updated>
+    </task>
+    <task id="LOCAL-00017" summary="覆盖生成，保留原内容">
+      <option name="closed" value="true" />
+      <created>1751711103810</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1751711103810</updated>
+    </task>
+    <task id="LOCAL-00018" summary="依赖包搞好了了">
+      <option name="closed" value="true" />
+      <created>1751711706484</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1751711706484</updated>
+    </task>
+    <task id="LOCAL-00019" summary="依赖包搞好了；支持扫描mapper.xml">
+      <option name="closed" value="true" />
+      <created>1751712546711</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1751712546711</updated>
+    </task>
+    <task id="LOCAL-00020" summary="支持注解形态，并区分是否xml和注解交叉，实际还是只能走一个形式">
+      <option name="closed" value="true" />
+      <created>1751713379431</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1751713379431</updated>
+    </task>
+    <task id="LOCAL-00021" summary="删除无用类">
+      <option name="closed" value="true" />
+      <created>1751713553104</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1751713553104</updated>
+    </task>
+    <task id="LOCAL-00022" summary="xml 配置在初始时加载一次就行了">
+      <option name="closed" value="true" />
+      <created>1751714247871</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1751714247871</updated>
+    </task>
+    <task id="LOCAL-00023" summary="适配其他类型的dao声明">
+      <option name="closed" value="true" />
+      <created>1751714462683</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1751714462683</updated>
+    </task>
+    <task id="LOCAL-00024" summary="注册执行回调">
+      <option name="closed" value="true" />
+      <created>1751717846529</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1751717846529</updated>
+    </task>
+    <task id="LOCAL-00025" summary="生成文件都以Test结尾">
+      <option name="closed" value="true" />
+      <created>1751720295507</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1751720295507</updated>
+    </task>
+    <task id="LOCAL-00026" summary="统计基础依赖包">
+      <option name="closed" value="true" />
+      <created>1751721038285</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1751721038285</updated>
+    </task>
+    <task id="LOCAL-00027" summary="适配spring 接口注入">
+      <option name="closed" value="true" />
+      <created>1751738847481</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1751738847481</updated>
+    </task>
+    <task id="LOCAL-00028" summary="性能优化">
+      <option name="closed" value="true" />
+      <created>1751774744641</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1751774744641</updated>
+    </task>
+    <task id="LOCAL-00029" summary="性能优化">
+      <option name="closed" value="true" />
+      <created>1751775148042</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1751775148042</updated>
+    </task>
+    <task id="LOCAL-00030" summary="xml 配置扫描">
+      <option name="closed" value="true" />
+      <created>1751776289481</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1751776289481</updated>
+    </task>
+    <task id="LOCAL-00031" summary="暂存新配置">
+      <option name="closed" value="true" />
+      <created>1751786453511</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1751786453511</updated>
+    </task>
+    <task id="LOCAL-00032" summary="依赖修正">
+      <option name="closed" value="true" />
+      <created>1751786870199</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1751786870199</updated>
+    </task>
+    <task id="LOCAL-00033" summary="扫描">
+      <option name="closed" value="true" />
+      <created>1751787597463</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1751787597463</updated>
+    </task>
+    <task id="LOCAL-00034" summary="写入到文件">
+      <option name="closed" value="true" />
+      <created>1751788298757</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1751788298757</updated>
+    </task>
+    <task id="LOCAL-00035" summary="写入到文件">
+      <option name="closed" value="true" />
+      <created>1751793604596</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1751793604596</updated>
+    </task>
+    <task id="LOCAL-00036" summary="依赖更新">
+      <option name="closed" value="true" />
+      <created>1751794968910</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1751794968910</updated>
+    </task>
+    <task id="LOCAL-00037" summary="测试类生成">
+      <option name="closed" value="true" />
+      <created>1751796153840</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1751796153840</updated>
+    </task>
+    <task id="LOCAL-00038" summary="重构2.0">
+      <option name="closed" value="true" />
+      <created>1751804875748</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1751804875748</updated>
+    </task>
+    <task id="LOCAL-00039" summary="支持扫描接口类">
+      <option name="closed" value="true" />
+      <created>1751806006929</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1751806006929</updated>
+    </task>
+    <task id="LOCAL-00040" summary="删除无用类">
+      <option name="closed" value="true" />
+      <created>1751806165820</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1751806165820</updated>
+    </task>
+    <task id="LOCAL-00041" summary="lombok 构造器注入">
+      <option name="closed" value="true" />
+      <created>1751808367730</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1751808367730</updated>
+    </task>
+    <task id="LOCAL-00042" summary="递归扫描依赖">
+      <option name="closed" value="true" />
+      <created>1751809337906</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1751809337906</updated>
+    </task>
+    <task id="LOCAL-00043" summary="加入模型调用和被狗执行">
+      <option name="closed" value="true" />
+      <created>1752991818401</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1752991818401</updated>
+    </task>
+    <task id="LOCAL-00044" summary="模型信息记录">
+      <option name="closed" value="true" />
+      <created>1752997245225</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1752997245225</updated>
+    </task>
+    <task id="LOCAL-00045" summary="模型信息记录">
+      <option name="closed" value="true" />
+      <created>1753000490209</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1753000490210</updated>
+    </task>
+    <task id="LOCAL-00046" summary="支持调用dify">
+      <option name="closed" value="true" />
+      <created>1753001588081</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1753001588081</updated>
+    </task>
+    <task id="LOCAL-00047" summary="页面配置">
+      <option name="closed" value="true" />
+      <created>1753002695449</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1753002695450</updated>
+    </task>
+    <task id="LOCAL-00048" summary="重构1.0">
+      <option name="closed" value="true" />
+      <created>1753012771789</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1753012771789</updated>
+    </task>
+    <task id="LOCAL-00049" summary="重构1.0">
+      <option name="closed" value="true" />
+      <created>1753012896246</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1753012896246</updated>
+    </task>
+    <task id="LOCAL-00050" summary="重构1.0">
+      <option name="closed" value="true" />
+      <created>1753013462547</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1753013462548</updated>
+    </task>
+    <task id="LOCAL-00051" summary="重构1.0">
+      <option name="closed" value="true" />
+      <created>1753014788699</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1753014788699</updated>
+    </task>
+    <task id="LOCAL-00052" summary="默认数据源">
+      <option name="closed" value="true" />
+      <created>1753019264143</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1753019264143</updated>
+    </task>
+    <task id="LOCAL-00053" summary="默认数据源">
+      <option name="closed" value="true" />
+      <created>1753019563088</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1753019563088</updated>
+    </task>
+    <task id="LOCAL-00054" summary="按照优先级扫描">
+      <option name="closed" value="true" />
+      <created>1753019719158</created>
+      <option name="number" value="00054" />
+      <option name="presentableId" value="LOCAL-00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1753019719158</updated>
+    </task>
+    <task id="LOCAL-00055" summary="只扫描resource">
+      <option name="closed" value="true" />
+      <created>1753020439362</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1753020439362</updated>
+    </task>
+    <task id="LOCAL-00056" summary="初始化扫描">
+      <option name="closed" value="true" />
+      <created>1753025469151</created>
+      <option name="number" value="00056" />
+      <option name="presentableId" value="LOCAL-00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1753025469151</updated>
+    </task>
+    <option name="localTasksCounter" value="57" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="生成文件都以Test结尾" />
+    <MESSAGE value="统计基础依赖包" />
+    <MESSAGE value="适配spring 接口注入" />
+    <MESSAGE value="性能优化" />
+    <MESSAGE value="xml 配置扫描" />
+    <MESSAGE value="暂存新配置" />
+    <MESSAGE value="依赖修正" />
+    <MESSAGE value="扫描" />
+    <MESSAGE value="写入到文件" />
+    <MESSAGE value="依赖更新" />
+    <MESSAGE value="测试类生成" />
+    <MESSAGE value="重构2.0" />
+    <MESSAGE value="支持扫描接口类" />
+    <MESSAGE value="删除无用类" />
+    <MESSAGE value="lombok 构造器注入" />
+    <MESSAGE value="递归扫描依赖" />
+    <MESSAGE value="加入模型调用和被狗执行" />
+    <MESSAGE value="模型信息记录" />
+    <MESSAGE value="支持调用dify" />
+    <MESSAGE value="页面配置" />
+    <MESSAGE value="重构1.0" />
+    <MESSAGE value="默认数据源" />
+    <MESSAGE value="按照优先级扫描" />
+    <MESSAGE value="只扫描resource" />
+    <MESSAGE value="初始化扫描" />
+    <option name="LAST_COMMIT_MESSAGE" value="初始化扫描" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/parse/BeanMethodResolver.java</url>
+          <line>42</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+    <watches-manager>
+      <configuration name="GradleRunConfiguration">
+        <watch expression="line" />
+      </configuration>
+    </watches-manager>
+  </component>
+</project>
