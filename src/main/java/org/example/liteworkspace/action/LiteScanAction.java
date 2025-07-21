@@ -48,8 +48,10 @@ public class LiteScanAction extends AnAction {
                     Map<String, String> beanMap = new SpringXmlBuilder(liteProjectContext)
                             .buildXmlMap(beans);
                     // 改为使用新写入类
-                    LiteFileWriter writer = new LiteFileWriter(liteProjectContext);
-                    writer.write(project, targetClass, beanMap);
+                    // 写操作要在 WriteAction 中
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        new LiteFileWriter(liteProjectContext).write(project, targetClass, beanMap);
+                    });
                 } catch (Exception ex) {
                     showError(project, "❌ 生成失败：" + ex.getMessage());
                 }
