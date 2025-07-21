@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="init">
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="启动加载基础依赖">
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/ProjectCacheStore.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/cache/CacheVersionChecker.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/cache/LiteCacheStorage.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/listener/LiteFileWatcher.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
@@ -228,14 +232,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00009" summary="demo1">
-      <option name="closed" value="true" />
-      <created>1751695394238</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1751695394238</updated>
     </task>
     <task id="LOCAL-00010" summary="只是数据源的多样性">
       <option name="closed" value="true" />
@@ -621,7 +617,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753029143969</updated>
     </task>
-    <option name="localTasksCounter" value="58" />
+    <task id="LOCAL-00058" summary="启动加载基础依赖">
+      <option name="closed" value="true" />
+      <created>1753055726568</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1753055726568</updated>
+    </task>
+    <option name="localTasksCounter" value="59" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -636,7 +640,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="统计基础依赖包" />
     <MESSAGE value="适配spring 接口注入" />
     <MESSAGE value="性能优化" />
     <MESSAGE value="xml 配置扫描" />
@@ -661,7 +664,8 @@
     <MESSAGE value="只扫描resource" />
     <MESSAGE value="初始化扫描" />
     <MESSAGE value="init" />
-    <option name="LAST_COMMIT_MESSAGE" value="init" />
+    <MESSAGE value="启动加载基础依赖" />
+    <option name="LAST_COMMIT_MESSAGE" value="启动加载基础依赖" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

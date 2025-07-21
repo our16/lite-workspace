@@ -1,136 +1,141 @@
 package org.example.liteworkspace.util;
 
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.*;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.PsiShortNamesCache;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import org.example.liteworkspace.bean.core.ProjectCacheStore;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class ResourceConfigAnalyzer {
 
     private final Project project;
+    private final ProjectCacheStore cacheStore;
 
-    public ResourceConfigAnalyzer(Project project) {
+    public ResourceConfigAnalyzer(Project project, String projectId) {
         this.project = project;
+        this.cacheStore = new ProjectCacheStore(projectId);
     }
 
-    /**
-     * 分析 resource 下的 XML 配置文件，提取定义方式、扫描包、mapper 路径等
-     */
-    public Map<String, Object> analyzeSpringConfig() {
-        Map<String, Object> result = new HashMap<>();
-        Set<String> scanPackages = new HashSet<>();
-        Set<String> mapperLocations = new HashSet<>();
-        Set<String> processedFiles = new HashSet<>();
-
-        Collection<VirtualFile> files = FilenameIndex.getAllFilesByExt(project, "xml", GlobalSearchScope.projectScope(project));
-        for (VirtualFile file : files) {
-            if (!file.getPath().contains("/resources/")) {
-                continue;
-            }
-            if (!file.getName().contains("application") && !file.getName().contains("web")) {
-                continue;
-            }
-            resolveXmlRecursive(file, scanPackages, mapperLocations, processedFiles);
+    public Set<String> scanComponentScanPackages() {
+        Set<String> result = new HashSet<>();
+        for (XmlFile xml : findRelevantXmlFiles()) {
+            scanXmlForComponentScan(xml, result, new HashSet<>());
         }
-
-        result.put("componentScan", new ArrayList<>(scanPackages));
-        result.put("mapperLocations", new ArrayList<>(mapperLocations));
-        result.put("sourceFiles", new ArrayList<>(processedFiles));
         return result;
     }
-    public Map<String, String>  analyzeMyBatisMapperXml() {
-        final Map<String, String> mapperNamespaceToFile = new HashMap<>();
-        Collection<VirtualFile> files = FilenameIndex.getAllFilesByExt(project, "xml", GlobalSearchScope.projectScope(project));
-        for (VirtualFile file : files) {
-            if (!file.getPath().contains("/resources/")) continue;
 
-            PsiFile psi = PsiManager.getInstance(project).findFile(file);
+    public Map<String, String> scanMyBatisNamespaceMap() {
+        Map<String, String> namespaceMap = new HashMap<>();
+        for (VirtualFile vf : FilenameIndex.getAllFilesByExt(project, "xml", GlobalSearchScope.projectScope(project))) {
+            if (!vf.getPath().contains("/mapper") && !vf.getName().endsWith("Mapper.xml")) continue;
+
+            PsiFile psi = PsiManager.getInstance(project).findFile(vf);
             if (!(psi instanceof XmlFile xmlFile)) continue;
 
+            String fileHash = getFileHash(vf);
+            if (cacheStore.isUnchanged(vf.getPath(), fileHash)) {
+                continue;
+            }
+
             XmlTag root = xmlFile.getRootTag();
-            if (root != null && "mapper".equals(root.getName())) {
-                String namespace = root.getAttributeValue("namespace");
-                if (namespace != null) {
-                    mapperNamespaceToFile.put(namespace, file.getPath());
+            if (root == null || !"mapper".equals(root.getName())) {
+                continue;
+            }
+
+            String ns = root.getAttributeValue("namespace");
+            if (ns != null && !ns.isEmpty()) {
+                namespaceMap.put(ns, vf.getPath());
+                cacheStore.updateCache(vf.getPath(), fileHash);
+            }
+        }
+        return namespaceMap;
+    }
+
+    public Set<PsiClass> scanConfigurationClasses() {
+        Set<PsiClass> result = new HashSet<>();
+        GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
+        Collection<PsiClass> all = PsiShortNamesCache.getInstance(project).getAllClassNames().length == 0
+                ? List.of()
+                : Arrays.asList(PsiShortNamesCache.getInstance(project).getClassesByName("Configuration", scope)); // 快速空判断
+
+        for (VirtualFile vf : FilenameIndex.getAllFilesByExt(project, "java", scope)) {
+            PsiFile file = PsiManager.getInstance(project).findFile(vf);
+            if (!(file instanceof PsiJavaFile javaFile)) {
+                continue;
+            }
+            for (PsiClass clazz : javaFile.getClasses()) {
+                if (clazz.hasAnnotation("org.springframework.context.annotation.Configuration")) {
+                    result.add(clazz);
                 }
             }
         }
-        return mapperNamespaceToFile;
+
+        return result;
     }
 
-    private void resolveXmlRecursive(VirtualFile file,
-                                     Set<String> scanPackages,
-                                     Set<String> mapperLocations,
-                                     Set<String> visitedPaths) {
+    private List<XmlFile> findRelevantXmlFiles() {
+        List<XmlFile> xmlFiles = new ArrayList<>();
+        for (VirtualFile vf : FilenameIndex.getAllFilesByExt(project, "xml", GlobalSearchScope.projectScope(project))) {
+            if (!vf.getPath().contains("/resources/")) continue;
 
-        String path = file.getPath();
-        if (visitedPaths.contains(path)) {
-            return;
+            PsiFile psi = PsiManager.getInstance(project).findFile(vf);
+            if (psi instanceof XmlFile xml) {
+                XmlTag root = xml.getRootTag();
+                if (root != null && ("beans".equals(root.getName()) || "context:component-scan".equals(root.getName()))) {
+                    xmlFiles.add(xml);
+                }
+            }
         }
-        visitedPaths.add(path);
+        return xmlFiles;
+    }
 
-        PsiFile psi = PsiManager.getInstance(project).findFile(file);
-        if (!(psi instanceof XmlFile xml)) {
-            return;
-        }
+    private void scanXmlForComponentScan(XmlFile xml, Set<String> scanPackages, Set<String> visitedPaths) {
+        String path = xml.getVirtualFile().getPath();
+        if (!visitedPaths.add(path)) return;
+
         XmlTag root = xml.getRootTag();
-        if (root == null) {
-            return;
-        }
+        if (root == null) return;
 
-        // 1. context:component-scan
         for (XmlTag tag : root.findSubTags("context:component-scan")) {
             String basePackage = tag.getAttributeValue("base-package");
             if (basePackage != null) scanPackages.add(basePackage);
         }
 
-        // 2. mybatis mapperLocations
-        for (XmlTag bean : root.findSubTags("bean")) {
-            if (!"org.mybatis.spring.SqlSessionFactoryBean".equals(bean.getAttributeValue("class"))) continue;
-            for (XmlTag property : bean.findSubTags("property")) {
-                if (!"mapperLocations".equals(property.getAttributeValue("name"))) continue;
-
-                XmlTag list = property.findFirstSubTag("list");
-                if (list != null) {
-                    for (XmlTag value : list.findSubTags("value")) {
-                        mapperLocations.add(value.getValue().getText().trim());
-                    }
-                } else {
-                    XmlTag value = property.findFirstSubTag("value");
-                    if (value != null) {
-                        mapperLocations.add(value.getValue().getText().trim());
-                    }
-                }
-            }
-        }
-
-        // 3. 递归 import 标签
         for (XmlTag tag : root.findSubTags("import")) {
             String resource = tag.getAttributeValue("resource");
             if (resource != null) {
-                VirtualFile imported = resolveResourcePath(resource);
+                VirtualFile imported = resolveResourcePath(resource, xml.getVirtualFile());
                 if (imported != null) {
-                    resolveXmlRecursive(imported, scanPackages, mapperLocations, visitedPaths);
+                    PsiFile psi = PsiManager.getInstance(project).findFile(imported);
+                    if (psi instanceof XmlFile importedXml) {
+                        scanXmlForComponentScan(importedXml, scanPackages, visitedPaths);
+                    }
                 }
             }
         }
     }
 
-    /**
-     * 解析 import resource 路径（相对 /resources/ 目录）
-     */
-    private VirtualFile resolveResourcePath(String resourcePath) {
-        Collection<VirtualFile> files = FilenameIndex.getAllFilesByExt(project, "xml", GlobalSearchScope.projectScope(project));
-        for (VirtualFile file : files) {
-            if (!file.getPath().contains("/resources/")) continue;
-            if (file.getPath().endsWith(resourcePath)) return file;
+    @Nullable
+    private VirtualFile resolveResourcePath(String path, VirtualFile base) {
+        VirtualFile baseDir = base.getParent();
+        if (path.startsWith("classpath:")) path = path.replace("classpath:", "");
+        VirtualFile resolved = baseDir.findFileByRelativePath(path);
+        if (resolved == null) {
+            resolved = base.getFileSystem().findFileByPath(project.getBasePath() + "/src/main/resources/" + path);
         }
-        return null;
+        return resolved;
+    }
+
+    private String getFileHash(VirtualFile file) {
+        return file.getTimeStamp() + ":" + file.getLength();
     }
 }
