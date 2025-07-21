@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="启动加载基础依赖">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" afterDir="false" />
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="写操作要在 WriteAction 中">
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -151,7 +150,7 @@
       <recent name="org.example.liteworkspace" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.Run Plugin">
+  <component name="RunManager" selected="Gradle.lite-workspace [buildPlugin]">
     <configuration name="TestRun" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.example.liteworkspace.action.TestRun" />
       <module name="lite-workspace.main" />
@@ -211,8 +210,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.TestRun" />
         <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
+        <item itemvalue="Application.TestRun" />
         <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
         <item itemvalue="Gradle.lite-workspace [clean]" />
         <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
@@ -227,14 +226,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00011" summary="缓存配置">
-      <option name="closed" value="true" />
-      <created>1751697020792</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1751697020792</updated>
     </task>
     <task id="LOCAL-00012" summary="从当前项目的配置文件中解析数据库配置">
       <option name="closed" value="true" />
@@ -620,7 +611,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753059528452</updated>
     </task>
-    <option name="localTasksCounter" value="60" />
+    <task id="LOCAL-00060" summary="写操作要在 WriteAction 中">
+      <option name="closed" value="true" />
+      <created>1753073156835</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1753073156835</updated>
+    </task>
+    <option name="localTasksCounter" value="61" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -635,7 +634,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="适配spring 接口注入" />
     <MESSAGE value="性能优化" />
     <MESSAGE value="xml 配置扫描" />
     <MESSAGE value="暂存新配置" />
@@ -660,7 +658,8 @@
     <MESSAGE value="初始化扫描" />
     <MESSAGE value="init" />
     <MESSAGE value="启动加载基础依赖" />
-    <option name="LAST_COMMIT_MESSAGE" value="启动加载基础依赖" />
+    <MESSAGE value="写操作要在 WriteAction 中" />
+    <option name="LAST_COMMIT_MESSAGE" value="写操作要在 WriteAction 中" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
