@@ -1,12 +1,14 @@
 package org.example.liteworkspace.bean.engine;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.ui.Messages;
@@ -50,8 +52,8 @@ public class LiteFileWriter {
                         String relativePath = packageName.replace('.', '/');
 
                         // 🔍 查找标准的 src/test/java 和 src/test/resources 目录
-                        VirtualFile testJavaDir = findTestSourceFolder(module, "java");
-                        VirtualFile testResourcesDir = findTestSourceFolder(module, "resources");
+                        VirtualFile testJavaDir = findTestSourceFolder(module, clazz, "java");
+                        VirtualFile testResourcesDir = findTestSourceFolder(module, clazz,"resources");
 
                         if (testJavaDir == null || testResourcesDir == null) {
                             showError(project, "未找到标准的测试目录（src/test/java 或 src/test/resources），请确保项目是基于 Maven/Gradle 标准结构。\n" +
@@ -91,48 +93,72 @@ public class LiteFileWriter {
         );
     }
 
-    /**
-     * 查找测试源码目录（java 或 resources）
-     */
-    private VirtualFile findTestSourceFolder(Module module, String type) {
+    private VirtualFile findTestSourceFolder(Module module ,PsiClass clazz, String type) {
+        // 先尝试查找已经标记的测试目录
         ContentEntry[] contentEntries = ModuleRootManager.getInstance(module).getContentEntries();
         for (ContentEntry entry : contentEntries) {
             for (SourceFolder folder : entry.getSourceFolders()) {
                 if (folder.isTestSource() && folder.getFile() != null) {
-                    String path = folder.getFile().getPath();
+                    VirtualFile file = folder.getFile();
+                    String path = file.getPath();
                     if (path != null && path.contains("/" + type)) {
-                        VirtualFile file = folder.getFile();
-                        if (file != null) {
-                            // 确保是 java 或 resources 文件夹
-                            String folderName = file.getName();
-                            if (("java".equals(folderName) && "java".equals(type)) ||
-                                    ("resources".equals(folderName) && "resources".equals(type))) {
-                                return file;
-                            } else if (("java".equals(type) || "resources".equals(type)) &&
-                                    file.getPath().endsWith("/" + type)) {
-                                // 更通用的判断：路径中包含 /test/resources/ 或 /test/java/
-                                return file;
-                            }
-                        }
+                        return file;
                     }
                 }
             }
         }
 
-        // 更通用的回退方式：遍历所有 test source folders，找到路径中包含 /test/java 或 /test/resources 的
-        for (ContentEntry entry : ModuleRootManager.getInstance(module).getContentEntries()) {
-            for (SourceFolder folder : entry.getSourceFolders()) {
-                if (folder.isTestSource() && folder.getFile() != null) {
-                    VirtualFile file = folder.getFile();
-                    if (file != null) {
-                        String path = file.getPath();
-                        if (("java".equals(type) && path.contains("/test/java/")) ||
-                                ("resources".equals(type) && path.contains("/test/resources/"))) {
-                            return file;
+        // 👉 如果找不到，尝试查找物理路径
+        String basePath = getPhysicalModuleBasePath(clazz);
+        if (basePath != null) {
+            String testPath = basePath + "/src/test/" + type;
+            File testDir = new File(testPath);
+            if (!testDir.exists()) {
+                // 自动创建
+                boolean created = testDir.mkdirs();
+                if (!created) return null;
+            }
+
+            VirtualFile vf = VfsUtil.findFileByIoFile(testDir, true);
+            if (vf != null) {
+                // ✅ 可选：注册为测试目录（添加为 SourceFolder）
+                WriteAction.run(() -> {
+                    ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
+                    ContentEntry contentEntry = null;
+                    for (ContentEntry ce : model.getContentEntries()) {
+                        if (testPath.startsWith(ce.getFile().getPath())) {
+                            contentEntry = ce;
+                            break;
                         }
                     }
-                }
+                    if (contentEntry != null) {
+                        contentEntry.addSourceFolder(vf, /* isTestSource= */ true);
+                        model.commit();
+                    } else {
+                        model.dispose();
+                    }
+                });
+                return vf;
             }
+        }
+
+        return null;
+    }
+
+    /**
+     * 通过类所在路径，推断当前模块的真实物理路径
+     */
+    private String getPhysicalModuleBasePath(PsiClass clazz) {
+        VirtualFile file = clazz.getContainingFile().getVirtualFile();
+        if (file == null) return null;
+
+        VirtualFile parent = file.getParent();
+        while (parent != null && !parent.getName().equals("src")) {
+            parent = parent.getParent();
+        }
+
+        if (parent != null) {
+            return parent.getParent().getPath(); // 模块目录
         }
 
         return null;
