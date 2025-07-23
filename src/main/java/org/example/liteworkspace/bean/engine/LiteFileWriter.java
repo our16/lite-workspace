@@ -1,12 +1,14 @@
 package org.example.liteworkspace.bean.engine;
 
-
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -26,53 +28,114 @@ public class LiteFileWriter {
         this.context = context;
     }
 
-    public void write(Project project, PsiClass clazz,  Map<String, String> beanMap) {
-        try {
-            Module module = ModuleUtilCore.findModuleForPsiElement(clazz);
-            if (module == null) return;
+    public void write(Project project, PsiClass clazz, Map<String, String> beanMap) {
+        ApplicationManager.getApplication().invokeLater(() ->
+                WriteCommandAction.runWriteCommandAction(project, () -> {
+                    try {
+                        Module module = ModuleUtilCore.findModuleForPsiElement(clazz);
+                        if (module == null) {
+                            showError(project, "未能定位当前类所属的模块");
+                            return;
+                        }
 
-            String qualifiedName = clazz.getQualifiedName();
-            String className = clazz.getName();
-            String packageName = qualifiedName.substring(0, qualifiedName.lastIndexOf('.'));
-            String testClassName = className + "Test";
-            String relativePath = packageName.replace('.', '/');
+                        String qualifiedName = clazz.getQualifiedName();
+                        String className = clazz.getName();
+                        if (qualifiedName == null || className == null) {
+                            showError(project, "类名无法解析，生成终止");
+                            return;
+                        }
 
-            VirtualFile[] roots = ModuleRootManager.getInstance(module).getSourceRoots();
-            final VirtualFile[] testJava = {null};
-            final VirtualFile[] testRes = {null};
+                        String packageName = qualifiedName.substring(0, qualifiedName.lastIndexOf('.'));
+                        String testClassName = className + "Test";
+                        String relativePath = packageName.replace('.', '/');
 
-            for (VirtualFile root : roots) {
-                String path = root.getPath().replace("\\", "/");
-                if (path.endsWith("/src/test/java")) testJava[0] = root;
-                if (path.endsWith("/src/test/resources")) testRes[0] = root;
-            }
+                        // 🔍 查找标准的 src/test/java 和 src/test/resources 目录
+                        VirtualFile testJavaDir = findTestSourceFolder(module, "java");
+                        VirtualFile testResourcesDir = findTestSourceFolder(module, "resources");
 
-            if (testJava[0] == null || testRes[0] == null) {
-                VirtualFile baseDir = module.getModuleFile() != null ? module.getModuleFile().getParent() : null;
-                if (baseDir == null) {
-                    showError(project, "无法确定 module 路径");
-                    return;
+                        if (testJavaDir == null || testResourcesDir == null) {
+                            showError(project, "未找到标准的测试目录（src/test/java 或 src/test/resources），请确保项目是基于 Maven/Gradle 标准结构。\n" +
+                                    "或者手动创建这些目录后再试。");
+                            return;
+                        }
+
+                        // 确保相对路径目录存在（在测试目录下）
+                        File javaTestDir = new File(testJavaDir.getPath(), relativePath);
+                        File resourcesTestDir = new File(testResourcesDir.getPath(), relativePath);
+
+                        if (!javaTestDir.exists()) javaTestDir.mkdirs();
+                        if (!resourcesTestDir.exists()) resourcesTestDir.mkdirs();
+
+                        File xmlFile = writeSpringXmlFile(beanMap, resourcesTestDir, testClassName);
+                        File testFile = writeJUnitTestFile(packageName, className, testClassName, relativePath, javaTestDir);
+
+                        // 刷新虚拟文件系统
+                        VfsUtil.findFileByIoFile(xmlFile, true).refresh(false, false);
+                        VfsUtil.findFileByIoFile(testFile, true).refresh(false, false);
+
+                        Messages.showInfoMessage(project,
+                                "✅ 已生成：\n" +
+                                        "测试类: " + testFile.getAbsolutePath() + "\n" +
+                                        "配置文件: " + xmlFile.getAbsolutePath(),
+                                "LiteWorkspace");
+                        // 打开测试文件
+                        VirtualFile virtualFile = VfsUtil.findFileByIoFile(testFile, true);
+                        if (virtualFile != null) {
+                            FileEditorManager.getInstance(project).openFile(virtualFile, true);
+                        }
+
+                    } catch (Exception ex) {
+                        showError(project, "❌ 生成失败：" + ex.getMessage());
+                    }
+                })
+        );
+    }
+
+    /**
+     * 查找测试源码目录（java 或 resources）
+     */
+    private VirtualFile findTestSourceFolder(Module module, String type) {
+        ContentEntry[] contentEntries = ModuleRootManager.getInstance(module).getContentEntries();
+        for (ContentEntry entry : contentEntries) {
+            for (SourceFolder folder : entry.getSourceFolders()) {
+                if (folder.isTestSource() && folder.getFile() != null) {
+                    String path = folder.getFile().getPath();
+                    if (path != null && path.contains("/" + type)) {
+                        VirtualFile file = folder.getFile();
+                        if (file != null) {
+                            // 确保是 java 或 resources 文件夹
+                            String folderName = file.getName();
+                            if (("java".equals(folderName) && "java".equals(type)) ||
+                                    ("resources".equals(folderName) && "resources".equals(type))) {
+                                return file;
+                            } else if (("java".equals(type) || "resources".equals(type)) &&
+                                    file.getPath().endsWith("/" + type)) {
+                                // 更通用的判断：路径中包含 /test/resources/ 或 /test/java/
+                                return file;
+                            }
+                        }
+                    }
                 }
-                createTestPath(project, baseDir, testJava, testRes);
             }
-
-            File javaDir = new File(testJava[0].getPath(), relativePath);
-            File resDir = new File(testRes[0].getPath(), relativePath);
-            javaDir.mkdirs();
-            resDir.mkdirs();
-
-            File xmlFile = writeSpringXmlFile(beanMap, resDir, testClassName);
-            File testFile = writeJUnitTestFile(packageName, className, testClassName, relativePath, javaDir);
-
-            VfsUtil.findFileByIoFile(xmlFile, true).refresh(false, false);
-            VfsUtil.findFileByIoFile(testFile, true).refresh(false, false);
-
-            ApplicationManager.getApplication().invokeLater(() ->
-                    Messages.showInfoMessage(project, "✅ 已生成：\n" + testFile.getAbsolutePath(), "LiteWorkspace"));
-
-        } catch (Exception ex) {
-            showError(project, "❌ 生成失败：" + ex.getMessage());
         }
+
+        // 更通用的回退方式：遍历所有 test source folders，找到路径中包含 /test/java 或 /test/resources 的
+        for (ContentEntry entry : ModuleRootManager.getInstance(module).getContentEntries()) {
+            for (SourceFolder folder : entry.getSourceFolders()) {
+                if (folder.isTestSource() && folder.getFile() != null) {
+                    VirtualFile file = folder.getFile();
+                    if (file != null) {
+                        String path = file.getPath();
+                        if (("java".equals(type) && path.contains("/test/java/")) ||
+                                ("resources".equals(type) && path.contains("/test/resources/"))) {
+                            return file;
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     private void showError(Project project, String message) {
@@ -80,23 +143,8 @@ public class LiteFileWriter {
                 Messages.showErrorDialog(project, message, "LiteWorkspace"));
     }
 
-    private void createTestPath(Project project, VirtualFile baseDir, VirtualFile[] testJava, VirtualFile[] testRes) {
-        WriteCommandAction.runWriteCommandAction(project, () -> {
-            try {
-                VirtualFile srcDir = baseDir.findChild("src");
-                if (srcDir == null) srcDir = baseDir.createChildDirectory(null, "src");
-                VirtualFile testDir = srcDir.findChild("test");
-                if (testDir == null) testDir = srcDir.createChildDirectory(null, "test");
-                if (testJava[0] == null) testJava[0] = testDir.findOrCreateChildData(null, "java");
-                if (testRes[0] == null) testRes[0] = testDir.findOrCreateChildData(null, "resources");
-            } catch (IOException e) {
-                showError(project, "创建目录失败: " + e.getMessage());
-            }
-        });
-    }
-
-    private File writeSpringXmlFile(Map<String, String> beanMap, File resDir, String testClassName) throws IOException {
-        File xmlFile = new File(resDir, testClassName + ".xml");
+    private File writeSpringXmlFile(Map<String, String> beanMap, File resourcesTestDir, String testClassName) throws IOException {
+        File xmlFile = new File(resourcesTestDir, testClassName + ".xml");
         try (FileWriter fw = new FileWriter(xmlFile)) {
             fw.write("<beans xmlns=\"http://www.springframework.org/schema/beans\"\n");
             fw.write("       xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
@@ -112,50 +160,39 @@ public class LiteFileWriter {
     }
 
     private File writeJUnitTestFile(String packageName, String className, String testClassName,
-                                    String relativePath, File javaDir) throws IOException {
-        File testFile = new File(javaDir, testClassName + ".java");
-        String configLine = String.format("@ContextConfiguration(locations = \"classpath:%s/%s.xml\")",
-                relativePath, testClassName);
-
-        if (!testFile.exists()) {
-            try (FileWriter fw = new FileWriter(testFile)) {
-                fw.write(String.format("""
-                package %s;
-
-                import org.junit.Test;
-                import org.junit.runner.RunWith;
-                import org.springframework.test.context.ContextConfiguration;
-                import org.springframework.test.context.junit4.SpringRunner;
-                import javax.annotation.Resource;
-
-                @RunWith(SpringRunner.class)
-                %s
-                public class %s {
-
-                    @Resource
-                    private %s %s;
-
-                    @Test
-                    public void testContextLoads() {
-                        System.out.println("%s = " + %s);
-                    }
-                }
-                """,
-                        packageName,
-                        configLine,
-                        testClassName,
-                        className,
-                        decapitalize(className),
-                        decapitalize(className),
-                        decapitalize(className)
-                ));
-            }
-        } else {
-            String content = new String(java.nio.file.Files.readAllBytes(testFile.toPath()));
-            content = content.replaceAll("@ContextConfiguration\\(locations\\s*=\\s*\"[^\"]*\"\\)", configLine);
-            try (FileWriter fw = new FileWriter(testFile)) {
-                fw.write(content);
-            }
+                                    String relativePath, File javaTestDir) throws IOException {
+        File testFile = new File(javaTestDir, testClassName + ".java");
+        try (FileWriter fw = new FileWriter(testFile)) {
+            fw.write(String.format("""
+                            package %s;
+                            
+                            import org.junit.Test;
+                            import org.junit.runner.RunWith;
+                            import org.springframework.test.context.ContextConfiguration;
+                            import org.springframework.test.context.junit4.SpringRunner;
+                            import javax.annotation.Resource;
+                            
+                            @RunWith(SpringRunner.class)
+                            @ContextConfiguration(locations = "classpath:%s/%s.xml")
+                            public class %s {
+                            
+                                @Resource
+                                private %s %s;
+                            
+                                @Test
+                                public void testContextLoads() {
+                                    System.out.println("%s = " + %s);
+                                }
+                            }
+                            """,
+                    packageName,
+                    relativePath, testClassName,
+                    testClassName,
+                    className,
+                    decapitalize(className),
+                    decapitalize(className),
+                    decapitalize(className)
+            ));
         }
         return testFile;
     }
@@ -165,4 +202,3 @@ public class LiteFileWriter {
         return Character.toLowerCase(name.charAt(0)) + name.substring(1);
     }
 }
-

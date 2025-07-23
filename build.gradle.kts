@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.example"
-version = "1.11"
+version = "1.15"
 
 repositories {
     maven {
