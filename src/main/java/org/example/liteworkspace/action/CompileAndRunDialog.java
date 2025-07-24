@@ -47,7 +47,7 @@ public class CompileAndRunDialog extends DialogWrapper {
         if (text == null || text.trim().isEmpty()) {
             return new String[0];
         }
-        return text.split("\n")
+        return Arrays.stream(text.split("\n"))
                 .map(String::trim)
                 .filter(line -> !line.isEmpty())
                 .toArray(String[]::new);

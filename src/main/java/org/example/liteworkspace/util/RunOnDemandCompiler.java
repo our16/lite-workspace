@@ -77,10 +77,7 @@ public class RunOnDemandCompiler {
         System.out.println("[INFO] 编译成功，类文件输出到: " + tempDir);
 
         // === 4. TODO: 替换为自动获取依赖 jar，这里先手动指定（可为空）
-        String[] dependencyJars = new String[]{
-                // 例如："/path/to/guava.jar", "/path/to/your-lib.jar"
-                // 请根据你的实际依赖修改
-        };
+        List<String> dependencyJars = IdeaDependencyUtil.getCurrentModuleDependencyJarPaths();
 
         // === 5. 组装 classpath：临时目录 + 依赖 jars
         List<String> classpathEntries = new ArrayList<>();

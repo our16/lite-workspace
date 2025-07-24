@@ -35,8 +35,8 @@
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
         <action id="RunOnDemandAction" class="org.example.liteworkspace.action.RunOnDemandAction"
-                text="Run Selected Java Files" description="Compile & Run Java files on demand">
-            <add-to-group group-id="ToolsMenu" anchor="last"/>
+                text="Run Selected Java Files" description="Compile and Run Java files on demand">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
     </actions>
 </idea-plugin>
