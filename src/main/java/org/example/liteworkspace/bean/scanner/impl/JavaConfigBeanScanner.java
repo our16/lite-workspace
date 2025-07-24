@@ -6,6 +6,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.AllClassesSearch;
 import com.intellij.util.Query;
+import org.example.liteworkspace.bean.core.BeanType;
 import org.example.liteworkspace.bean.core.LiteProjectContext;
 import org.example.liteworkspace.bean.scanner.BeanScanner;
 
@@ -44,6 +45,11 @@ public class JavaConfigBeanScanner implements BeanScanner {
         }
 
         return result;
+    }
+
+    @Override
+    public List<BeanType> supportedType() {
+        return Arrays.asList(BeanType.JAVA_CONFIG);
     }
 
     private boolean isAutowired(PsiModifierListOwner element) {

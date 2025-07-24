@@ -5,12 +5,11 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.util.Query;
+import org.example.liteworkspace.bean.core.BeanType;
 import org.example.liteworkspace.bean.core.LiteProjectContext;
 import org.example.liteworkspace.bean.scanner.BeanScanner;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class AnnotationBeanScanner implements BeanScanner {
 
@@ -57,6 +56,11 @@ public class AnnotationBeanScanner implements BeanScanner {
         }
 
         return result;
+    }
+
+    @Override
+    public List<BeanType> supportedType() {
+        return Arrays.asList(BeanType.ANNOTATION);
     }
 
     private boolean isAutowired(PsiModifierListOwner element) {

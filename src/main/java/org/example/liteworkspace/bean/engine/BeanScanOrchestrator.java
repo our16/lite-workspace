@@ -9,19 +9,23 @@ import org.example.liteworkspace.bean.core.LiteProjectContext;
 import org.example.liteworkspace.bean.scanner.BeanScanner;
 import org.example.liteworkspace.util.MyBatisXmlFinder;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class BeanScanOrchestrator {
 
     private final List<BeanScanner> scanners;
     private final Set<String> visited = new HashSet<>();
     private final MyBatisXmlFinder xmlFinder;
+    private final Map<BeanType, BeanScanner> scannerMap = new HashMap<>();
 
     public BeanScanOrchestrator(List<BeanScanner> scanners, LiteProjectContext context) {
         this.scanners = scanners;
         this.xmlFinder = context.getXmlFinder();
+        for (BeanScanner scanner : scanners) {
+            for (BeanType beanType : scanner.supportedType()) {
+                scannerMap.put(beanType, scanner);
+            }
+        }
     }
 
     public void scan(PsiClass clazz, BeanRegistry registry) {
@@ -66,7 +70,8 @@ public class BeanScanOrchestrator {
 
         // 3. MyBatis @Mapper 判定
         if (clazz.hasAnnotation("org.apache.ibatis.annotations.Mapper") ||
-                clazz.getName() != null && clazz.getName().endsWith("Mapper")) {
+                clazz.getName() != null && clazz.getName().endsWith("Mapper") ||
+                clazz.getName() != null && clazz.getName().endsWith("Dao")) {
             boolean hasMethodLevelSqlAnnotation = false;
             for (PsiMethod method : clazz.getMethods()) {
                 if (hasMyBatisSqlAnnotation(method)) {

@@ -4,8 +4,8 @@ plugins {
     id("org.jetbrains.intellij") version "1.17.4"
 }
 
-group = "org.example"
-version = "1.15"
+group = "org.liteworkspace"
+version = "1.17"
 
 repositories {
     maven {
