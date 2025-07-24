@@ -5,12 +5,8 @@ import com.intellij.psi.PsiClass;
 import org.example.liteworkspace.bean.core.BeanDefinition;
 import org.example.liteworkspace.bean.core.BeanRegistry;
 import org.example.liteworkspace.bean.core.LiteProjectContext;
-import org.example.liteworkspace.bean.scanner.impl.AnnotationBeanScanner;
-import org.example.liteworkspace.bean.scanner.impl.JavaConfigBeanScanner;
-import org.example.liteworkspace.bean.scanner.impl.MyBatisMapperScanner;
 
 import java.util.Collection;
-import java.util.List;
 
 public class LiteBeanScanner {
 
