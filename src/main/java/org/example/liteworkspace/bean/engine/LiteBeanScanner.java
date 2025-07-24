@@ -27,12 +27,7 @@ public class LiteBeanScanner {
      */
     public Collection<BeanDefinition> scanAndCollectBeanList(PsiClass rootClass, Project project) {
         BeanRegistry registry = new BeanRegistry();
-        BeanScanOrchestrator orchestrator = new BeanScanOrchestrator(List.of(
-                new MyBatisMapperScanner(context),
-                new JavaConfigBeanScanner(context),
-                new AnnotationBeanScanner(context)
-        ), context);
-
+        BeanScanOrchestrator orchestrator = new BeanScanOrchestrator(context);
         orchestrator.scan(rootClass, registry);
 
         return registry.getAllBeans();
