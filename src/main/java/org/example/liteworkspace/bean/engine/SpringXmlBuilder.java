@@ -59,9 +59,7 @@ public class SpringXmlBuilder {
         for (BeanDefinition bean : list) {
             String id = bean.getBeanName();
             String className = bean.getClassName();
-
-            MyBatisXmlFinder xmlFinder = context.getXmlFinder();
-            String xmlPath = xmlFinder.findRelativePathByNamespace(className);
+            String xmlPath = context.getMybatisContext().getMybatisNamespaceMap().get(className);
             if (xmlPath != null) {
                 mapperXmlPaths.add("classpath:" + xmlPath.replace("\\", "/"));
             }

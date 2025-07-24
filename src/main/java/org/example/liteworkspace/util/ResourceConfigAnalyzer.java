@@ -33,33 +33,6 @@ public class ResourceConfigAnalyzer {
         return result;
     }
 
-    public Map<String, String> scanMyBatisNamespaceMap() {
-        Map<String, String> namespaceMap = new HashMap<>();
-        for (VirtualFile vf : FilenameIndex.getAllFilesByExt(project, "xml", GlobalSearchScope.projectScope(project))) {
-            if (!vf.getPath().contains("/mapper") && !vf.getName().endsWith("Mapper.xml")) continue;
-
-            PsiFile psi = PsiManager.getInstance(project).findFile(vf);
-            if (!(psi instanceof XmlFile xmlFile)) continue;
-
-            String fileHash = getFileHash(vf);
-            if (cacheStore.isUnchanged(vf.getPath(), fileHash)) {
-                continue;
-            }
-
-            XmlTag root = xmlFile.getRootTag();
-            if (root == null || !"mapper".equals(root.getName())) {
-                continue;
-            }
-
-            String ns = root.getAttributeValue("namespace");
-            if (ns != null && !ns.isEmpty()) {
-                namespaceMap.put(ns, vf.getPath());
-                cacheStore.updateCache(vf.getPath(), fileHash);
-            }
-        }
-        return namespaceMap;
-    }
-
     public Set<PsiClass> scanConfigurationClasses() {
         Set<PsiClass> result = new HashSet<>();
         GlobalSearchScope scope = GlobalSearchScope.projectScope(project);

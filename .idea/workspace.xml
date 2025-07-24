@@ -5,14 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="部分编译">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/DependencyClassScanner.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/GradleDependencyJarFetcher.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/IdeaDependencyUtil.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/OnDemandJavaCompiler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/BuildToolType.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/CompileAndRunDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/CompileAndRunDialog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/RunOnDemandCompiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/RunOnDemandCompiler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScanOrchestrator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScanOrchestrator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/scanner/impl/MyBatisMapperScanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/scanner/impl/MyBatisMapperScanner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/MyBatisXmlFinder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/MyBatisXmlFinder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -122,7 +122,7 @@
     "Application.TestRun.executor": "Run",
     "Batch.download-gradle.executor": "Debug",
     "Gradle.Build lite-workspace.executor": "Run",
-    "Gradle.Run Plugin.executor": "Run",
+    "Gradle.Run Plugin.executor": "Debug",
     "Gradle.lite-workspace [buildPlugin].executor": "Run",
     "Gradle.lite-workspace [clean].executor": "Run",
     "Gradle.lite-workspace [setupDependencies].executor": "Run",
@@ -233,14 +233,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00016" summary="可以跑通的一个版本">
-      <option name="closed" value="true" />
-      <created>1751709788454</created>
-      <option name="number" value="00016" />
-      <option name="presentableId" value="LOCAL-00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1751709788454</updated>
     </task>
     <task id="LOCAL-00017" summary="覆盖生成，保留原内容">
       <option name="closed" value="true" />
@@ -626,7 +618,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753321257242</updated>
     </task>
-    <option name="localTasksCounter" value="65" />
+    <task id="LOCAL-00065" summary="部分编译">
+      <option name="closed" value="true" />
+      <created>1753368209574</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1753368209574</updated>
+    </task>
+    <option name="localTasksCounter" value="66" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">

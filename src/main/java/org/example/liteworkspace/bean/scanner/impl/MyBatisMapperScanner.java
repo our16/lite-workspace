@@ -48,7 +48,7 @@ public class MyBatisMapperScanner implements BeanScanner {
             return false;
         }
         // 4. Mapper 接口（XML 形式）,优先xml，支持混合模式
-        if (clazz.isInterface() && this.context.getXmlFinder().hasMatchingMapperXml(clazz)) {
+        if (clazz.isInterface() && this.context.getMybatisContext().hasMatchingMapperXml(clazz)) {
             return true;
         }
 

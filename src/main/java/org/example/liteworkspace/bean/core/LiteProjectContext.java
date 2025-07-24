@@ -8,6 +8,9 @@ import org.example.liteworkspace.cache.CacheVersionChecker;
 import org.example.liteworkspace.util.MyBatisXmlFinder;
 import org.example.liteworkspace.util.ResourceConfigAnalyzer;
 
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
+
 import java.util.*;
 
 public class LiteProjectContext {
@@ -16,48 +19,100 @@ public class LiteProjectContext {
     private final List<Module> modules;
     private final boolean isMultiModule;
 
-    private final ResourceConfigAnalyzer resourceAnalyzer;
-    private final MyBatisXmlFinder xmlFinder;
+    private final BuildToolType buildToolType;
 
-    // 从 XML 中提取的 Spring 扫描包路径
+    private final ResourceConfigAnalyzer resourceAnalyzer;
+
+    private final MyBatisXmlFinder mybatisContext;
+
+    // Spring
     private final Set<String> springScanPackages = new HashSet<>();
 
-    // 从 XML 中提取的 MyBatis mapper 路径
-    private final Set<String> mybatisMapperLocations = new HashSet<>();
-
-    // mapper namespace -> resource 相对路径
-    private final Map<String, String> mybatisNamespaceMap = new HashMap<>();
-
-    // 所有的 @Configuration 类
+    // Configuration
     private final Set<PsiClass> configurationClasses = new HashSet<>();
-
-    // 被 @Bean 提供的类（FQCN）
     private final Set<String> configProvidedFqcns = new HashSet<>();
 
     private final CacheVersionChecker versionChecker = new CacheVersionChecker();
 
-    public CacheVersionChecker getVersionChecker() {
-        return versionChecker;
-    }
-
     public LiteProjectContext(Project project) {
         this.project = project;
-        this.modules = Arrays.asList(ModuleManager.getInstance(project).getModules());
-        this.isMultiModule = modules.size() > 1;
 
+        // ===================== 步骤 1 =====================
+        // 获取所有模块，判断是否多模块
+        this.modules = Arrays.asList(ModuleManager.getInstance(project).getModules());
+        this.isMultiModule = this.modules.size() > 1;
+
+        // ===================== 步骤 2 =====================
+        // 分析构建工具类型：Maven or Gradle
+        this.buildToolType = detectBuildToolType();
+
+        // ===================== 步骤 3 =====================
+        // 初始化分析器：用于扫描 Spring、MyBatis 相关配置
         this.resourceAnalyzer = new ResourceConfigAnalyzer(project, "");
-        this.xmlFinder = MyBatisXmlFinder.build(project);
-        initMetadata();
+        // mybatis 上下文
+        this.mybatisContext =  new MyBatisXmlFinder(project);
+        // 主动加载 namespace -> mapper路径 映射
+        this.mybatisContext.loadMapperNamespaceMap();
+        // ===================== 步骤 4 =====================
+        // 执行核心元数据扫描，填充上下文信息
+        scanAndCacheProjectMetadata();
     }
 
     /**
-     * 初始化配置信息，包括 spring 扫描包、mybatis 映射文件路径和 namespace 映射
+     * 步骤 2 衍生方法：检测当前项目是 Maven 还是 Gradle
      */
-    private void initMetadata() {
-        springScanPackages.addAll(resourceAnalyzer.scanComponentScanPackages());
-        configurationClasses.addAll(resourceAnalyzer.scanConfigurationClasses());
-        mybatisNamespaceMap.putAll(resourceAnalyzer.scanMyBatisNamespaceMap());
+    private BuildToolType detectBuildToolType() {
+        VirtualFile[] contentRoots = ProjectRootManager.getInstance(project).getContentRoots();
+        if (contentRoots == null || contentRoots.length == 0) {
+            return BuildToolType.UNKNOWN;
+        }
+
+        // 遍历所有内容根目录（一般项目可能有多个 module，但我们只判断是否存在构建文件）
+        for (VirtualFile root : contentRoots) {
+            if (root == null || !root.isValid()) {
+                continue;
+            }
+
+            // 检测 Maven
+            VirtualFile pomXml = root.findChild("pom.xml");
+            if (pomXml != null && pomXml.exists()) {
+                return BuildToolType.MAVEN;
+            }
+
+            // 检测 Gradle
+            VirtualFile buildGradle = root.findChild("build.gradle");
+            if (buildGradle != null && buildGradle.exists()) {
+                return BuildToolType.GRADLE;
+            }
+
+            VirtualFile buildGradleKts = root.findChild("build.gradle.kts");
+            if (buildGradleKts != null && buildGradleKts.exists()) {
+                return BuildToolType.GRADLE;
+            }
+        }
+
+        // 默认未知
+        return BuildToolType.UNKNOWN;
     }
+
+    /**
+     * 步骤 4：扫描并缓存项目的元数据信息，包括：
+     * - Spring 扫描包
+     * - MyBatis Mapper 信息
+     * - 配置类等
+     */
+    private void scanAndCacheProjectMetadata() {
+        // Spring 相关
+        this.springScanPackages.addAll(this.resourceAnalyzer.scanComponentScanPackages());
+
+        // Configuration 类
+        this.configurationClasses.addAll(this.resourceAnalyzer.scanConfigurationClasses());
+
+        // MyBatis Namespace 映射
+        // 配置类提供的 Bean FQCN（如果有相关逻辑，也可以在这里调用）
+    }
+
+    // ========== Getters ==========
 
     public Project getProject() {
         return project;
@@ -71,32 +126,28 @@ public class LiteProjectContext {
         return isMultiModule;
     }
 
+    public BuildToolType getBuildToolType() {
+        return buildToolType;
+    }
+
     public Set<String> getSpringScanPackages() {
         return springScanPackages;
-    }
-
-    public Set<String> getMybatisMapperLocations() {
-        return mybatisMapperLocations;
-    }
-
-    public Map<String, String> getMybatisNamespaceMap() {
-        return mybatisNamespaceMap;
     }
 
     public ResourceConfigAnalyzer getResourceAnalyzer() {
         return resourceAnalyzer;
     }
 
-    public MyBatisXmlFinder getXmlFinder() {
-        return xmlFinder;
+    public MyBatisXmlFinder getMybatisContext() {
+        return mybatisContext;
+    }
+
+    public Set<PsiClass> getAllConfigurationClasses() {
+        return configurationClasses;
     }
 
     public void addConfigurationClass(PsiClass clazz) {
         this.configurationClasses.add(clazz);
-    }
-
-    public Collection<PsiClass> getAllConfigurationClasses() {
-        return configurationClasses;
     }
 
     public void registerConfigProvidedClass(String fqcn) {
@@ -106,5 +157,9 @@ public class LiteProjectContext {
     public boolean isProvidedByConfiguration(PsiClass clazz) {
         String qname = clazz.getQualifiedName();
         return qname != null && configProvidedFqcns.contains(qname);
+    }
+
+    public CacheVersionChecker getVersionChecker() {
+        return versionChecker;
     }
 }

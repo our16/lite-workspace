@@ -1,6 +1,5 @@
 package org.example.liteworkspace.bean.engine;
 
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import org.example.liteworkspace.bean.core.BeanDefinition;
 import org.example.liteworkspace.bean.core.BeanRegistry;
@@ -15,12 +14,12 @@ public class BeanScanOrchestrator {
 
     private final List<BeanScanner> scanners;
     private final Set<String> visited = new HashSet<>();
-    private final MyBatisXmlFinder xmlFinder;
+    private final MyBatisXmlFinder mybatisContext;
     private final Map<BeanType, BeanScanner> scannerMap = new HashMap<>();
 
     public BeanScanOrchestrator(List<BeanScanner> scanners, LiteProjectContext context) {
         this.scanners = scanners;
-        this.xmlFinder = context.getXmlFinder();
+        this.mybatisContext = context.getMybatisContext();
         for (BeanScanner scanner : scanners) {
             for (BeanType beanType : scanner.supportedType()) {
                 scannerMap.put(beanType, scanner);
@@ -64,7 +63,7 @@ public class BeanScanOrchestrator {
         }
 
         // 4. Mapper 接口（XML 形式）,优先xml，支持混合模式
-        if (clazz.isInterface() && xmlFinder.hasMatchingMapperXml(clazz)) {
+        if (clazz.isInterface() && mybatisContext.hasMatchingMapperXml(clazz)) {
             return BeanType.MYBATIS;
         }
 
