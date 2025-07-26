@@ -51,7 +51,8 @@ public class LlmCodeAnalyzerPlugin extends AnAction {
 
                     // 替代 println
                     LOG.info("【LLM 请求 Prompt】\n" + prompt);
-                    String outputText = LlmModelInvoker.invoke(prompt);
+                    LlmModelInvoker invoker = new LlmModelInvoker();
+                    String outputText = invoker.invoke(prompt);
                     ApplicationManager.getApplication().invokeLater(() ->
                             Messages.showInfoMessage(project, outputText, "LLM 分析结果"));
 

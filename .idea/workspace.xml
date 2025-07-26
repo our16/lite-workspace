@@ -4,11 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="根据上下文判断是不是mapper">
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="扫描器">
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/provider/LlmProvider.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/provider/impl/DifyLlmProvider.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/provider/impl/OpenAiLlmProvider.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/BeanType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/BeanType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScanOrchestrator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScanOrchestrator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteBeanScanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteBeanScanner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LlmCodeAnalyzerPlugin.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LlmCodeAnalyzerPlugin.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/config/LiteWorkspaceSettings.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/config/LiteWorkspaceSettings.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/LlmModelInvoker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/LlmModelInvoker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -229,22 +235,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00018" summary="依赖包搞好了了">
-      <option name="closed" value="true" />
-      <created>1751711706484</created>
-      <option name="number" value="00018" />
-      <option name="presentableId" value="LOCAL-00018" />
-      <option name="project" value="LOCAL" />
-      <updated>1751711706484</updated>
-    </task>
-    <task id="LOCAL-00019" summary="依赖包搞好了；支持扫描mapper.xml">
-      <option name="closed" value="true" />
-      <created>1751712546711</created>
-      <option name="number" value="00019" />
-      <option name="presentableId" value="LOCAL-00019" />
-      <option name="project" value="LOCAL" />
-      <updated>1751712546711</updated>
     </task>
     <task id="LOCAL-00020" summary="支持注解形态，并区分是否xml和注解交叉，实际还是只能走一个形式">
       <option name="closed" value="true" />
@@ -622,7 +612,23 @@
       <option name="project" value="LOCAL" />
       <updated>1753371590211</updated>
     </task>
-    <option name="localTasksCounter" value="67" />
+    <task id="LOCAL-00067" summary="扫描器">
+      <option name="closed" value="true" />
+      <created>1753372309160</created>
+      <option name="number" value="00067" />
+      <option name="presentableId" value="LOCAL-00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1753372309160</updated>
+    </task>
+    <task id="LOCAL-00068" summary="扫描器">
+      <option name="closed" value="true" />
+      <created>1753372433264</created>
+      <option name="number" value="00068" />
+      <option name="presentableId" value="LOCAL-00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1753372433264</updated>
+    </task>
+    <option name="localTasksCounter" value="69" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -637,7 +643,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="扫描" />
     <MESSAGE value="写入到文件" />
     <MESSAGE value="依赖更新" />
     <MESSAGE value="测试类生成" />
@@ -662,7 +667,8 @@
     <MESSAGE value="扫描测试文件" />
     <MESSAGE value="部分编译" />
     <MESSAGE value="根据上下文判断是不是mapper" />
-    <option name="LAST_COMMIT_MESSAGE" value="根据上下文判断是不是mapper" />
+    <MESSAGE value="扫描器" />
+    <option name="LAST_COMMIT_MESSAGE" value="扫描器" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -671,6 +677,11 @@
           <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/parse/BeanMethodResolver.java</url>
           <line>42</line>
           <option name="timeStamp" value="4" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java</url>
+          <line>49</line>
+          <option name="timeStamp" value="20" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

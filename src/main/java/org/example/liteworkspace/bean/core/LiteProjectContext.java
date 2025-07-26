@@ -28,6 +28,8 @@ public class LiteProjectContext {
     // Spring
     private final Set<String> springScanPackages = new HashSet<>();
 
+    private final Map<String, String> datasourceMap = new HashMap<>();
+
     // Configuration
     private final Set<PsiClass> configurationClasses = new HashSet<>();
     private final Set<String> configProvidedFqcns = new HashSet<>();
@@ -55,7 +57,12 @@ public class LiteProjectContext {
         this.mybatisContext.loadMapperNamespaceMap();
         // ===================== 步骤 4 =====================
         // 执行核心元数据扫描，填充上下文信息
-        scanAndCacheProjectMetadata();
+        // Spring 相关
+        this.springScanPackages.addAll(this.resourceAnalyzer.scanComponentScanPackages());
+
+        this.datasourceMap.putAll(this.resourceAnalyzer.scanSpringDatasourceConfigs());
+        // Configuration 类
+        this.configurationClasses.addAll(this.resourceAnalyzer.scanConfigurationClasses());
     }
 
     /**
@@ -93,23 +100,6 @@ public class LiteProjectContext {
 
         // 默认未知
         return BuildToolType.UNKNOWN;
-    }
-
-    /**
-     * 步骤 4：扫描并缓存项目的元数据信息，包括：
-     * - Spring 扫描包
-     * - MyBatis Mapper 信息
-     * - 配置类等
-     */
-    private void scanAndCacheProjectMetadata() {
-        // Spring 相关
-        this.springScanPackages.addAll(this.resourceAnalyzer.scanComponentScanPackages());
-
-        // Configuration 类
-        this.configurationClasses.addAll(this.resourceAnalyzer.scanConfigurationClasses());
-
-        // MyBatis Namespace 映射
-        // 配置类提供的 Bean FQCN（如果有相关逻辑，也可以在这里调用）
     }
 
     // ========== Getters ==========

@@ -15,6 +15,42 @@ public class DifyResponse {
         public Usage usage;
     }
 
+    public String getEvent() {
+        return event;
+    }
+
+    public String getAnswer() {
+        return answer;
+    }
+
+    public String getConversation_id() {
+        return conversation_id;
+    }
+
+    public String getMessage_id() {
+        return message_id;
+    }
+
+    public long getCreated_at() {
+        return created_at;
+    }
+
+    public String getTask_id() {
+        return task_id;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public Metadata getMetadata() {
+        return metadata;
+    }
+
+    public Object getFiles() {
+        return files;
+    }
+
     public static class Usage {
         public int prompt_tokens;
         public String prompt_unit_price;

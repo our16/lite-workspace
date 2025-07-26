@@ -13,6 +13,10 @@ import com.intellij.psi.xml.XmlTag;
 import org.example.liteworkspace.bean.core.ProjectCacheStore;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.*;
 
 public class ResourceConfigAnalyzer {
@@ -53,6 +57,68 @@ public class ResourceConfigAnalyzer {
         }
 
         return result;
+    }
+
+    /**
+     * 只读取 test/resource/configs/testDatasource.xml 的数据库配置，
+     * 如果文件不存在，则返回默认配置
+     *
+     * @return Map<String, String> 数据源配置
+     */
+    public Map<String, String> scanSpringDatasourceConfigs() {
+        Map<String, String> datasourceConfigs = new LinkedHashMap<>();
+
+        // 1. 优先读取 test/resources/configs/testDatasource.xml
+        VirtualFile configFile = findTestDatasourceXml();
+        if (configFile != null && configFile.isValid()) {
+            datasourceConfigs.put("import 配置配置，不用解析", "jdbc:mysql://localhost:3306/default_db");
+        } else {
+            // 2. 如果文件不存在，使用默认配置
+            datasourceConfigs.put("datasource.url", "jdbc:mysql://localhost:3306/default_db");
+            datasourceConfigs.put("datasource.username", "root");
+            datasourceConfigs.put("datasource.password", "123456");
+            datasourceConfigs.put("datasource.driver-class-name", "com.mysql.cj.jdbc.Driver");
+        }
+
+        return datasourceConfigs;
+    }
+
+    /**
+     * 查找 test/resources/configs/testDatasource.xml 文件
+     */
+    private VirtualFile findTestDatasourceXml() {
+        String filePath = "src/test/resources/configs/testDatasource.xml";
+        VirtualFile baseDir = project.getProjectFile();
+        if (baseDir == null) return null;
+        return baseDir.findFileByRelativePath(filePath);
+    }
+
+    /**
+     * 扫描 XML 文件中的 <bean class="...DataSource"> 以及 <property name="url" .../> 配置
+     */
+    private void scanDatasourceXmlConfig(VirtualFile xmlFile, Map<String, String> configs) {
+        PsiFile psiFile = PsiManager.getInstance(project).findFile(xmlFile);
+        if (!(psiFile instanceof XmlFile xml)) {
+            return;
+        }
+
+        XmlTag root = xml.getRootTag();
+        if (root == null) return;
+
+        for (XmlTag beanTag : root.findSubTags("bean")) {
+            String className = beanTag.getAttributeValue("class");
+            if (className == null || !className.toLowerCase().contains("datasource")) {
+                continue;
+            }
+
+            for (XmlTag propTag : beanTag.findSubTags("property")) {
+                String name = propTag.getAttributeValue("name");
+                String value = propTag.getAttributeValue("value");
+                if (name != null && value != null) {
+                    configs.put("datasource." + name, value); // 统一前缀
+                }
+            }
+        }
     }
 
     private List<XmlFile> findRelevantXmlFiles() {
@@ -106,9 +172,5 @@ public class ResourceConfigAnalyzer {
             resolved = base.getFileSystem().findFileByPath(project.getBasePath() + "/src/main/resources/" + path);
         }
         return resolved;
-    }
-
-    private String getFileHash(VirtualFile file) {
-        return file.getTimeStamp() + ":" + file.getLength();
     }
 }
