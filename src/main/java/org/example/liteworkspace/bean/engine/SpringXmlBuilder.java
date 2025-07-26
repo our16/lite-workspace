@@ -24,6 +24,7 @@ public class SpringXmlBuilder {
 
         // 2. 普通 Bean（Annotation / Java Config）
         buildSimpleBeans(grouped, xmlMap, BeanType.ANNOTATION);
+        //
         buildSimpleBeans(grouped, xmlMap, BeanType.JAVA_CONFIG);
 
         // 3. MAPPER 类型
@@ -42,7 +43,9 @@ public class SpringXmlBuilder {
                                   Map<String, String> xmlMap,
                                   BeanType type) {
         List<BeanDefinition> list = grouped.get(type);
-        if (list == null) return;
+        if (list == null) {
+            return;
+        }
         for (BeanDefinition bean : list) {
             xmlMap.put(bean.getBeanName(), String.format("    <bean id=\"%s\" class=\"%s\"/>",
                     bean.getBeanName(), bean.getClassName()));
@@ -60,7 +63,11 @@ public class SpringXmlBuilder {
             String className = bean.getClassName();
             String xmlPath = context.getMybatisContext().getMybatisNamespaceMap().get(className);
             if (xmlPath != null) {
-                mapperXmlPaths.add("classpath:" + xmlPath.replace("\\", "/"));
+                String classpathPath = xmlPath
+                        .replace("\\", "/")  // 统一使用正斜杠
+                        .replaceFirst(".*src/(main|test)/resources/", "")  // 去掉资源目录前缀
+                        .replaceFirst("^/", "");  // 去掉可能的前导斜杠
+                mapperXmlPaths.add("classpath:" + classpathPath);
             }
 
             String mapperBean = String.format("""
@@ -76,8 +83,8 @@ public class SpringXmlBuilder {
             // 使用标准Spring import格式
             String importPath = context.getDatasourceConfig().getImportPath();
             String relativePath = importPath.replace(context.getProject().getBasePath() + "/", "");
-            xmlMap.put("",
-                    String.format("<import resource=\"classpath:%s\"/>",
+            xmlMap.put("defaultDatasource",
+                    String.format("    <import resource=\"classpath:%s\"/>",
                             relativePath.replace("src/test/resources/", "")));
         } else {
             // 使用模板方式填充默认配置

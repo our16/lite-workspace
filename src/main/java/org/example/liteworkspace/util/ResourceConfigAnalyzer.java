@@ -3,7 +3,9 @@ package org.example.liteworkspace.util;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.*;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -18,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.*;
 
 public class ResourceConfigAnalyzer {
@@ -38,26 +41,75 @@ public class ResourceConfigAnalyzer {
         return result;
     }
 
-    public Set<PsiClass> scanConfigurationClasses() {
-        Set<PsiClass> result = new HashSet<>();
+    public Map<String, PsiClass> scanConfigurationClasses() {
         GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
-        Collection<PsiClass> all = PsiShortNamesCache.getInstance(project).getAllClassNames().length == 0
-                ? List.of()
-                : Arrays.asList(PsiShortNamesCache.getInstance(project).getClassesByName("Configuration", scope)); // 快速空判断
-
+        Map<String, PsiClass> beanToConfiguration = new HashMap<>();
         for (VirtualFile vf : FilenameIndex.getAllFilesByExt(project, "java", scope)) {
             PsiFile file = PsiManager.getInstance(project).findFile(vf);
             if (!(file instanceof PsiJavaFile javaFile)) {
                 continue;
             }
             for (PsiClass clazz : javaFile.getClasses()) {
-                if (clazz.hasAnnotation("org.springframework.context.annotation.Configuration")) {
-                    result.add(clazz);
+                if (!clazz.hasAnnotation("org.springframework.context.annotation.Configuration")) {
+                    continue;
+                }
+
+                for (PsiMethod method : clazz.getMethods()) {
+                    if (!method.hasAnnotation("org.springframework.context.annotation.Bean")) {
+                        continue;
+                    }
+
+                    PsiType returnType = method.getReturnType();
+                    if (returnType == null) {
+                        continue;
+                    }
+
+                    // 获取Bean名称（优先使用@Bean的name/value属性，否则使用方法名）
+                    String beanName = getBeanName(method);
+
+                    // 获取返回类型的完全限定名
+                    String returnTypeName = returnType.getCanonicalText();
+
+                    // 两种存储方式：
+                    // 1. 以Bean方法名为key
+                    beanToConfiguration.put(method.getName(), clazz);
+                    // 2. 以返回类型为key
+                    beanToConfiguration.put(returnTypeName, clazz);
+                    // 3. 如果有自定义Bean名称，也存储
+                    if (!beanName.equals(method.getName())) {
+                        beanToConfiguration.put(beanName, clazz);
+                    }
                 }
             }
         }
 
-        return result;
+        return beanToConfiguration;
+    }
+
+    /**
+     * 从@Bean注解中提取Bean名称
+     */
+    private String getBeanName(PsiMethod method) {
+        PsiAnnotation beanAnnotation = method.getAnnotation("org.springframework.context.annotation.Bean");
+        if (beanAnnotation == null) {
+            return method.getName();
+        }
+
+        // 查找@Bean的value或name属性
+        PsiAnnotationMemberValue valueAttr = beanAnnotation.findAttributeValue("value");
+        if (valueAttr == null) {
+            valueAttr = beanAnnotation.findAttributeValue("name");
+        }
+
+        if (valueAttr instanceof PsiLiteralExpression literal) {
+            String value = literal.getValue() instanceof String ? (String) literal.getValue() : null;
+            if (value != null && !value.isEmpty()) {
+                return value;
+            }
+        }
+
+        // 默认返回方法名
+        return method.getName();
     }
 
     /**
@@ -73,7 +125,6 @@ public class ResourceConfigAnalyzer {
             // 如果找到指定文件，返回一个特殊标识表示使用导入文件
             return DatasourceConfig.createImportedConfig(configFile.getPath());
         }
-
         // 2. 如果没有找到文件，返回默认配置
         return DatasourceConfig.createDefaultConfig(
                 "jdbc:mysql://localhost:3306/default_db",
@@ -87,10 +138,48 @@ public class ResourceConfigAnalyzer {
      * 查找 test/resources/configs/testDatasource.xml 文件
      */
     private VirtualFile findTestDatasourceXml() {
-        String filePath = "src/test/resources/configs/testDatasource.xml";
-        VirtualFile baseDir = project.getProjectFile();
-        if (baseDir == null) return null;
-        return baseDir.findFileByRelativePath(filePath);
+        // 尝试的多个可能路径（根据常见项目结构）
+        String[] possiblePaths = {
+                "src/test/resources/configs/testDatasource.xml",
+                "test/resources/configs/testDatasource.xml",
+                "configs/testDatasource.xml",
+        };
+
+        // 1. 首先尝试基于项目根目录查找
+        VirtualFile baseDir = project.getBaseDir();
+        if (baseDir != null) {
+            for (String path : possiblePaths) {
+                VirtualFile file = baseDir.findFileByRelativePath(path);
+                if (file != null && file.exists()) {
+                    return file;
+                }
+            }
+        }
+
+        // 2. 使用FilenameIndex全局搜索（更可靠的方式）
+        GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
+        Collection<VirtualFile> files = FilenameIndex.getVirtualFilesByName(
+                "testDatasource.xml",
+                scope
+        );
+
+        for (VirtualFile file : files) {
+            if (file.getPath().contains("configs")) {
+                return file;
+            }
+        }
+
+        // 3. 最后尝试通过类加载器查找资源
+        try {
+            URL resourceUrl = getClass().getClassLoader()
+                    .getResource("configs/testDatasource.xml");
+            if (resourceUrl != null) {
+                return VirtualFileManager.getInstance()
+                        .findFileByUrl(VfsUtilCore.urlToPath(resourceUrl.toString()));
+            }
+        } catch (Exception ignored) {}
+
+        return null;
     }
 
     /**

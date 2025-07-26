@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="openai 模型">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/DatasourceConfig.java" afterDir="false" />
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="datasource 配置">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScanOrchestrator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScanOrchestrator.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
     </list>
@@ -231,14 +231,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00022" summary="xml 配置在初始时加载一次就行了">
-      <option name="closed" value="true" />
-      <created>1751714247871</created>
-      <option name="number" value="00022" />
-      <option name="presentableId" value="LOCAL-00022" />
-      <option name="project" value="LOCAL" />
-      <updated>1751714247871</updated>
     </task>
     <task id="LOCAL-00023" summary="适配其他类型的dao声明">
       <option name="closed" value="true" />
@@ -624,7 +616,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753525661055</updated>
     </task>
-    <option name="localTasksCounter" value="71" />
+    <task id="LOCAL-00071" summary="datasource 配置">
+      <option name="closed" value="true" />
+      <created>1753526926869</created>
+      <option name="number" value="00071" />
+      <option name="presentableId" value="LOCAL-00071" />
+      <option name="project" value="LOCAL" />
+      <updated>1753526926869</updated>
+    </task>
+    <option name="localTasksCounter" value="72" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -639,7 +639,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="依赖更新" />
     <MESSAGE value="测试类生成" />
     <MESSAGE value="重构2.0" />
     <MESSAGE value="支持扫描接口类" />
@@ -664,7 +663,8 @@
     <MESSAGE value="根据上下文判断是不是mapper" />
     <MESSAGE value="扫描器" />
     <MESSAGE value="openai 模型" />
-    <option name="LAST_COMMIT_MESSAGE" value="openai 模型" />
+    <MESSAGE value="datasource 配置" />
+    <option name="LAST_COMMIT_MESSAGE" value="datasource 配置" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

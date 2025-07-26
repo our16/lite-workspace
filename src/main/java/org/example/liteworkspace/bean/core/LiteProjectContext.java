@@ -12,6 +12,7 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class LiteProjectContext {
 
@@ -32,6 +33,9 @@ public class LiteProjectContext {
 
     // Configuration
     private final Set<PsiClass> configurationClasses = new HashSet<>();
+
+    private final Map<String, PsiClass> bean2configuration = new HashMap<>();
+
     private final Set<String> configProvidedFqcns = new HashSet<>();
 
     private final CacheVersionChecker versionChecker = new CacheVersionChecker();
@@ -61,8 +65,10 @@ public class LiteProjectContext {
         this.springScanPackages.addAll(this.resourceAnalyzer.scanComponentScanPackages());
 
         this.datasourceConfig = this.resourceAnalyzer.scanSpringDatasourceConfigs();
-        // Configuration 类
-        this.configurationClasses.addAll(this.resourceAnalyzer.scanConfigurationClasses());
+        // 构造的bean 和对应的 Configuration 类
+        Map<String, PsiClass> stringPsiClassMap = this.resourceAnalyzer.scanConfigurationClasses();
+        this.configurationClasses.addAll(new HashSet<>(stringPsiClassMap.values()));
+        this.bean2configuration.putAll(stringPsiClassMap);
     }
 
     /**
@@ -136,8 +142,8 @@ public class LiteProjectContext {
         return configurationClasses;
     }
 
-    public void addConfigurationClass(PsiClass clazz) {
-        this.configurationClasses.add(clazz);
+    public Map<String, PsiClass> getBean2configuration() {
+        return bean2configuration;
     }
 
     public void registerConfigProvidedClass(String fqcn) {

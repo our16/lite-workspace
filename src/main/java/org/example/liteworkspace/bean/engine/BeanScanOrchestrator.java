@@ -1,12 +1,18 @@
 package org.example.liteworkspace.bean.engine;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.ClassInheritorsSearch;
+import com.intellij.psi.stubs.StubIndex;
+import com.intellij.psi.impl.java.stubs.index.JavaFullClassNameIndex;
 import org.example.liteworkspace.bean.core.BeanDefinition;
 import org.example.liteworkspace.bean.core.BeanRegistry;
 import org.example.liteworkspace.bean.core.BeanType;
 import org.example.liteworkspace.bean.core.LiteProjectContext;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class BeanScanOrchestrator {
 
@@ -47,15 +53,74 @@ public class BeanScanOrchestrator {
                 continue;
             }
 
+            Map<String, PsiClass> bean2Configuration = this.context.getBean2configuration();
             BeanType depType = resolveBeanType(dependency);
             if (depType != BeanType.PLAIN) {
                 // 如果依赖本身也是一个 Bean，则递归扫描并注册
                 scan(dependency, registry);
+            } else if (dependency.isInterface()) {
+                // 处理接口类型：查找所有实现类
+                List<PsiClass> implementations = findImplementations(dependency);
+                for (PsiClass impl : implementations) {
+                    scan(impl, registry);
+                }
+            } else if (bean2Configuration.containsKey(depQName)) {
+                PsiClass relateConfiguration = bean2Configuration.get(depQName);
+                // 扫描对应的configuration
+                scan(relateConfiguration, registry);
+                // 否则认为是普通依赖，只记录 FQCN
+                normalDependencies.add(depQName);
             } else {
                 // 否则认为是普通依赖，只记录 FQCN
                 normalDependencies.add(depQName);
             }
         }
+    }
+
+    /**
+     * 查找接口的所有实现类
+     */
+    private List<PsiClass> findImplementations(PsiClass interfaceClass) {
+        List<PsiClass> implementations = new ArrayList<>();
+        String interfaceQName = interfaceClass.getQualifiedName();
+        if (interfaceQName == null) {
+            return implementations;
+        }
+
+        // 方法1：使用ClassInheritorsSearch（推荐）
+        implementations.addAll(ClassInheritorsSearch.search(interfaceClass).findAll());
+        Project project = this.context.getProject();
+        // 方法2：使用JavaPsiFacade查找类（备用）
+        PsiClass[] implementers = JavaPsiFacade.getInstance(project)
+                .findClasses(interfaceQName, GlobalSearchScope.allScope(project));
+        implementations.addAll(Arrays.asList(implementers));
+
+        // 方法3：使用StubIndex查找（更底层的方式）
+        StubIndex.getInstance().processElements(
+                JavaFullClassNameIndex.getInstance().getKey(),
+                interfaceQName,
+                project,
+                GlobalSearchScope.allScope(project),
+                PsiClass.class,
+                psiClass -> {
+                    if (!psiClass.isInterface() && !psiClass.isAnnotationType()) {
+                        PsiClassType[] implementsTypes = psiClass.getImplementsListTypes();
+                        for (PsiClassType type : implementsTypes) {
+                            PsiClass resolved = type.resolve();
+                            if (resolved != null && interfaceQName.equals(resolved.getQualifiedName())) {
+                                implementations.add(psiClass);
+                                break;
+                            }
+                        }
+                    }
+                    return true;
+                }
+        );
+
+        // 去重并返回
+        return implementations.stream()
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     /**
