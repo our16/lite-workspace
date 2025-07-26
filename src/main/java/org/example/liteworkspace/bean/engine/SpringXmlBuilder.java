@@ -3,7 +3,6 @@ package org.example.liteworkspace.bean.engine;
 import org.example.liteworkspace.bean.core.BeanDefinition;
 import org.example.liteworkspace.bean.core.BeanType;
 import org.example.liteworkspace.bean.core.LiteProjectContext;
-import org.example.liteworkspace.util.MyBatisXmlFinder;
 
 import java.util.*;
 
@@ -73,15 +72,17 @@ public class SpringXmlBuilder {
             xmlMap.put(id, mapperBean);
         }
 
-        // 添加默认 dataSource（前置）
-        xmlMap.put("dataSource", """
-                    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-                        <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
-                        <property name="url" value="jdbc:mysql://localhost:3306/test"/>
-                        <property name="username" value="root"/>
-                        <property name="password" value="root"/>
-                    </bean>
-                """);
+        if (context.getDatasourceConfig().isImported()) {
+            // 使用标准Spring import格式
+            String importPath = context.getDatasourceConfig().getImportPath();
+            String relativePath = importPath.replace(context.getProject().getBasePath() + "/", "");
+            xmlMap.put("",
+                    String.format("<import resource=\"classpath:%s\"/>",
+                            relativePath.replace("src/test/resources/", "")));
+        } else {
+            // 使用模板方式填充默认配置
+            xmlMap.putAll(context.getDatasourceConfig().getDefaultDatasource());
+        }
 
         // 添加 sqlSessionFactory，依赖 dataSource
         StringBuilder factory = new StringBuilder();

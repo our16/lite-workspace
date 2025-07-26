@@ -28,7 +28,7 @@ public class LiteProjectContext {
     // Spring
     private final Set<String> springScanPackages = new HashSet<>();
 
-    private final Map<String, String> datasourceMap = new HashMap<>();
+    private DatasourceConfig datasourceConfig = new DatasourceConfig();
 
     // Configuration
     private final Set<PsiClass> configurationClasses = new HashSet<>();
@@ -60,7 +60,7 @@ public class LiteProjectContext {
         // Spring 相关
         this.springScanPackages.addAll(this.resourceAnalyzer.scanComponentScanPackages());
 
-        this.datasourceMap.putAll(this.resourceAnalyzer.scanSpringDatasourceConfigs());
+        this.datasourceConfig = this.resourceAnalyzer.scanSpringDatasourceConfigs();
         // Configuration 类
         this.configurationClasses.addAll(this.resourceAnalyzer.scanConfigurationClasses());
     }
@@ -151,5 +151,9 @@ public class LiteProjectContext {
 
     public CacheVersionChecker getVersionChecker() {
         return versionChecker;
+    }
+
+    public DatasourceConfig getDatasourceConfig() {
+        return datasourceConfig;
     }
 }

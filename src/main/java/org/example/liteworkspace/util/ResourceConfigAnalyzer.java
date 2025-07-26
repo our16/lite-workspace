@@ -10,6 +10,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.example.liteworkspace.bean.core.DatasourceConfig;
 import org.example.liteworkspace.bean.core.ProjectCacheStore;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,22 +66,21 @@ public class ResourceConfigAnalyzer {
      *
      * @return Map<String, String> 数据源配置
      */
-    public Map<String, String> scanSpringDatasourceConfigs() {
-        Map<String, String> datasourceConfigs = new LinkedHashMap<>();
-
-        // 1. 优先读取 test/resources/configs/testDatasource.xml
+    public DatasourceConfig scanSpringDatasourceConfigs() {
+        // 1. 优先检查是否有指定的测试数据源文件
         VirtualFile configFile = findTestDatasourceXml();
         if (configFile != null && configFile.isValid()) {
-            datasourceConfigs.put("import 配置配置，不用解析", "jdbc:mysql://localhost:3306/default_db");
-        } else {
-            // 2. 如果文件不存在，使用默认配置
-            datasourceConfigs.put("datasource.url", "jdbc:mysql://localhost:3306/default_db");
-            datasourceConfigs.put("datasource.username", "root");
-            datasourceConfigs.put("datasource.password", "123456");
-            datasourceConfigs.put("datasource.driver-class-name", "com.mysql.cj.jdbc.Driver");
+            // 如果找到指定文件，返回一个特殊标识表示使用导入文件
+            return DatasourceConfig.createImportedConfig(configFile.getPath());
         }
 
-        return datasourceConfigs;
+        // 2. 如果没有找到文件，返回默认配置
+        return DatasourceConfig.createDefaultConfig(
+                "jdbc:mysql://localhost:3306/default_db",
+                "root",
+                "123456",
+                "com.mysql.cj.jdbc.Driver"
+        );
     }
 
     /**
