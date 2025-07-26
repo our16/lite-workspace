@@ -9,17 +9,17 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
+import org.example.liteworkspace.model.LlmModelInvoker;
+import org.example.liteworkspace.ui.LlmAnalysisToolWindow;
 
+import javax.swing.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
-import com.intellij.openapi.diagnostic.Logger;
-import org.example.liteworkspace.model.LlmModelInvoker;
-
 public class LlmCodeAnalyzerPlugin extends AnAction {
-
-    private static final Logger LOG = Logger.getInstance(LlmCodeAnalyzerPlugin.class);
-
+    private static final String TOOL_WINDOW_ID = "LlmAnalysisToolWindow";
 
     @Override
     public void actionPerformed(AnActionEvent e) {
@@ -31,44 +31,40 @@ public class LlmCodeAnalyzerPlugin extends AnAction {
             return;
         }
 
+        // 显示工具窗口
+        ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID);
+        if (toolWindow != null) {
+            toolWindow.show();
+        }
+
         new Task.Backgroundable(project, "LLM 代码分析中...", false) {
             @Override
             public void run(ProgressIndicator indicator) {
-                File promptFile = null;
                 try {
                     // 读取文件内容
-                    String content;
-                    try (BufferedReader reader = new BufferedReader(
-                            new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
-                        content = reader.lines().reduce("", (a, b) -> a + "\n" + b);
-                    }
-
+                    String content = new String(file.contentsToByteArray(), StandardCharsets.UTF_8);
                     content = "```java\n" + content + "\n```";
-                    String prompt = """
+                    // 更新工具窗口内容
+                    LlmAnalysisToolWindow.updateTextArea(project, content);
+
+                    // 调用 LLM 模型
+                    LlmModelInvoker invoker = new LlmModelInvoker();
+                    String outputText = invoker.invoke("""
                             You are a senior Java developer. Analyze the following code and point out any potential issues and possible improvements.
                             Return a short and clear summary. End your response with Analysis complete.
-                            """ + content;
+                            """ + content);
 
-                    // 替代 println
-                    LOG.info("【LLM 请求 Prompt】\n" + prompt);
-                    LlmModelInvoker invoker = new LlmModelInvoker();
-                    String outputText = invoker.invoke(prompt);
-                    ApplicationManager.getApplication().invokeLater(() ->
-                            Messages.showInfoMessage(project, outputText, "LLM 分析结果"));
+                    // 更新工具窗口内容
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        LlmAnalysisToolWindow.updateTextArea(project, outputText);
+                    });
 
                 } catch (Exception ex) {
-                    showError("分析失败: " + ex.getMessage(), project);
-                } finally {
-                    if (promptFile != null && promptFile.exists()) {
-                        promptFile.deleteOnExit();
-                    }
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        Messages.showErrorDialog(project, "分析失败: " + ex.getMessage(), "LLM 分析器错误");
+                    });
                 }
             }
         }.queue();
-    }
-
-    private void showError(String message, Project project) {
-        ApplicationManager.getApplication().invokeLater(() ->
-                Messages.showErrorDialog(project, message, "LLM 分析器错误"));
     }
 }

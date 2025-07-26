@@ -4,17 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="扫描器">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/provider/LlmProvider.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/provider/impl/DifyLlmProvider.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/provider/impl/OpenAiLlmProvider.java" afterDir="false" />
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="openai 模型">
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/ui/LlmAnalysisToolWindow.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LlmCodeAnalyzerPlugin.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LlmCodeAnalyzerPlugin.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/config/LiteWorkspaceSettings.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/config/LiteWorkspaceSettings.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/LlmModelInvoker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/LlmModelInvoker.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -154,6 +148,7 @@
       <recent name="D:\project\gitidea\lite-workspace" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="org.example.liteworkspace.ui" />
       <recent name="org.example.liteworkspace.bean.core" />
       <recent name="org.example.liteworkspace.bean.resolver" />
       <recent name="org.example.liteworkspace" />
@@ -235,14 +230,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00020" summary="支持注解形态，并区分是否xml和注解交叉，实际还是只能走一个形式">
-      <option name="closed" value="true" />
-      <created>1751713379431</created>
-      <option name="number" value="00020" />
-      <option name="presentableId" value="LOCAL-00020" />
-      <option name="project" value="LOCAL" />
-      <updated>1751713379431</updated>
     </task>
     <task id="LOCAL-00021" summary="删除无用类">
       <option name="closed" value="true" />
@@ -628,7 +615,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753372433264</updated>
     </task>
-    <option name="localTasksCounter" value="69" />
+    <task id="LOCAL-00069" summary="openai 模型">
+      <option name="closed" value="true" />
+      <created>1753523450388</created>
+      <option name="number" value="00069" />
+      <option name="presentableId" value="LOCAL-00069" />
+      <option name="project" value="LOCAL" />
+      <updated>1753523450388</updated>
+    </task>
+    <option name="localTasksCounter" value="70" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -643,7 +638,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="写入到文件" />
     <MESSAGE value="依赖更新" />
     <MESSAGE value="测试类生成" />
     <MESSAGE value="重构2.0" />
@@ -668,7 +662,8 @@
     <MESSAGE value="部分编译" />
     <MESSAGE value="根据上下文判断是不是mapper" />
     <MESSAGE value="扫描器" />
-    <option name="LAST_COMMIT_MESSAGE" value="扫描器" />
+    <MESSAGE value="openai 模型" />
+    <option name="LAST_COMMIT_MESSAGE" value="openai 模型" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

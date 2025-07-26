@@ -13,15 +13,16 @@
         <!-- your plugin extensions -->
         <applicationConfigurable instance="org.example.liteworkspace.config.LiteWorkspaceSettingsConfigurable"
                                  displayName="LiteWorkspaceConfig"/>
+        <toolWindow id="LlmAnalysisToolWindow" anchor="right" factoryClass="org.example.liteworkspace.ui.LlmAnalysisToolWindow"/>
     </extensions>
 
     <actions>
-        <action id="testAction"
-                class="org.example.liteworkspace.action.TestAction"
-                text="测试action"
-                description="测试action">
-            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-        </action>
+<!--        <action id="testAction"-->
+<!--                class="org.example.liteworkspace.action.TestAction"-->
+<!--                text="测试action"-->
+<!--                description="测试action">-->
+<!--            <add-to-group group-id="EditorPopupMenu" anchor="last"/>-->
+<!--        </action>-->
         <action id="LiteScanAction"
                 class="org.example.liteworkspace.action.LiteScanAction"
                 text="扫描并生成 Spring Bean XML"
@@ -34,9 +35,9 @@
                 description="调用本地模型分析代码质量与依赖">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
         </action>
-        <action id="RunOnDemandAction" class="org.example.liteworkspace.action.RunOnDemandAction"
-                text="Run Selected Java Files" description="Compile and Run Java files on demand">
-            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-        </action>
+<!--        <action id="RunOnDemandAction" class="org.example.liteworkspace.action.RunOnDemandAction"-->
+<!--                text="Run Selected Java Files" description="Compile and Run Java files on demand">-->
+<!--            <add-to-group group-id="EditorPopupMenu" anchor="last"/>-->
+<!--        </action>-->
     </actions>
 </idea-plugin>
