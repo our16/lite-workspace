@@ -6,10 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="datasource 配置">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScanOrchestrator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScanOrchestrator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -231,14 +227,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00023" summary="适配其他类型的dao声明">
-      <option name="closed" value="true" />
-      <created>1751714462683</created>
-      <option name="number" value="00023" />
-      <option name="presentableId" value="LOCAL-00023" />
-      <option name="project" value="LOCAL" />
-      <updated>1751714462683</updated>
     </task>
     <task id="LOCAL-00024" summary="注册执行回调">
       <option name="closed" value="true" />
@@ -624,7 +612,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753526926869</updated>
     </task>
-    <option name="localTasksCounter" value="72" />
+    <task id="LOCAL-00072" summary="datasource 配置">
+      <option name="closed" value="true" />
+      <created>1753548702650</created>
+      <option name="number" value="00072" />
+      <option name="presentableId" value="LOCAL-00072" />
+      <option name="project" value="LOCAL" />
+      <updated>1753548702650</updated>
+    </task>
+    <option name="localTasksCounter" value="73" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
