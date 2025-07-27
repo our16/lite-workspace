@@ -1,14 +1,15 @@
 package org.example.liteworkspace.bean.core;
 
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 
 public class BeanDefinition {
     private final String beanName;
     private final String className;
     private final BeanType type;
-    private final PsiElement source;
+    private final PsiClass source;
 
-    public BeanDefinition(String beanName, String className, BeanType type, PsiElement source) {
+    public BeanDefinition(String beanName, String className, BeanType type, PsiClass source) {
         this.beanName = beanName;
         this.className = className;
         this.type = type;
@@ -27,7 +28,7 @@ public class BeanDefinition {
         return type;
     }
 
-    public PsiElement getSource() {
+    public PsiClass getSource() {
         return source;
     }
 

@@ -3,14 +3,21 @@ package org.example.liteworkspace.cache;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.example.liteworkspace.bean.core.BeanDefinition;
+import org.example.liteworkspace.bean.core.DatasourceConfig;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class LiteCacheStorage {
 
@@ -26,22 +33,96 @@ public class LiteCacheStorage {
         }
     }
 
-    public Map<String, PsiClass> loadConfigurationClasses() {
-        // TODO: 读取 JSON/SQLite 文件转为 PsiClass 映射（可使用类名映射，实际使用时用 PSI 查询还原）
-        return new HashMap<>();
+    // ===================== Spring Configuration 类缓存 =====================
+
+    /**
+     * 保存 Spring @Configuration 类：类全名 -> 文件路径
+     */
+    public void saveConfigurationClasses(Map<String, PsiClass> configClasses) {
+        Map<String, String> classToPath = configClasses.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey, // FQCN
+                        e -> e.getValue().getContainingFile().getVirtualFile().getPath() // 文件路径
+                ));
+        saveJson("configuration_classes.json", classToPath);
     }
 
-    public void saveConfigurationClasses(Map<String, PsiClass> cache) {
-        // TODO: 序列化类名 + 文件路径
+    /**
+     * 加载 Spring @Configuration 类映射（类名 -> 文件路径）
+     */
+    public Map<String, String> loadConfigurationClasses() {
+        return loadJson("configuration_classes.json", Map.class);
     }
 
-    public Map<String, VirtualFile> loadMapperXmlPaths() {
-        // TODO: 同上，缓存 namespace 到路径映射
-        return new HashMap<>();
+    // ===================== MyBatis Mapper XML 缓存 =====================
+
+    /**
+     * 保存 Mapper namespace -> Mapper XML 文件路径
+     */
+    public void saveMapperXmlPaths(Map<String, String> namespaceToPath) {
+        saveJson("mapper_xml_paths.json", namespaceToPath);
     }
 
-    public void saveMapperXmlPaths(Map<String, VirtualFile> cache) {
-        // TODO: 序列化 mapper namespace -> file path
+    /**
+     * 加载 Mapper namespace -> 文件路径
+     */
+    public Map<String, String> loadMapperXmlPaths() {
+        return loadJson("mapper_xml_paths.json", Map.class);
     }
+
+    // ===================== 通用 JSON 存取方法 =====================
+
+    private <T> void saveJson(String filename, T data) {
+        try {
+            Path filePath = cacheDir.resolve(filename);
+            String json = GsonProvider.gson.toJson(data);
+            Files.writeString(filePath, json);
+        } catch (IOException e) {
+            throw new RuntimeException("保存缓存失败: " + filename, e);
+        }
+    }
+
+    private <T> T loadJson(String filename, Class<T> type) {
+        Path filePath = cacheDir.resolve(filename);
+        if (!Files.exists(filePath)) {
+            return null;
+        }
+        try {
+            String json = Files.readString(filePath);
+            return GsonProvider.gson.fromJson(json, type);
+        } catch (IOException e) {
+            throw new RuntimeException("加载缓存失败: " + filename, e);
+        }
+    }
+
+    // ===================== 可选：保存其他配置 =====================
+
+    public void saveDatasourceConfig(DatasourceConfig config) {
+        saveJson("datasource_config.json", config);
+    }
+
+    public DatasourceConfig loadDatasourceConfig() {
+        return loadJson("datasource_config.json", DatasourceConfig.class);
+    }
+
+    public void saveSpringScanPackages(Set<String> packages) {
+        saveJson("spring_scan_packages.json", packages);
+    }
+
+    public Set<String> loadSpringScanPackages() {
+        Set<String> result = loadJson("spring_scan_packages.json", Set.class);
+        return result != null ? result : Set.of();
+    }
+
+    public void saveBeanList(Collection<BeanDefinition> beans) {
+        Set<String> beanList = beans.stream().map(BeanDefinition::getSource)
+                .map(item -> item.getContainingFile().getVirtualFile().getPath()).collect(Collectors.toSet());
+        saveJson("bean_classes.json", beanList);
+    }
+
+    public Set<String> loadJavaPaths() {
+        Set<String> result = loadJson("bean_classes.json", Set.class);
+        return result != null ? result : Set.of();
+    }
+
 }
-

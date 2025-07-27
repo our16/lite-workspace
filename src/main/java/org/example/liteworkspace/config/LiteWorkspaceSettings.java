@@ -12,6 +12,7 @@ public class LiteWorkspaceSettings implements PersistentStateComponent<LiteWorks
         public String apiKey = "";
         public String apiUrl = "http://localhost/v1/chat-messages";
         public String modelName = "local";
+        public String javaHome = "";
     }
 
     private State state = new State();
@@ -42,12 +43,24 @@ public class LiteWorkspaceSettings implements PersistentStateComponent<LiteWorks
         return state.modelName;
     }
 
+    public String getJavaHome() {
+        return state.javaHome;
+    }
+
     public void setApiKey(String apiKey) {
         state.apiKey = apiKey;
     }
 
     public void setApiUrl(String apiUrl) {
         state.apiUrl = apiUrl;
+    }
+
+    public void setModelName(String modelName) {
+       state.modelName = modelName;
+    }
+
+    public void setJavaHome(String javaHome) {
+        state.javaHome = javaHome;
     }
 
 

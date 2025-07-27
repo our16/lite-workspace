@@ -17,6 +17,7 @@ import org.example.liteworkspace.bean.core.LiteProjectContext;
 import org.example.liteworkspace.bean.engine.LiteBeanScanner;
 import org.example.liteworkspace.bean.engine.LiteFileWriter;
 import org.example.liteworkspace.bean.engine.SpringXmlBuilder;
+import org.example.liteworkspace.cache.LiteCacheStorage;
 
 import java.util.*;
 
@@ -53,6 +54,12 @@ public class LiteScanAction extends AnAction {
                         ApplicationManager.getApplication().invokeLater(() -> {
                             WriteCommandAction.runWriteCommandAction(project, () -> {
                                 new LiteFileWriter(liteProjectContext).write(project, targetClass, beanMap);
+                                LiteCacheStorage cacheStorage = new LiteCacheStorage(project);
+                                cacheStorage.saveConfigurationClasses(liteProjectContext.getBean2configuration());
+                                cacheStorage.saveMapperXmlPaths(liteProjectContext.getMybatisContext().getMybatisNamespaceMap()); // 假设你有这个方法
+                                cacheStorage.saveDatasourceConfig(liteProjectContext.getDatasourceConfig());
+                                cacheStorage.saveSpringScanPackages(liteProjectContext.getSpringScanPackages());
+                                cacheStorage.saveBeanList(beans);
                             });
                         });
                     });

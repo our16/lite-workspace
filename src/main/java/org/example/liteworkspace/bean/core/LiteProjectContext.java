@@ -5,6 +5,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import org.example.liteworkspace.cache.CacheVersionChecker;
+import org.example.liteworkspace.cache.LiteCacheStorage;
 import org.example.liteworkspace.util.MyBatisXmlFinder;
 import org.example.liteworkspace.util.ResourceConfigAnalyzer;
 
