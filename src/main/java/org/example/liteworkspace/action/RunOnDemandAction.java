@@ -77,8 +77,10 @@ public class RunOnDemandAction extends AnAction {
                     Set<String> springScanPackages = cacheStorage.loadJavaPaths();
                     List<String> objects = new ArrayList<>(springScanPackages);
                     objects.add(filePath);
-                    // 6. 调用编译和运行（只传当前类）
-                    RunOnDemandCompiler.run(project, mainClass.trim(), objects);
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        // 6. 调用编译和运行（只传当前类）
+                        RunOnDemandCompiler.run(project, mainClass.trim(), objects);
+                    });
                 } catch (Exception ex) {
                     showError(project, "❌ 编译失败：" + ex.getMessage());
                 }

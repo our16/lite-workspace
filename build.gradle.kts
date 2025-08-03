@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.liteworkspace"
-version = "1.17"
+version = "1.20"
 
 repositories {
     maven {

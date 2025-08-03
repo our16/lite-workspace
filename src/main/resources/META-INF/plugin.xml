@@ -14,33 +14,30 @@
         <applicationConfigurable instance="org.example.liteworkspace.config.LiteWorkspaceSettingsConfigurable"
                                  displayName="LiteWorkspaceConfig"/>
         <toolWindow id="LlmAnalysisToolWindow" anchor="right" factoryClass="org.example.liteworkspace.ui.LlmAnalysisToolWindow"/>
-
-        <editorNotificationProvider implementation="org.example.liteworkspace.notification.CompilerStatusNotificationProvider"/>
-        <projectService serviceImplementation="org.example.liteworkspace.notification.CompilerStatusState"/>
     </extensions>
 
     <actions>
-<!--        <action id="testAction"-->
-<!--                class="org.example.liteworkspace.action.TestAction"-->
-<!--                text="测试action"-->
-<!--                description="测试action">-->
-<!--            <add-to-group group-id="EditorPopupMenu" anchor="last"/>-->
-<!--        </action>-->
-        <action id="LiteScanAction"
-                class="org.example.liteworkspace.action.LiteScanAction"
-                text="扫描并生成 Spring Bean XML"
-                description="扫描依赖并生成 XML Bean 片段">
+        <!-- 定义一个新的子菜单组 -->
+        <group id="LiteWorkspace.Menu"
+               text="FastRunTest工具"
+               description="Lite Workspace 扩展功能"
+               popup="true"> <!-- 关键：必须声明这是 popup 才能作为二级菜单显示 -->
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-        </action>
-        <action id="com.example.llm.AnalyzeAction"
-                class="org.example.liteworkspace.action.LlmCodeAnalyzerPlugin"
-                text="使用 LLM 分析 Java 代码"
-                description="调用本地模型分析代码质量与依赖">
-            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-        </action>
-        <action id="RunOnDemandAction" class="org.example.liteworkspace.action.RunOnDemandAction"
-                text="编译和运行当前类" description="Compile and Run Java files on demand">
-            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-        </action>
+
+            <action id="LiteScanAction"
+                    class="org.example.liteworkspace.action.LiteScanAction"
+                    text="扫描并生成 Spring Bean XML"
+                    description="扫描依赖并生成 XML Bean 片段"/>
+
+            <action id="com.example.llm.AnalyzeAction"
+                    class="org.example.liteworkspace.action.LlmCodeAnalyzerPlugin"
+                    text="使用 LLM 分析 Java 代码"
+                    description="调用本地模型分析代码质量与依赖"/>
+
+            <action id="RunOnDemandAction"
+                    class="org.example.liteworkspace.action.RunOnDemandAction"
+                    text="编译和运行当前类"
+                    description="Compile and Run Java files on demand"/>
+        </group>
     </actions>
 </idea-plugin>
