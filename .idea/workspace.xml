@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="过滤自定义的bean">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteFileWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteFileWriter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/notification/CompilerStatusNotification.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/notification/CompilerStatusNotificationProvider.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/notification/CompilerStatusState.java" beforeDir="false" />
@@ -235,14 +234,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00029" summary="性能优化">
-      <option name="closed" value="true" />
-      <created>1751775148042</created>
-      <option name="number" value="00029" />
-      <option name="presentableId" value="LOCAL-00029" />
-      <option name="project" value="LOCAL" />
-      <updated>1751775148042</updated>
     </task>
     <task id="LOCAL-00030" summary="xml 配置扫描">
       <option name="closed" value="true" />
@@ -628,7 +619,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754208972905</updated>
     </task>
-    <option name="localTasksCounter" value="78" />
+    <task id="LOCAL-00078" summary="过滤自定义的bean">
+      <option name="closed" value="true" />
+      <created>1754222237762</created>
+      <option name="number" value="00078" />
+      <option name="presentableId" value="LOCAL-00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1754222237762</updated>
+    </task>
+    <option name="localTasksCounter" value="79" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -682,6 +681,11 @@
           <url>jar://$PROJECT_DIR$/../../env/gradle-8.14.2-bin/gradle-8.14.2/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/2024.1.7/4ec8a960913b0561c398280ef9e5f888d3d996cc/ideaIC-2024.1.7-sources.jar!/com/intellij/ui/EditorNotificationPanel.java</url>
           <line>82</line>
           <option name="timeStamp" value="28" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/RunOnDemandCompiler.java</url>
+          <line>64</line>
+          <option name="timeStamp" value="32" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
