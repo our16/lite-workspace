@@ -19,7 +19,13 @@ import org.example.liteworkspace.bean.engine.LiteFileWriter;
 import org.example.liteworkspace.bean.engine.SpringXmlBuilder;
 import org.example.liteworkspace.cache.LiteCacheStorage;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class LiteScanAction extends AnAction {
 
@@ -54,6 +60,18 @@ public class LiteScanAction extends AnAction {
                         ApplicationManager.getApplication().invokeLater(() -> {
                             WriteCommandAction.runWriteCommandAction(project, () -> {
                                 new LiteFileWriter(liteProjectContext).write(project, targetClass, beanMap);
+                                // 插件中生成 bean-classes.txt
+                                Set<String> classNames = beans.stream()
+                                        .map(BeanDefinition::getClassName)
+                                        .collect(Collectors.toCollection(LinkedHashSet::new));
+
+                                Path file = Paths.get(Objects.requireNonNull(project.getBasePath()), "build/lite/bean-classes.txt");
+                                try {
+                                    Files.createDirectories(file.getParent());
+                                    Files.write(file, classNames, StandardCharsets.UTF_8);
+                                } catch (IOException ex) {
+                                    throw new RuntimeException(ex);
+                                }
                                 LiteCacheStorage cacheStorage = new LiteCacheStorage(project);
                                 cacheStorage.saveConfigurationClasses(liteProjectContext.getBean2configuration());
                                 cacheStorage.saveMapperXmlPaths(liteProjectContext.getMybatisContext().getMybatisNamespaceMap()); // 假设你有这个方法
