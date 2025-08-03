@@ -4,10 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="一个完善版本">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ConsoleService.java" afterDir="false" />
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="过滤自定义的bean">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteFileWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteFileWriter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/notification/CompilerStatusNotification.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/notification/CompilerStatusNotificationProvider.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/notification/CompilerStatusState.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/RunOnDemandCompiler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/RunOnDemandCompiler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -118,7 +120,7 @@
     "Application.TestRun.executor": "Run",
     "Batch.download-gradle.executor": "Debug",
     "Gradle.Build lite-workspace.executor": "Run",
-    "Gradle.Run Plugin.executor": "Run",
+    "Gradle.Run Plugin.executor": "Debug",
     "Gradle.lite-workspace [buildPlugin].executor": "Run",
     "Gradle.lite-workspace [clean].executor": "Run",
     "Gradle.lite-workspace [setupDependencies].executor": "Run",
@@ -233,14 +235,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00028" summary="性能优化">
-      <option name="closed" value="true" />
-      <created>1751774744641</created>
-      <option name="number" value="00028" />
-      <option name="presentableId" value="LOCAL-00028" />
-      <option name="project" value="LOCAL" />
-      <updated>1751774744641</updated>
     </task>
     <task id="LOCAL-00029" summary="性能优化">
       <option name="closed" value="true" />
@@ -626,7 +620,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754205894193</updated>
     </task>
-    <option name="localTasksCounter" value="77" />
+    <task id="LOCAL-00077" summary="打印编译过程">
+      <option name="closed" value="true" />
+      <created>1754208972905</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1754208972905</updated>
+    </task>
+    <option name="localTasksCounter" value="78" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -641,8 +643,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="lombok 构造器注入" />
-    <MESSAGE value="递归扫描依赖" />
     <MESSAGE value="加入模型调用和被狗执行" />
     <MESSAGE value="模型信息记录" />
     <MESSAGE value="支持调用dify" />
@@ -666,7 +666,9 @@
     <MESSAGE value="自定义编译器" />
     <MESSAGE value="使用idea 的编译器" />
     <MESSAGE value="一个完善版本" />
-    <option name="LAST_COMMIT_MESSAGE" value="一个完善版本" />
+    <MESSAGE value="打印编译过程" />
+    <MESSAGE value="过滤自定义的bean" />
+    <option name="LAST_COMMIT_MESSAGE" value="过滤自定义的bean" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

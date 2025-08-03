@@ -15,12 +15,21 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
+import org.example.liteworkspace.bean.core.DatasourceConfig;
 import org.example.liteworkspace.bean.core.LiteProjectContext;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 public class LiteFileWriter {
 
@@ -65,9 +74,51 @@ public class LiteFileWriter {
                         File javaTestDir = new File(testJavaDir.getPath(), relativePath);
                         File resourcesTestDir = new File(testResourcesDir.getPath(), relativePath);
 
-                        if (!javaTestDir.exists()) javaTestDir.mkdirs();
-                        if (!resourcesTestDir.exists()) resourcesTestDir.mkdirs();
+                        if (!javaTestDir.exists()) {
+                            javaTestDir.mkdirs();
+                        }
+                        if (!resourcesTestDir.exists()) {
+                            resourcesTestDir.mkdirs();
+                        }
+                        DatasourceConfig datasourceConfig = context.getDatasourceConfig();
+                        String defaultConfigXmlPath = datasourceConfig.getImportPath();
+                        Set<String> definedBeanClasses = new HashSet<>();
 
+// 解析 defaultConfigXmlPath 文件，提取 <bean class="..."/> 中的 class 属性
+                        if (defaultConfigXmlPath != null) {
+                            File xml = new File(defaultConfigXmlPath);
+                            if (xml.exists()) {
+                                try {
+                                    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+                                    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+                                    Document doc = dBuilder.parse(xml);
+                                    doc.getDocumentElement().normalize();
+
+                                    NodeList beanList = doc.getElementsByTagName("bean");
+                                    for (int i = 0; i < beanList.getLength(); i++) {
+                                        Element beanElement = (Element) beanList.item(i);
+                                        if (beanElement.hasAttribute("class")) {
+                                            definedBeanClasses.add(beanElement.getAttribute("class"));
+                                        }
+                                    }
+
+                                } catch (Exception e) {
+                                    System.err.println("Failed to parse config XML: " + defaultConfigXmlPath);
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                System.err.println("Default config XML file does not exist: " + defaultConfigXmlPath);
+                            }
+                        }
+
+                        // 过滤 beanMap 中已被默认配置定义的 class
+                        Iterator<String> iter = beanMap.keySet().iterator();
+                        while (iter.hasNext()) {
+                            String definedClassName = iter.next();
+                            if (definedBeanClasses.contains(definedClassName)) {
+                                iter.remove(); // 移除重复定义的类
+                            }
+                        }
                         File xmlFile = writeSpringXmlFile(beanMap, resourcesTestDir, testClassName);
                         File testFile = writeJUnitTestFile(packageName, className, testClassName, relativePath, javaTestDir);
 
