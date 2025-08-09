@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.liteworkspace"
-version = "1.20"
+version = "1.22.1"
 
 repositories {
     maven {
@@ -40,8 +40,8 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("241")
-        untilBuild.set("243.*")
+        sinceBuild.set("223")
+        untilBuild.set("999.*")           // 支持未来所有版本
     }
 
     signPlugin {

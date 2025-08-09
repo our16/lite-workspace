@@ -47,11 +47,11 @@ public class RunOnDemandCompiler {
 
         CompilerManager.getInstance(project).make(scope, (aborted, errors, warnings, compileContext) -> {
             if (aborted || errors > 0) {
-                System.out.println("[ERROR] 编译失败，错误数：" + errors);
+                ConsoleService .print(project,"[ERROR] 编译失败，错误数：" + errors,ConsoleViewContentType.NORMAL_OUTPUT);
                 return;
             }
 
-            System.out.println("[INFO] 编译成功，准备运行主类：" + mainClass);
+            ConsoleService .print(project,"[INFO] 编译成功，准备运行主类：" + mainClass , ConsoleViewContentType.NORMAL_OUTPUT);
 
             try {
                 Set<String> classpathEntries = new LinkedHashSet<>();
