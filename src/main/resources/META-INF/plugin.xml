@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>org.example.lite-workspace</id>
     <name>Lite-workspace</name>
-    <vendor email="dev@example.com" url="http://example.com">Example</vendor>
+    <vendor email="mongezheng@gmail.com" url="http://example.com">Example</vendor>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
