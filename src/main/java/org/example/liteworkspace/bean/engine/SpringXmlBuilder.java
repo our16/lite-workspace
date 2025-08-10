@@ -101,7 +101,7 @@ public class SpringXmlBuilder {
                 """);
 
         for (String path : mapperXmlPaths) {
-            factory.append("        <value>").append(path).append("</value>\n");
+            factory.append("            <value>").append(path).append("</value>\n");
         }
 
         factory.append("""

@@ -27,7 +27,7 @@ public class LiteBeanScanner {
      */
     public Collection<BeanDefinition> scanAndCollectBeanList(PsiClass rootClass, Project project) {
         // 全局只创建一次 ForkJoinPool，最大并行度 10
-        ForkJoinPool pool = new ForkJoinPool(10);
+        ForkJoinPool pool = new ForkJoinPool(1);
         // 用线程安全集合
         Set<String> visited = ConcurrentHashMap.newKeySet();
         Set<String> normalDependencies = ConcurrentHashMap.newKeySet();

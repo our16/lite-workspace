@@ -1,7 +1,9 @@
 package org.example.liteworkspace.util;
 
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -114,13 +116,32 @@ public class MyBatisXmlFinder {
             return true;
         }
 
-        // 再查项目内所有 XML 文件
+        // 查项目内所有 XML 文件，并在 read action 内做 PSI 解析
         return FileBasedIndex.getInstance()
                 .getContainingFiles(FileTypeIndex.NAME, XmlFileType.INSTANCE, GlobalSearchScope.projectScope(project))
                 .stream()
                 .filter(file -> file.getName().endsWith(".xml"))
-                .anyMatch(file -> xmlMatchesNamespace(file, expectedNamespace));
+                .anyMatch(file -> xmlMatchesNamespaceSafe(file, expectedNamespace));
     }
+
+    /**
+     * 线程安全版本，确保在后台线程读取 PSI 时使用 read action
+     */
+    private boolean xmlMatchesNamespaceSafe(VirtualFile file, String expectedNamespace) {
+        return ApplicationManager.getApplication().runReadAction((Computable<Boolean>) () -> {
+            PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+            if (!(psiFile instanceof XmlFile xmlFile)) {
+                return false;
+            }
+            XmlTag rootTag = xmlFile.getRootTag();
+            if (rootTag == null) {
+                return false;
+            }
+            String namespace = rootTag.getAttributeValue("namespace");
+            return expectedNamespace.equals(namespace);
+        });
+    }
+
 
     /**
      * 判断某个 XML 文件是否是 <mapper> 且 namespace 匹配

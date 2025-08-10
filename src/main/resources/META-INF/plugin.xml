@@ -13,7 +13,8 @@
         <!-- your plugin extensions -->
         <applicationConfigurable instance="org.example.liteworkspace.config.LiteWorkspaceSettingsConfigurable"
                                  displayName="LiteWorkspaceConfig"/>
-        <toolWindow id="LlmAnalysisToolWindow" anchor="right" factoryClass="org.example.liteworkspace.ui.LlmAnalysisToolWindow"/>
+        <toolWindow id="LlmAnalysisToolWindow" anchor="right"
+                    factoryClass="org.example.liteworkspace.ui.LlmAnalysisToolWindow"/>
     </extensions>
 
     <actions>
@@ -27,7 +28,10 @@
             <action id="LiteScanAction"
                     class="org.example.liteworkspace.action.LiteScanAction"
                     text="扫描并生成 Spring Bean XML"
-                    description="扫描依赖并生成 XML Bean 片段"/>
+                    description="扫描依赖并生成 XML Bean 片段">
+                <!-- 添加快捷键 -->
+                <keyboard-shortcut keymap="$default" first-keystroke="ctrl P"/>
+            </action>
 
             <action id="com.example.llm.AnalyzeAction"
                     class="org.example.liteworkspace.action.LlmCodeAnalyzerPlugin"

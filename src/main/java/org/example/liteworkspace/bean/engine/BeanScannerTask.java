@@ -1,5 +1,6 @@
 package org.example.liteworkspace.bean.engine;
 
+import com.intellij.lang.jvm.types.JvmPrimitiveTypeKind;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.java.stubs.index.JavaFullClassNameIndex;
@@ -33,57 +34,64 @@ public class BeanScannerTask extends RecursiveAction {
 
     @Override
     protected void compute() {
-        String qName = clazz.getQualifiedName();
-        if (qName == null || !visited.add(qName)) {
-            return;
-        }
-
-        // 1. 解析当前类的 Bean 类型
-        BeanType type = resolveBeanType(clazz);
-        if (type != BeanType.PLAIN) {
-            String beanId = generateBeanId(clazz);
-            registry.register(new BeanDefinition(beanId, qName, type, clazz));
-        }
-
-        // 2. 提取当前类引用的所有依赖类
-        Set<PsiClass> dependencies = extractDependencies(clazz);
-        if (dependencies.isEmpty()) {
-            return;
-        }
-
-        // 3. 针对每个依赖创建子任务
-        List<BeanScannerTask> subTasks = new ArrayList<>();
-        Map<String, PsiClass> bean2Configuration = context.getBean2configuration();
-
-        for (PsiClass dependency : dependencies) {
-            String depQName = dependency.getQualifiedName();
-            if (depQName == null) {
-                continue;
+        try {
+            String qName = clazz.getQualifiedName();
+            if (qName == null || !visited.add(qName)) {
+                return;
             }
 
-            BeanType depType = resolveBeanType(dependency);
-            if (depType != BeanType.PLAIN) {
-                // 如果依赖本身也是一个 Bean，则递归扫描
-                subTasks.add(new BeanScannerTask(dependency, registry, context, visited, normalDependencies));
-            } else if (dependency.isInterface()) {
-                // 查找接口的所有实现类
-                List<PsiClass> implementations = findImplementations(dependency);
-                for (PsiClass impl : implementations) {
-                    subTasks.add(new BeanScannerTask(impl, registry, context, visited, normalDependencies));
-                }
-            } else if (bean2Configuration.containsKey(depQName)) {
-                // 扫描对应的 configuration 类
-                PsiClass relateConfiguration = bean2Configuration.get(depQName);
-                subTasks.add(new BeanScannerTask(relateConfiguration, registry, context, visited, normalDependencies));
-                normalDependencies.add(depQName);
+            // 1. 解析当前类的 Bean 类型
+            BeanType type = resolveBeanType(clazz);
+            if (type != BeanType.PLAIN) {
+                String beanId = generateBeanId(clazz);
+                registry.register(new BeanDefinition(beanId, qName, type, clazz));
             } else {
-                // 普通依赖
-                normalDependencies.add(depQName);
+                // 不是spring mybatis管理的直接return
+                return;
             }
-        }
 
-        // 4. 并发执行所有子任务
-        invokeAll(subTasks);
+            // 2. 提取当前类引用的所有依赖类
+            Set<PsiClass> dependencies = extractDependencies(clazz);
+            if (dependencies.isEmpty()) {
+                return;
+            }
+
+            // 3. 针对每个依赖创建子任务
+            List<BeanScannerTask> subTasks = new ArrayList<>();
+            Map<String, PsiClass> bean2Configuration = context.getBean2configuration();
+
+            for (PsiClass dependency : dependencies) {
+                String depQName = dependency.getQualifiedName();
+                if (depQName == null) {
+                    continue;
+                }
+
+                BeanType depType = resolveBeanType(dependency);
+                if (depType != BeanType.PLAIN) {
+                    // 如果依赖本身也是一个 Bean，则递归扫描
+                    subTasks.add(new BeanScannerTask(dependency, registry, context, visited, normalDependencies));
+                } else if (dependency.isInterface()) {
+                    // 查找接口的所有实现类
+                    List<PsiClass> implementations = findImplementations(dependency);
+                    for (PsiClass impl : implementations) {
+                        subTasks.add(new BeanScannerTask(impl, registry, context, visited, normalDependencies));
+                    }
+                } else if (bean2Configuration.containsKey(depQName)) {
+                    // 扫描对应的 configuration 类
+                    PsiClass relateConfiguration = bean2Configuration.get(depQName);
+                    subTasks.add(new BeanScannerTask(relateConfiguration, registry, context, visited, normalDependencies));
+                    normalDependencies.add(depQName);
+                } else {
+                    // 普通依赖
+                    normalDependencies.add(depQName);
+                }
+            }
+
+            // 4. 并发执行所有子任务
+            invokeAll(subTasks);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -130,34 +138,186 @@ public class BeanScannerTask extends RecursiveAction {
         return Character.toLowerCase(name.charAt(0)) + name.substring(1);
     }
 
-    /**
-     * 提取当前类中引用到的其他类（字段、未来可扩展构造器 / 方法等）
-     */
     private Set<PsiClass> extractDependencies(PsiClass clazz) {
         Set<PsiClass> dependencies = new HashSet<>();
-
-        // 当前只分析字段类型依赖
         for (PsiField field : clazz.getFields()) {
-            PsiType fieldType = field.getType();
-            PsiClass dependency = resolvePsiClassFromType(fieldType);
-            if (dependency != null) {
-                dependencies.add(dependency);
+            PsiType type = field.getType();
+            PsiClass dependency = resolvePsiClassFromType(type);
+            if (dependency == null || isJavaLangOrPrimitive(dependency)) {
+                continue;
+            }
+
+            if (isSpringInjectedMember(field) || isInjectedViaConstructorOrSetter(clazz, field)) {
+                if (isCollectionOrMap(dependency) && type instanceof PsiClassType classType) {
+                    for (PsiType paramType : classType.getParameters()) {
+                        PsiClass elementClass = resolvePsiClassFromType(paramType);
+                        if (elementClass != null && !isJavaLangOrPrimitive(elementClass)) {
+                            dependencies.add(elementClass);
+                        }
+                    }
+                } else {
+                    dependencies.add(dependency);
+                }
             }
         }
 
-        // TODO: 后续可扩展构造器参数、方法参数、返回值等
         return dependencies;
+    }
+
+    /**
+     * 判断一个字段是否通过构造器或 Setter 注入（即使没有注解）
+     */
+    private boolean isInjectedViaConstructorOrSetter(PsiClass clazz, PsiField field) {
+        PsiType fieldType = field.getType();
+        // 构造器参数匹配
+        for (PsiMethod constructor : clazz.getConstructors()) {
+            for (PsiParameter param : constructor.getParameterList().getParameters()) {
+                if (fieldType.isAssignableFrom(param.getType()) || param.getType().isAssignableFrom(fieldType)) {
+                    return true;
+                }
+            }
+        }
+
+        // Setter 方法参数匹配
+        for (PsiMethod method : clazz.getMethods()) {
+            if (isSetterMethod(method)) {
+                PsiParameter[] params = method.getParameterList().getParameters();
+                if (params.length == 1 &&
+                        (fieldType.isAssignableFrom(params[0].getType()) || params[0].getType().isAssignableFrom(fieldType))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 判断一个类成员（字段/方法/构造器）是否是 Spring 注入点
+     */
+    private boolean isSpringInjectedMember(PsiElement element) {
+        if (element instanceof PsiField field) {
+            // 字段注入：有注解，或者没有注解但按需可放行（一般字段必须有注解才注入）
+            return isAnnotatedWithSpringInject(field);
+        }
+        if (element instanceof PsiMethod method) {
+            // 构造器注入（有注解）
+            if (method.isConstructor() && isAnnotatedWithSpringInject(method)) {
+                return true;
+            }
+            // 构造器注入（无注解但全参构造器）
+            if (method.isConstructor() && isAllArgsConstructor(method)) {
+                return true;
+            }
+            // Setter 注入
+            if (isSetterMethod(method) && isAnnotatedWithSpringInject(method)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 判断是否为全参数构造器（无注解情况）
+     */
+    private boolean isAllArgsConstructor(PsiMethod constructor) {
+        if (!constructor.isConstructor()) return false;
+        PsiClass clazz = constructor.getContainingClass();
+        if (clazz == null) return false;
+
+        // 获取类的字段（排除 static / final 已初始化的）
+        List<PsiField> instanceFields = Arrays.stream(clazz.getFields())
+                .filter(f -> !f.hasModifierProperty(PsiModifier.STATIC))
+                .filter(f -> !f.hasModifierProperty(PsiModifier.FINAL) || f.getInitializer() == null)
+                .toList();
+
+        // 构造器参数数量匹配字段数量，并且类型一一对应
+        PsiParameter[] params = constructor.getParameterList().getParameters();
+        if (params.length != instanceFields.size()) return false;
+
+        // 判断类型匹配（简单按顺序比对）
+        for (int i = 0; i < params.length; i++) {
+            PsiType paramType = params[i].getType();
+            PsiType fieldType = instanceFields.get(i).getType();
+            if (!paramType.isAssignableFrom(fieldType)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    /**
+     * 判断字段或方法是否带有 Spring 注入相关注解
+     */
+    private boolean isAnnotatedWithSpringInject(PsiModifierListOwner element) {
+        return hasAnnotation(element, "org.springframework.beans.factory.annotation.Autowired") ||
+                hasAnnotation(element, "jakarta.annotation.Resource") ||
+                hasAnnotation(element, "javax.annotation.Resource") ||
+                hasAnnotation(element, "jakarta.inject.Inject") ||
+                hasAnnotation(element, "javax.inject.Inject");
+    }
+
+    /**
+     * 判断是否是标准 Setter 方法
+     */
+    private boolean isSetterMethod(PsiMethod method) {
+        // 方法名必须以 "set" 开头，且长度至少4（setX）
+        String name = method.getName();
+        if (name == null || !name.startsWith("set") || name.length() < 4) {
+            return false;
+        }
+
+        // 必须是 public 方法
+        if (!method.hasModifierProperty(PsiModifier.PUBLIC)) {
+            return false;
+        }
+
+        // 参数数量必须是1
+        if (method.getParameterList().getParametersCount() != 1) {
+            return false;
+        }
+
+        // 返回类型必须是 void
+        PsiType returnType = method.getReturnType();
+        return returnType != null && returnType.equals(PsiTypes.voidType());
+    }
+
+    /**
+     * 通用注解判断
+     */
+    private boolean hasAnnotation(PsiModifierListOwner element, String annotationFqn) {
+        PsiModifierList modifierList = element.getModifierList();
+        return modifierList != null && modifierList.findAnnotation(annotationFqn) != null;
+    }
+
+
+    /**
+     * 判断类是否是 Collection 或 Map
+     */
+    private boolean isCollectionOrMap(PsiClass psiClass) {
+        if (psiClass == null) {
+            return false;
+        }
+        Project project = psiClass.getProject();
+        JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+        PsiClass collectionClass = facade.findClass("java.util.Collection", GlobalSearchScope.allScope(project));
+        PsiClass mapClass = facade.findClass("java.util.Map", GlobalSearchScope.allScope(project));
+
+        return (collectionClass != null && psiClass.isInheritor(collectionClass, true)) ||
+                (mapClass != null && psiClass.isInheritor(mapClass, true));
     }
 
     /**
      * 从 PsiType 解析实际的 PsiClass
      */
+    /**
+     * 从 PsiType 解析 PsiClass
+     */
     private PsiClass resolvePsiClassFromType(PsiType type) {
         if (type instanceof PsiClassType classType) {
-            PsiClass resolved = classType.resolve();
-            if (resolved != null && !isJavaLangOrPrimitive(resolved)) {
-                return resolved;
-            }
+            return classType.resolve();
+        } else if (type instanceof PsiArrayType arrayType) {
+            return resolvePsiClassFromType(arrayType.getComponentType());
         }
         return null;
     }
@@ -166,7 +326,9 @@ public class BeanScannerTask extends RecursiveAction {
      * 判断是否为基础类型或 java.lang 包下的类
      */
     private boolean isJavaLangOrPrimitive(PsiClass psiClass) {
-        if (psiClass == null) return true;
+        if (psiClass == null) {
+            return true;
+        }
         String qualifiedName = psiClass.getQualifiedName();
         return qualifiedName == null ||
                 qualifiedName.startsWith("java.lang.") ||

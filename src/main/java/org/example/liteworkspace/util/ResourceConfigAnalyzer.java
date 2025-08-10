@@ -140,9 +140,9 @@ public class ResourceConfigAnalyzer {
     private VirtualFile findTestDatasourceXml() {
         // 尝试的多个可能路径（根据常见项目结构）
         String[] possiblePaths = {
-                "src/test/resources/configs/testDatasource.xml",
-                "test/resources/configs/testDatasource.xml",
-                "configs/testDatasource.xml",
+                "src/test/resources/configs/datasource.xml",
+                "test/resources/configs/datasource.xml",
+                "configs/datasource.xml",
         };
 
         // 1. 首先尝试基于项目根目录查找
