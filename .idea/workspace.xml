@@ -8,9 +8,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteBeanScanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteBeanScanner.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/MyBatisXmlFinder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/MyBatisXmlFinder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -121,7 +118,7 @@
     "Application.TestRun.executor": "Run",
     "Batch.download-gradle.executor": "Debug",
     "Gradle.Build lite-workspace.executor": "Run",
-    "Gradle.Run Plugin.executor": "Run",
+    "Gradle.Run Plugin.executor": "Debug",
     "Gradle.lite-workspace [buildPlugin].executor": "Run",
     "Gradle.lite-workspace [clean].executor": "Run",
     "Gradle.lite-workspace [setupDependencies].executor": "Run",
@@ -691,8 +688,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java</url>
-          <line>91</line>
-          <option name="timeStamp" value="52" />
+          <line>61</line>
+          <option name="timeStamp" value="65" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

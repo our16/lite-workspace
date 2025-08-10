@@ -1,6 +1,7 @@
 package org.example.liteworkspace.bean.engine;
 
 import com.intellij.lang.jvm.types.JvmPrimitiveTypeKind;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.java.stubs.index.JavaFullClassNameIndex;
@@ -22,6 +23,7 @@ public class BeanScannerTask extends RecursiveAction {
     private final LiteProjectContext context;
     private final Set<String> visited;
     private final Set<String> normalDependencies;
+    private boolean isConfigBean = false;
 
     public BeanScannerTask(PsiClass clazz, BeanRegistry registry, LiteProjectContext context,
                            Set<String> visited, Set<String> normalDependencies) {
@@ -32,66 +34,82 @@ public class BeanScannerTask extends RecursiveAction {
         this.normalDependencies = normalDependencies;
     }
 
+    public BeanScannerTask(PsiClass clazz, BeanRegistry registry, LiteProjectContext context,
+                           Set<String> visited, Set<String> normalDependencies, boolean isConfigBean) {
+        this.clazz = clazz;
+        this.registry = registry;
+        this.context = context;
+        this.visited = visited;
+        this.normalDependencies = normalDependencies;
+        this.isConfigBean = isConfigBean;
+    }
+
     @Override
     protected void compute() {
-        try {
-            String qName = clazz.getQualifiedName();
-            if (qName == null || !visited.add(qName)) {
-                return;
-            }
-
-            // 1. 解析当前类的 Bean 类型
-            BeanType type = resolveBeanType(clazz);
-            if (type != BeanType.PLAIN) {
-                String beanId = generateBeanId(clazz);
-                registry.register(new BeanDefinition(beanId, qName, type, clazz));
-            } else {
-                // 不是spring mybatis管理的直接return
-                return;
-            }
-
-            // 2. 提取当前类引用的所有依赖类
-            Set<PsiClass> dependencies = extractDependencies(clazz);
-            if (dependencies.isEmpty()) {
-                return;
-            }
-
-            // 3. 针对每个依赖创建子任务
-            List<BeanScannerTask> subTasks = new ArrayList<>();
-            Map<String, PsiClass> bean2Configuration = context.getBean2configuration();
-
-            for (PsiClass dependency : dependencies) {
-                String depQName = dependency.getQualifiedName();
-                if (depQName == null) {
-                    continue;
+        ApplicationManager.getApplication().runReadAction(() -> {
+            try {
+                String qName = clazz.getQualifiedName();
+                if (qName == null || !visited.add(qName)) {
+                    return;
                 }
 
-                BeanType depType = resolveBeanType(dependency);
-                if (depType != BeanType.PLAIN) {
-                    // 如果依赖本身也是一个 Bean，则递归扫描
-                    subTasks.add(new BeanScannerTask(dependency, registry, context, visited, normalDependencies));
-                } else if (dependency.isInterface()) {
-                    // 查找接口的所有实现类
-                    List<PsiClass> implementations = findImplementations(dependency);
-                    for (PsiClass impl : implementations) {
-                        subTasks.add(new BeanScannerTask(impl, registry, context, visited, normalDependencies));
-                    }
-                } else if (bean2Configuration.containsKey(depQName)) {
-                    // 扫描对应的 configuration 类
-                    PsiClass relateConfiguration = bean2Configuration.get(depQName);
-                    subTasks.add(new BeanScannerTask(relateConfiguration, registry, context, visited, normalDependencies));
-                    normalDependencies.add(depQName);
+                // 1. 解析当前类的 Bean 类型
+                BeanType type = resolveBeanType(clazz);
+                if (type != BeanType.PLAIN) {
+                    String beanId = generateBeanId(clazz);
+                    registry.register(new BeanDefinition(beanId, qName, type, clazz));
+                } else if (this.isConfigBean) {
+                    System.out.println("是isConfigBean，需要扫描依赖项");
                 } else {
-                    // 普通依赖
-                    normalDependencies.add(depQName);
+                    // 不是spring mybatis管理的直接return
+                    return;
                 }
-            }
 
-            // 4. 并发执行所有子任务
-            invokeAll(subTasks);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+                // 2. 提取当前类引用的所有依赖类
+                Set<PsiClass> dependencies = extractDependencies(clazz);
+                if (dependencies.isEmpty()) {
+                    return;
+                }
+
+                // 3. 针对每个依赖创建子任务
+                List<BeanScannerTask> subTasks = new ArrayList<>();
+                Map<String, PsiClass> bean2Configuration = context.getBean2configuration();
+
+                for (PsiClass dependency : dependencies) {
+                    String depQName = dependency.getQualifiedName();
+                    if (depQName == null) {
+                        continue;
+                    }
+
+                    BeanType depType = resolveBeanType(dependency);
+                    if (depType != BeanType.PLAIN) {
+                        // 如果依赖本身也是一个 Bean，则递归扫描
+                        subTasks.add(new BeanScannerTask(dependency, registry, context, visited, normalDependencies));
+                    } else if (dependency.isInterface()) {
+                        // 查找接口的所有实现类
+                        List<PsiClass> implementations = findImplementations(dependency);
+                        for (PsiClass impl : implementations) {
+                            subTasks.add(new BeanScannerTask(impl, registry, context, visited, normalDependencies));
+                        }
+                    } else if (bean2Configuration.containsKey(depQName)) {
+                        // 扫描对应的 configuration 类
+                        PsiClass relateConfiguration = bean2Configuration.get(depQName);
+                        subTasks.add(new BeanScannerTask(relateConfiguration, registry, context, visited, normalDependencies));
+                        // 自己也加进去是为了找依赖的类
+                        subTasks.add(new BeanScannerTask(dependency, registry, context, visited, normalDependencies, true));
+                        normalDependencies.add(depQName);
+                    } else {
+                        // 普通依赖
+                        normalDependencies.add(depQName);
+                    }
+                }
+
+                // 4. 并发执行所有子任务
+                invokeAll(subTasks);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     /**
@@ -119,9 +137,8 @@ public class BeanScannerTask extends RecursiveAction {
             return BeanType.MAPPER;
         }
 
-        if (clazz.isInterface() &&
-                (clazz.getName() != null &&
-                        (clazz.getName().endsWith("Mapper") || clazz.getName().endsWith("Dao")))) {
+        if (clazz.isInterface() && (clazz.getName() != null &&
+                (clazz.getName().endsWith("Mapper") || clazz.getName().endsWith("Dao")))) {
             return BeanType.MYBATIS;
         }
 
@@ -140,14 +157,20 @@ public class BeanScannerTask extends RecursiveAction {
 
     private Set<PsiClass> extractDependencies(PsiClass clazz) {
         Set<PsiClass> dependencies = new HashSet<>();
-        for (PsiField field : clazz.getFields()) {
-            PsiType type = field.getType();
-            PsiClass dependency = resolvePsiClassFromType(type);
-            if (dependency == null || isJavaLangOrPrimitive(dependency)) {
-                continue;
-            }
-
-            if (isSpringInjectedMember(field) || isInjectedViaConstructorOrSetter(clazz, field)) {
+        PsiClass current = clazz;
+        while (current != null && !"java.lang.Object".equals(current.getQualifiedName())) {
+            for (PsiField field : current.getFields()) {
+                PsiType type = field.getType();
+                PsiClass dependency = resolvePsiClassFromType(type);
+                // 不是需要检测的类型 基础类型等
+                if (dependency == null || isJavaLangOrPrimitive(dependency)) {
+                    continue;
+                }
+                // 既不是spring 注解 也不是 构造器注入等
+                if (!isSpringInjectedMember(field) && !isInjectedViaConstructorOrSetter(clazz, field)) {
+                    continue;
+                }
+                // 是否是 list map 这些构造的
                 if (isCollectionOrMap(dependency) && type instanceof PsiClassType classType) {
                     for (PsiType paramType : classType.getParameters()) {
                         PsiClass elementClass = resolvePsiClassFromType(paramType);
@@ -159,6 +182,8 @@ public class BeanScannerTask extends RecursiveAction {
                     dependencies.add(dependency);
                 }
             }
+            // 获取父类
+            current = current.getSuperClass();
         }
 
         return dependencies;

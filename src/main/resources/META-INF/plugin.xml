@@ -40,12 +40,5 @@
                     text="编译和运行当前类"
                     description="Compile and Run Java files on demand"/>
         </group>
-        <!-- 单独注册快捷键（全局生效） -->
-        <action id="LiteScanAction"
-                class="org.example.liteworkspace.action.LiteScanAction"
-                text="扫描并生成 Spring Bean XML"
-                description="扫描依赖并生成 XML Bean 片段">
-            <keyboard-shortcut keymap="$default" first-keystroke="ctrl P"/>
-        </action>
     </actions>
 </idea-plugin>
