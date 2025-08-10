@@ -4,10 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="基础信息">
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="扫描">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteBeanScanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteBeanScanner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/MyBatisXmlFinder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/MyBatisXmlFinder.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" afterDir="false" />
@@ -235,14 +236,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00032" summary="依赖修正">
-      <option name="closed" value="true" />
-      <created>1751786870199</created>
-      <option name="number" value="00032" />
-      <option name="presentableId" value="LOCAL-00032" />
-      <option name="project" value="LOCAL" />
-      <updated>1751786870199</updated>
     </task>
     <task id="LOCAL-00033" summary="扫描">
       <option name="closed" value="true" />
@@ -628,7 +621,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754751290665</updated>
     </task>
-    <option name="localTasksCounter" value="81" />
+    <task id="LOCAL-00081" summary="扫描">
+      <option name="closed" value="true" />
+      <created>1754816111502</created>
+      <option name="number" value="00081" />
+      <option name="presentableId" value="LOCAL-00081" />
+      <option name="project" value="LOCAL" />
+      <updated>1754816111502</updated>
+    </task>
+    <option name="localTasksCounter" value="82" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -643,7 +644,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="支持调用dify" />
     <MESSAGE value="页面配置" />
     <MESSAGE value="重构1.0" />
     <MESSAGE value="默认数据源" />
@@ -668,7 +668,8 @@
     <MESSAGE value="过滤自定义的bean" />
     <MESSAGE value="加入并发扫描" />
     <MESSAGE value="基础信息" />
-    <option name="LAST_COMMIT_MESSAGE" value="基础信息" />
+    <MESSAGE value="扫描" />
+    <option name="LAST_COMMIT_MESSAGE" value="扫描" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
