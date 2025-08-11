@@ -1,6 +1,5 @@
 package org.example.liteworkspace.bean.engine;
 
-import com.intellij.lang.jvm.types.JvmPrimitiveTypeKind;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
@@ -57,11 +56,16 @@ public class BeanScannerTask extends RecursiveAction {
                 BeanType type = resolveBeanType(clazz);
                 if (type != BeanType.PLAIN) {
                     String beanId = generateBeanId(clazz);
-                    registry.register(new BeanDefinition(beanId, qName, type, clazz));
+                    if (BeanType.MAPPER_STRUCT == type) {
+                        // mapstruct 生成的类名是原类名加Impl结尾的
+                        registry.register(new BeanDefinition(beanId + "Impl", qName + "Impl", type, clazz));
+                    } else {
+                        registry.register(new BeanDefinition(beanId, qName, type, clazz));
+                    }
                 } else if (this.isConfigBean) {
                     System.out.println("是isConfigBean，需要扫描依赖项");
                 } else {
-                    // 不是spring mybatis管理的直接return
+                    // 不是spring或mybatis管理的直接return
                     return;
                 }
 
@@ -120,6 +124,10 @@ public class BeanScannerTask extends RecursiveAction {
             return BeanType.JAVA_CONFIG;
         }
 
+        if (isMapStructSpringModel(clazz)) {
+            return BeanType.MAPPER_STRUCT;
+        }
+
         if (clazz.hasAnnotation("org.springframework.stereotype.Component") ||
                 clazz.hasAnnotation("org.springframework.stereotype.Service") ||
                 clazz.hasAnnotation("org.springframework.stereotype.Repository") ||
@@ -144,6 +152,36 @@ public class BeanScannerTask extends RecursiveAction {
 
         return BeanType.PLAIN; // 不是 Spring / MyBatis 管理的 Bean
     }
+
+    /**
+     * 判断某个 Mapper 类是否是 Spring 管理的 MapStruct Mapper（componentModel = "spring"）
+     */
+    private boolean isMapStructSpringModel(PsiClass mapperClass) {
+        if (mapperClass == null) {
+            return false;
+        }
+
+        PsiAnnotation mapperAnnotation = Objects.requireNonNull(mapperClass.getModifierList())
+                .findAnnotation("org.mapstruct.Mapper");
+        if (mapperAnnotation == null) {
+            return false;
+        }
+
+        PsiAnnotationMemberValue componentModelValue = mapperAnnotation.findDeclaredAttributeValue("componentModel");
+        if (componentModelValue == null) {
+            // 默认不是spring
+            return false;
+        }
+
+        String text = componentModelValue.getText();
+        // componentModel = "spring" 会是字符串字面量，带引号，例如 "spring"
+        if ("\"spring\"".equalsIgnoreCase(text)) {
+            return true;
+        }
+
+        return false;
+    }
+
 
     private String generateBeanId(PsiClass clazz) {
         String name = clazz.getName();
@@ -323,13 +361,23 @@ public class BeanScannerTask extends RecursiveAction {
         if (psiClass == null) {
             return false;
         }
+
         Project project = psiClass.getProject();
         JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
         PsiClass collectionClass = facade.findClass("java.util.Collection", GlobalSearchScope.allScope(project));
         PsiClass mapClass = facade.findClass("java.util.Map", GlobalSearchScope.allScope(project));
 
-        return (collectionClass != null && psiClass.isInheritor(collectionClass, true)) ||
-                (mapClass != null && psiClass.isInheritor(mapClass, true));
+        if ((collectionClass != null && psiClass.isInheritor(collectionClass, true))
+                || (mapClass != null && psiClass.isInheritor(mapClass, true))) {
+            return true;
+        }
+
+        String qualifiedName = psiClass.getQualifiedName();
+        if ("java.util.Map".equals(qualifiedName)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

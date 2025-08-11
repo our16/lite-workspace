@@ -8,5 +8,6 @@ public enum BeanType {
     MAPPER,
     // 新增：表示普通 Java 类，不是 Spring / MyBatis 管理的 Bean
     PLAIN,
+    MAPPER_STRUCT,
     ;
 }

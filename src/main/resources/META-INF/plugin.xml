@@ -15,6 +15,7 @@
                                  displayName="LiteWorkspaceConfig"/>
         <toolWindow id="LlmAnalysisToolWindow" anchor="right"
                     factoryClass="org.example.liteworkspace.ui.LlmAnalysisToolWindow"/>
+        <runConfigurationProducer implementation="org.example.liteworkspace.extensions.CustomCompileJUnitProducer"/>
     </extensions>
 
     <actions>

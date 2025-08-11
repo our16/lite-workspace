@@ -24,6 +24,8 @@ public class SpringXmlBuilder {
 
         // 2. 普通 Bean（Annotation / Java Config）
         buildSimpleBeans(grouped, xmlMap, BeanType.ANNOTATION);
+
+        buildSimpleBeans(grouped, xmlMap, BeanType.MAPPER_STRUCT);
         //
         buildSimpleBeans(grouped, xmlMap, BeanType.JAVA_CONFIG);
 
