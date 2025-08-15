@@ -10,6 +10,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
+import com.intellij.psi.search.searches.AllClassesSearch;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.example.liteworkspace.bean.core.DatasourceConfig;
@@ -42,49 +43,58 @@ public class ResourceConfigAnalyzer {
     }
 
     public Map<String, PsiClass> scanConfigurationClasses() {
-        GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
         Map<String, PsiClass> beanToConfiguration = new HashMap<>();
-        for (VirtualFile vf : FilenameIndex.getAllFilesByExt(project, "java", scope)) {
-            PsiFile file = PsiManager.getInstance(project).findFile(vf);
-            if (!(file instanceof PsiJavaFile javaFile)) {
-                continue;
+        Project project = this.project;
+
+        // 包含项目源码 + jar（依赖库）
+        GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+
+        // 查找所有类，筛选 @Configuration
+        AllClassesSearch.search(scope, project).forEach(clazz -> {
+            if (!hasAnnotation(clazz, "org.springframework.context.annotation.Configuration")) {
+                return;
             }
-            for (PsiClass clazz : javaFile.getClasses()) {
-                if (!clazz.hasAnnotation("org.springframework.context.annotation.Configuration")) {
+
+            for (PsiMethod method : clazz.getMethods()) {
+                if (!hasAnnotation(method, "org.springframework.context.annotation.Bean")) {
                     continue;
                 }
 
-                for (PsiMethod method : clazz.getMethods()) {
-                    if (!method.hasAnnotation("org.springframework.context.annotation.Bean")) {
-                        continue;
-                    }
+                PsiType returnType = method.getReturnType();
+                if (returnType == null) {
+                    continue;
+                }
 
-                    PsiType returnType = method.getReturnType();
-                    if (returnType == null) {
-                        continue;
-                    }
+                String beanName = getBeanName(method);
+                String returnTypeName = returnType.getCanonicalText();
 
-                    // 获取Bean名称（优先使用@Bean的name/value属性，否则使用方法名）
-                    String beanName = getBeanName(method);
-
-                    // 获取返回类型的完全限定名
-                    String returnTypeName = returnType.getCanonicalText();
-
-                    // 两种存储方式：
-                    // 1. 以Bean方法名为key
-                    beanToConfiguration.put(method.getName(), clazz);
-                    // 2. 以返回类型为key
-                    beanToConfiguration.put(returnTypeName, clazz);
-                    // 3. 如果有自定义Bean名称，也存储
-                    if (!beanName.equals(method.getName())) {
-                        beanToConfiguration.put(beanName, clazz);
-                    }
+                // 方法名作为key
+                beanToConfiguration.put(method.getName(), clazz);
+                // 返回类型作为key
+                beanToConfiguration.put(returnTypeName, clazz);
+                // 自定义Bean名作为key
+                if (!beanName.equals(method.getName())) {
+                    beanToConfiguration.put(beanName, clazz);
                 }
             }
-        }
+        });
 
         return beanToConfiguration;
     }
+
+    /**
+     * 判断类或方法是否有指定注解（支持 jar 中的类）
+     */
+    private boolean hasAnnotation(PsiModifierListOwner owner, String annotationFqn) {
+        PsiAnnotation[] annotations = owner.getAnnotations();
+        for (PsiAnnotation annotation : annotations) {
+            if (annotationFqn.equals(annotation.getQualifiedName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     /**
      * 从@Bean注解中提取Bean名称

@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.liteworkspace"
-version = "1.23.2-mapstruct"
+version = "1.23.4-jar-dependence"
 
 repositories {
     maven {

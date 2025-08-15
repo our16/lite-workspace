@@ -4,15 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="扫描">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/CustomCompileRunAction.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/extensions/CustomCompileJUnitProducer.java" afterDir="false" />
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="扫描jar 包里面的bean定义">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/BeanType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/BeanType.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -161,7 +157,7 @@
       <recent name="org.example.liteworkspace" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.lite-workspace [buildPlugin]">
+  <component name="RunManager" selected="Gradle.Run Plugin">
     <configuration name="TestRun" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.example.liteworkspace.action.TestRun" />
       <module name="lite-workspace.main" />
@@ -237,14 +233,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00033" summary="扫描">
-      <option name="closed" value="true" />
-      <created>1751787597463</created>
-      <option name="number" value="00033" />
-      <option name="presentableId" value="LOCAL-00033" />
-      <option name="project" value="LOCAL" />
-      <updated>1751787597463</updated>
     </task>
     <task id="LOCAL-00034" summary="写入到文件">
       <option name="closed" value="true" />
@@ -630,7 +618,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754816111502</updated>
     </task>
-    <option name="localTasksCounter" value="82" />
+    <task id="LOCAL-00082" summary="适配mapstruct">
+      <option name="closed" value="true" />
+      <created>1754924094138</created>
+      <option name="number" value="00082" />
+      <option name="presentableId" value="LOCAL-00082" />
+      <option name="project" value="LOCAL" />
+      <updated>1754924094138</updated>
+    </task>
+    <option name="localTasksCounter" value="83" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -645,8 +641,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="页面配置" />
-    <MESSAGE value="重构1.0" />
     <MESSAGE value="默认数据源" />
     <MESSAGE value="按照优先级扫描" />
     <MESSAGE value="只扫描resource" />
@@ -670,7 +664,9 @@
     <MESSAGE value="加入并发扫描" />
     <MESSAGE value="基础信息" />
     <MESSAGE value="扫描" />
-    <option name="LAST_COMMIT_MESSAGE" value="扫描" />
+    <MESSAGE value="适配mapstruct" />
+    <MESSAGE value="扫描jar 包里面的bean定义" />
+    <option name="LAST_COMMIT_MESSAGE" value="扫描jar 包里面的bean定义" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -689,11 +685,6 @@
           <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/RunOnDemandCompiler.java</url>
           <line>44</line>
           <option name="timeStamp" value="34" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java</url>
-          <line>57</line>
-          <option name="timeStamp" value="81" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

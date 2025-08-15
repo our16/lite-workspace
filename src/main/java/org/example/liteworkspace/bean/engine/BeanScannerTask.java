@@ -410,35 +410,38 @@ public class BeanScannerTask extends RecursiveAction {
                 qualifiedName.equals("void");
     }
 
-    /**
-     * 查找接口的所有实现类
-     */
     private List<PsiClass> findImplementations(PsiClass interfaceClass) {
-        List<PsiClass> implementations = new ArrayList<>();
-        String interfaceQName = interfaceClass.getQualifiedName();
-        if (interfaceQName == null) {
-            return implementations;
+        if (interfaceClass == null || interfaceClass.getQualifiedName() == null) {
+            return Collections.emptyList();
         }
 
-        // 方法1：使用ClassInheritorsSearch（推荐）
-        implementations.addAll(ClassInheritorsSearch.search(interfaceClass).findAll());
+        String interfaceQName = interfaceClass.getQualifiedName();
         Project project = this.context.getProject();
-        // 方法2：使用JavaPsiFacade查找类（备用）
-        PsiClass[] implementers = JavaPsiFacade.getInstance(project)
-                .findClasses(interfaceQName, GlobalSearchScope.allScope(project));
-        implementations.addAll(Arrays.asList(implementers));
 
-        // 方法3：使用StubIndex查找（更底层的方式）
+        // -------------------------------
+        // 方法1：ClassInheritorsSearch（支持源码 + 库）
+        // -------------------------------
+        GlobalSearchScope scope = GlobalSearchScope.allScope(project); // 包含模块 + 库（jar）
+        Set<PsiClass> implementations = new LinkedHashSet<>(ClassInheritorsSearch.search(interfaceClass, scope, true).findAll());
+
+        // -------------------------------
+        // 方法2：JavaPsiFacade查找类（备用）
+        // -------------------------------
+        PsiClass[] classes = JavaPsiFacade.getInstance(project).findClasses(interfaceQName, scope);
+        implementations.addAll(Arrays.asList(classes));
+
+        // -------------------------------
+        // 方法3：StubIndex底层扫描（可选，性能稍低）
+        // -------------------------------
         StubIndex.getInstance().processElements(
                 JavaFullClassNameIndex.getInstance().getKey(),
                 interfaceQName,
                 project,
-                GlobalSearchScope.allScope(project),
+                scope,
                 PsiClass.class,
                 psiClass -> {
                     if (!psiClass.isInterface() && !psiClass.isAnnotationType()) {
-                        PsiClassType[] implementsTypes = psiClass.getImplementsListTypes();
-                        for (PsiClassType type : implementsTypes) {
+                        for (PsiClassType type : psiClass.getImplementsListTypes()) {
                             PsiClass resolved = type.resolve();
                             if (resolved != null && interfaceQName.equals(resolved.getQualifiedName())) {
                                 implementations.add(psiClass);
@@ -450,10 +453,8 @@ public class BeanScannerTask extends RecursiveAction {
                 }
         );
 
-        // 去重并返回
-        return implementations.stream()
-                .distinct()
-                .collect(Collectors.toList());
+        return new ArrayList<>(implementations);
     }
+
 
 }
