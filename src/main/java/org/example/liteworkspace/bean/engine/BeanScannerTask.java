@@ -92,8 +92,17 @@ public class BeanScannerTask extends RecursiveAction {
                     } else if (dependency.isInterface()) {
                         // 查找接口的所有实现类
                         List<PsiClass> implementations = findImplementations(dependency);
-                        for (PsiClass impl : implementations) {
-                            subTasks.add(new BeanScannerTask(impl, registry, context, visited, normalDependencies));
+                        for (PsiClass subClass : implementations) {
+                            String subClassQualifiedName = subClass.getQualifiedName();
+                            if (bean2Configuration.containsKey(subClassQualifiedName)) {
+                                // 扫描对应的 configuration 类
+                                PsiClass relateConfiguration = bean2Configuration.get(subClassQualifiedName);
+                                subTasks.add(new BeanScannerTask(relateConfiguration, registry, context, visited, normalDependencies));
+                                // 自己也加进去是为了找依赖的类
+                                subTasks.add(new BeanScannerTask(subClass, registry, context, visited, normalDependencies, true));
+                            } else {
+                                subTasks.add(new BeanScannerTask(subClass, registry, context, visited, normalDependencies));
+                            }
                         }
                     } else if (bean2Configuration.containsKey(depQName)) {
                         // 扫描对应的 configuration 类
