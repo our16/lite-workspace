@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.liteworkspace"
-version = "1.23.5-jar-dependence"
+version = "1.23.6-prescan"
 
 repositories {
     maven {

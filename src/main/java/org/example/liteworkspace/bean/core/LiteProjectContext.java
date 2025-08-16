@@ -41,7 +41,7 @@ public class LiteProjectContext {
 
     private final CacheVersionChecker versionChecker = new CacheVersionChecker();
 
-    public LiteProjectContext(Project project) {
+    public LiteProjectContext(Project project, Set<String> miniPackageNames) {
         this.project = project;
 
         // ===================== 步骤 1 =====================
@@ -67,7 +67,7 @@ public class LiteProjectContext {
 
         this.datasourceConfig = this.resourceAnalyzer.scanSpringDatasourceConfigs();
         // 构造的bean 和对应的 Configuration 类
-        Map<String, PsiClass> stringPsiClassMap = this.resourceAnalyzer.scanConfigurationClasses();
+        Map<String, PsiClass> stringPsiClassMap = this.resourceAnalyzer.scanConfigurationClasses(miniPackageNames);
         this.configurationClasses.addAll(new HashSet<>(stringPsiClassMap.values()));
         this.bean2configuration.putAll(stringPsiClassMap);
     }

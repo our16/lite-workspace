@@ -14,6 +14,7 @@ import com.intellij.psi.*;
 
 import org.example.liteworkspace.bean.core.BeanDefinition;
 import org.example.liteworkspace.bean.core.LiteProjectContext;
+import org.example.liteworkspace.bean.engine.DependencyCollector;
 import org.example.liteworkspace.bean.engine.LiteBeanScanner;
 import org.example.liteworkspace.bean.engine.LiteFileWriter;
 import org.example.liteworkspace.bean.engine.SpringXmlBuilder;
@@ -52,7 +53,9 @@ public class LiteScanAction extends AnAction {
                 try {
                     // 放入 ReadAction 中
                     ApplicationManager.getApplication().runReadAction(() -> {
-                        LiteProjectContext liteProjectContext = new LiteProjectContext(project);
+                        Set<String> miniPackageNames = DependencyCollector
+                                .collectAllDependencyPackages(project, List.of(targetClass));
+                        LiteProjectContext liteProjectContext = new LiteProjectContext(project, miniPackageNames);
                         LiteBeanScanner scanner = new LiteBeanScanner(liteProjectContext);
                         Collection<BeanDefinition> beans = scanner.scanAndCollectBeanList(targetClass, project);
                         Map<String, String> beanMap = new SpringXmlBuilder(liteProjectContext).buildXmlMap(beans);

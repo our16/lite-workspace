@@ -42,45 +42,64 @@ public class ResourceConfigAnalyzer {
         return result;
     }
 
-    public Map<String, PsiClass> scanConfigurationClasses() {
+    public Map<String, PsiClass> scanConfigurationClasses(Set<String> packagePrefixes) {
         Map<String, PsiClass> beanToConfiguration = new HashMap<>();
         Project project = this.project;
 
-        // 包含项目源码 + jar（依赖库）
+        // 按包路径限定搜索范围
         GlobalSearchScope scope = GlobalSearchScope.allScope(project);
-
-        // 查找所有类，筛选 @Configuration
-        AllClassesSearch.search(scope, project).forEach(clazz -> {
-            if (!hasAnnotation(clazz, "org.springframework.context.annotation.Configuration")) {
-                return;
+        // 遍历指定包路径
+        for (String pkg : packagePrefixes) {
+            PsiPackage psiPackage = JavaPsiFacade.getInstance(project).findPackage(pkg);
+            if (psiPackage == null) {
+                continue;
             }
 
-            for (PsiMethod method : clazz.getMethods()) {
-                if (!hasAnnotation(method, "org.springframework.context.annotation.Bean")) {
+            // 递归扫描包下的类
+            Collection<PsiClass> classes = new ArrayList<>();
+            for (PsiDirectory dir : psiPackage.getDirectories(scope)) {
+                classes.addAll(List.of(JavaDirectoryService.getInstance().getClasses(dir)));
+                addSubPackageClasses(dir, classes);
+            }
+
+            for (PsiClass clazz : classes) {
+                if (!hasAnnotation(clazz, "org.springframework.context.annotation.Configuration")) {
                     continue;
                 }
 
-                PsiType returnType = method.getReturnType();
-                if (returnType == null) {
-                    continue;
-                }
+                for (PsiMethod method : clazz.getMethods()) {
+                    if (!hasAnnotation(method, "org.springframework.context.annotation.Bean")) {
+                        continue;
+                    }
 
-                String beanName = getBeanName(method);
-                String returnTypeName = returnType.getCanonicalText();
+                    PsiType returnType = method.getReturnType();
+                    if (returnType == null) {
+                        continue;
+                    }
 
-                // 方法名作为key
-                beanToConfiguration.put(method.getName(), clazz);
-                // 返回类型作为key
-                beanToConfiguration.put(returnTypeName, clazz);
-                // 自定义Bean名作为key
-                if (!beanName.equals(method.getName())) {
-                    beanToConfiguration.put(beanName, clazz);
+                    String beanName = getBeanName(method);
+                    String returnTypeName = returnType.getCanonicalText();
+
+                    beanToConfiguration.put(method.getName(), clazz);
+                    beanToConfiguration.put(returnTypeName, clazz);
+                    if (!beanName.equals(method.getName())) {
+                        beanToConfiguration.put(beanName, clazz);
+                    }
                 }
             }
-        });
+        }
 
         return beanToConfiguration;
     }
+
+    // 递归扫描子包
+    private void addSubPackageClasses(PsiDirectory dir, Collection<PsiClass> classes) {
+        for (PsiDirectory subDir : dir.getSubdirectories()) {
+            classes.addAll(List.of(JavaDirectoryService.getInstance().getClasses(subDir)));
+            addSubPackageClasses(subDir, classes);
+        }
+    }
+
 
     /**
      * 判断类或方法是否有指定注解（支持 jar 中的类）
