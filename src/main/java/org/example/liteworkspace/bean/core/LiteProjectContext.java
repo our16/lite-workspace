@@ -18,7 +18,7 @@ public class LiteProjectContext {
         this.springContext = new SpringContext(project);
         this.springContext.scan(miniPackages);
         this.myBatisContext = new MyBatisContext(project);
-        this.myBatisContext.scan();
+        this.myBatisContext.scan(miniPackages);
     }
 
     public ProjectContext getProjectContext() { return projectContext; }

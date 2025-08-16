@@ -1,7 +1,9 @@
 package org.example.liteworkspace.util;
 
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiClass;
@@ -34,9 +36,9 @@ public class MyBatisXmlFinder {
      * 扫描并加载所有 Mapper XML 的 namespace -> 相对路径 映射
      * 可由外部调用以初始化 mybatisNamespaceMap
      */
-    public void loadMapperNamespaceMap() {
+    public void loadMapperNamespaceMap(Set<String> miniPackages) {
         this.mybatisNamespaceMap.clear(); // 避免重复加载
-        this.mybatisNamespaceMap.putAll(findAllMapperXmlNamespaceToPathMap());
+        this.mybatisNamespaceMap.putAll(findAllMapperXmlNamespaceToPathMap(miniPackages));
     }
 
     /**
@@ -50,31 +52,40 @@ public class MyBatisXmlFinder {
      * 扫描项目中所有 <mapper> 类型的 XML 文件，
      * 返回 namespace -> mapper XML 相对路径 的映射
      */
-    private Map<String, String> findAllMapperXmlNamespaceToPathMap() {
+    private Map<String, String> findAllMapperXmlNamespaceToPathMap(Set<String> miniPackages) {
         Map<String, String> namespaceToPathMap = new HashMap<>();
+        if (miniPackages.isEmpty()) {
+            return namespaceToPathMap;
+        }
 
+        // ------------------- 1️⃣ 扫描项目范围 -------------------
         Collection<VirtualFile> xmlFiles = FileBasedIndex.getInstance()
                 .getContainingFiles(FileTypeIndex.NAME, XmlFileType.INSTANCE, GlobalSearchScope.projectScope(project));
 
+        // ------------------- 2️⃣ 扫描依赖库 JAR -------------------
+        for (Module module : ModuleManager.getInstance(project).getModules()) {
+            GlobalSearchScope libScope = GlobalSearchScope.moduleWithLibrariesScope(module);
+            Collection<VirtualFile> libXmlFiles = FileBasedIndex.getInstance()
+                    .getContainingFiles(FileTypeIndex.NAME, XmlFileType.INSTANCE, libScope);
+            xmlFiles.addAll(libXmlFiles);
+        }
+
+        // ------------------- 3️⃣ 遍历所有 XML 文件 -------------------
         for (VirtualFile file : xmlFiles) {
-            if (file == null || !file.isValid() || !file.getExtension().equalsIgnoreCase("xml")) {
-                continue;
-            }
+            if (file == null || !file.isValid() || !"xml".equalsIgnoreCase(file.getExtension())) continue;
 
             PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-            if (!(psiFile instanceof XmlFile xmlFile)) {
-                continue;
-            }
+            if (!(psiFile instanceof XmlFile xmlFile)) continue;
 
             XmlTag root = xmlFile.getRootTag();
-            if (root == null || !"mapper".equals(root.getName())) {
-                continue;
-            }
+            if (root == null || !"mapper".equals(root.getName())) continue;
 
             String namespace = root.getAttributeValue("namespace");
-            if (namespace == null || namespace.trim().isEmpty()) {
-                continue;
-            }
+            if (namespace == null || namespace.trim().isEmpty()) continue;
+
+            // ------------------- 4️⃣ 严格过滤 miniPackages -------------------
+            boolean matchesPackage = miniPackages.stream().anyMatch(namespace::startsWith);
+            if (!matchesPackage) continue;
 
             String relativePath = getRelativePathFromFile(file);
             if (relativePath != null) {
@@ -84,6 +95,7 @@ public class MyBatisXmlFinder {
 
         return namespaceToPathMap;
     }
+
 
     /**
      * 获取 XML 文件相对于项目根目录的路径
@@ -140,22 +152,5 @@ public class MyBatisXmlFinder {
             String namespace = rootTag.getAttributeValue("namespace");
             return expectedNamespace.equals(namespace);
         });
-    }
-
-
-    /**
-     * 判断某个 XML 文件是否是 <mapper> 且 namespace 匹配
-     */
-    private boolean xmlMatchesNamespace(VirtualFile file, String expectedNamespace) {
-        PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-        if (!(psiFile instanceof XmlFile xmlFile)) return false;
-
-        XmlTag root = xmlFile.getRootTag();
-        if (root == null || !"mapper".equals(root.getName())) {
-            return false;
-        }
-
-        String namespace = root.getAttributeValue("namespace");
-        return expectedNamespace.equals(namespace);
     }
 }
