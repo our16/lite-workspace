@@ -5,7 +5,12 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.LibraryOrderEntry;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -17,7 +22,11 @@ import com.intellij.util.indexing.FileBasedIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 public class MyBatisXmlFinder {
 
@@ -64,10 +73,25 @@ public class MyBatisXmlFinder {
 
         // ------------------- 2️⃣ 扫描依赖库 JAR -------------------
         for (Module module : ModuleManager.getInstance(project).getModules()) {
-            GlobalSearchScope libScope = GlobalSearchScope.moduleWithLibrariesScope(module);
-            Collection<VirtualFile> libXmlFiles = FileBasedIndex.getInstance()
-                    .getContainingFiles(FileTypeIndex.NAME, XmlFileType.INSTANCE, libScope);
-            xmlFiles.addAll(libXmlFiles);
+            for (OrderEntry entry : ModuleRootManager.getInstance(module).getOrderEntries()) {
+                if (!(entry instanceof LibraryOrderEntry libEntry)) continue;
+
+                for (VirtualFile libRoot : libEntry.getRootFiles(OrderRootType.CLASSES)) {
+                    if (!libRoot.isValid()) continue;
+
+                    if (libRoot.isValid() && libRoot.getName().endsWith(".jar")) {
+                        // 高效扫描 JAR 内 mapper.xml
+                        xmlFiles.addAll(scanJarForMapperXmlFiles(libRoot));
+                    } else if (libRoot.isDirectory()) {
+                        // 可选：扫描目录中的 XML 文件
+                        Collection<VirtualFile> dirXmlFiles = FileTypeIndex.getFiles(
+                                XmlFileType.INSTANCE,
+                                GlobalSearchScope.fileScope(project, libRoot)
+                        );
+                        xmlFiles.addAll(dirXmlFiles);
+                    }
+                }
+            }
         }
 
         // ------------------- 3️⃣ 遍历所有 XML 文件 -------------------
@@ -94,6 +118,34 @@ public class MyBatisXmlFinder {
         }
 
         return namespaceToPathMap;
+    }
+
+    /**
+     * 扫描 JAR 文件内部所有可能的 mapper.xml 文件
+     */
+    private List<VirtualFile> scanJarForMapperXmlFiles(VirtualFile jarFile) {
+        List<VirtualFile> result = new ArrayList<>();
+        try {
+            JarFile jar = new JarFile(new File(jarFile.getPath()));
+            Enumeration<JarEntry> entries = jar.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                String name = entry.getName();
+                // 高效过滤：只处理可能是 mapper 的 xml
+                if (!name.endsWith(".xml")) continue;
+                if (!name.contains("mapper") && !name.contains("/mapper/") && !name.contains("Mapper")) continue;
+
+                // 用 VirtualFile 或 PsiFileFactory 创建虚拟文件方便后续处理
+                VirtualFile vf = JarFileSystem.getInstance().findFileByPath(jarFile.getPath() + "!/" + name);
+                if (vf != null && vf.isValid()) {
+                    result.add(vf);
+                }
+            }
+            jar.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
 
