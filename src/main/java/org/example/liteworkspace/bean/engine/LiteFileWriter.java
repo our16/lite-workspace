@@ -80,7 +80,7 @@ public class LiteFileWriter {
                         if (!resourcesTestDir.exists()) {
                             resourcesTestDir.mkdirs();
                         }
-                        DatasourceConfig datasourceConfig = context.getDatasourceConfig();
+                        DatasourceConfig datasourceConfig = context.getSpringContext().getDatasourceConfig();
                         String defaultConfigXmlPath = datasourceConfig.getImportPath();
                         Set<String> definedBeanClasses = new HashSet<>();
 

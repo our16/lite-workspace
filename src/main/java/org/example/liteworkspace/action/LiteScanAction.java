@@ -14,6 +14,7 @@ import com.intellij.psi.*;
 
 import org.example.liteworkspace.bean.core.BeanDefinition;
 import org.example.liteworkspace.bean.core.LiteProjectContext;
+import org.example.liteworkspace.bean.core.LiteWorkspaceService;
 import org.example.liteworkspace.bean.engine.DependencyCollector;
 import org.example.liteworkspace.bean.engine.LiteBeanScanner;
 import org.example.liteworkspace.bean.engine.LiteFileWriter;
@@ -51,38 +52,9 @@ public class LiteScanAction extends AnAction {
             @Override
             public void run(ProgressIndicator indicator) {
                 try {
-                    // 放入 ReadAction 中
                     ApplicationManager.getApplication().runReadAction(() -> {
-                        Set<String> miniPackageNames = DependencyCollector
-                                .collectAllDependencyPackages(project, List.of(targetClass));
-                        LiteProjectContext liteProjectContext = new LiteProjectContext(project, miniPackageNames);
-                        LiteBeanScanner scanner = new LiteBeanScanner(liteProjectContext);
-                        Collection<BeanDefinition> beans = scanner.scanAndCollectBeanList(targetClass, project);
-                        Map<String, String> beanMap = new SpringXmlBuilder(liteProjectContext).buildXmlMap(beans);
-                        // 写操作放入 WriteCommandAction
-                        ApplicationManager.getApplication().invokeLater(() -> {
-                            WriteCommandAction.runWriteCommandAction(project, () -> {
-                                new LiteFileWriter(liteProjectContext).write(project, targetClass, beanMap);
-                                // 插件中生成 bean-classes.txt
-                                Set<String> classNames = beans.stream()
-                                        .map(BeanDefinition::getClassName)
-                                        .collect(Collectors.toCollection(LinkedHashSet::new));
-
-                                Path file = Paths.get(Objects.requireNonNull(project.getBasePath()), "build/lite/bean-classes.txt");
-                                try {
-                                    Files.createDirectories(file.getParent());
-                                    Files.write(file, classNames, StandardCharsets.UTF_8);
-                                } catch (IOException ex) {
-                                    throw new RuntimeException(ex);
-                                }
-                                LiteCacheStorage cacheStorage = new LiteCacheStorage(project);
-                                cacheStorage.saveConfigurationClasses(liteProjectContext.getBean2configuration());
-                                cacheStorage.saveMapperXmlPaths(liteProjectContext.getMybatisContext().getMybatisNamespaceMap()); // 假设你有这个方法
-                                cacheStorage.saveDatasourceConfig(liteProjectContext.getDatasourceConfig());
-                                cacheStorage.saveSpringScanPackages(liteProjectContext.getSpringScanPackages());
-                                cacheStorage.saveBeanList(beans);
-                            });
-                        });
+                        LiteWorkspaceService service = new LiteWorkspaceService(project);
+                        service.scanAndGenerate(targetClass);
                     });
                 } catch (Exception ex) {
                     showError(project, "❌ 生成失败：" + ex.getMessage());

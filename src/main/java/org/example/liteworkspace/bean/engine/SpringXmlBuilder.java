@@ -63,7 +63,7 @@ public class SpringXmlBuilder {
         for (BeanDefinition bean : list) {
             String id = bean.getBeanName();
             String className = bean.getClassName();
-            String xmlPath = context.getMybatisContext().getMybatisNamespaceMap().get(className);
+            String xmlPath = context.getMyBatisContext().getContext().getMybatisNamespaceMap().get(className);
             if (xmlPath != null) {
                 String classpathPath = xmlPath
                         .replace("\\", "/")  // 统一使用正斜杠
@@ -81,16 +81,16 @@ public class SpringXmlBuilder {
             xmlMap.put(id, mapperBean);
         }
 
-        if (context.getDatasourceConfig().isImported()) {
+        if (context.getSpringContext().getDatasourceConfig().isImported()) {
             // 使用标准Spring import格式
-            String importPath = context.getDatasourceConfig().getImportPath();
-            String relativePath = importPath.replace(context.getProject().getBasePath() + "/", "");
+            String importPath = context.getSpringContext().getDatasourceConfig().getImportPath();
+            String relativePath = importPath.replace(context.getProjectContext().getProject().getBasePath() + "/", "");
             xmlMap.put("defaultDatasource",
                     String.format("    <import resource=\"classpath:%s\"/>",
                             relativePath.replace("src/test/resources/", "")));
         } else {
             // 使用模板方式填充默认配置
-            xmlMap.putAll(context.getDatasourceConfig().getDefaultDatasource());
+            xmlMap.putAll(context.getSpringContext().getDatasourceConfig().getDefaultDatasource());
         }
 
         // 添加 sqlSessionFactory，依赖 dataSource

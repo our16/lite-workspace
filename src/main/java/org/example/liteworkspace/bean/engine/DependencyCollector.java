@@ -13,7 +13,7 @@ public class DependencyCollector {
     /**
      * 收集所有依赖的包名（入口：文件路径 -> 包集合）
      */
-    public static Set<String> collectAllDependencyPackages(Project project, Collection<PsiClass> roots) {
+    public static Set<String> collectAllDependencyPackages(Collection<PsiClass> roots) {
         Set<String> visited = new HashSet<>();
         Set<String> packages = new LinkedHashSet<>();
 

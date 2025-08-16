@@ -4,10 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="优化扫描逻辑，先分析依赖包最小前缀路径，减少包扫描范围">
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="寻找每个包的最大公共父节点">
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/BuildToolDetector.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteWorkspaceService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/MyBatisContext.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/ProjectContext.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/SpringContext.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/DependencyCollector.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/DependencyCollector.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteFileWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteFileWriter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -117,7 +126,7 @@
     "Application.TestRun.executor": "Run",
     "Batch.download-gradle.executor": "Debug",
     "Gradle.Build lite-workspace.executor": "Run",
-    "Gradle.Run Plugin.executor": "Debug",
+    "Gradle.Run Plugin.executor": "Run",
     "Gradle.lite-workspace [buildPlugin].executor": "Debug",
     "Gradle.lite-workspace [clean].executor": "Run",
     "Gradle.lite-workspace [setupDependencies].executor": "Run",
@@ -232,14 +241,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00037" summary="测试类生成">
-      <option name="closed" value="true" />
-      <created>1751796153840</created>
-      <option name="number" value="00037" />
-      <option name="presentableId" value="LOCAL-00037" />
-      <option name="project" value="LOCAL" />
-      <updated>1751796153840</updated>
     </task>
     <task id="LOCAL-00038" summary="重构2.0">
       <option name="closed" value="true" />
@@ -625,7 +626,15 @@
       <option name="project" value="LOCAL" />
       <updated>1755349791969</updated>
     </task>
-    <option name="localTasksCounter" value="86" />
+    <task id="LOCAL-00086" summary="寻找每个包的最大公共父节点">
+      <option name="closed" value="true" />
+      <created>1755354449766</created>
+      <option name="number" value="00086" />
+      <option name="presentableId" value="LOCAL-00086" />
+      <option name="project" value="LOCAL" />
+      <updated>1755354449767</updated>
+    </task>
+    <option name="localTasksCounter" value="87" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -640,7 +649,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="只扫描resource" />
     <MESSAGE value="初始化扫描" />
     <MESSAGE value="init" />
     <MESSAGE value="启动加载基础依赖" />
@@ -665,7 +673,8 @@
     <MESSAGE value="扫描jar 包里面的bean定义" />
     <MESSAGE value="接口实现类可能时beanconfig生成" />
     <MESSAGE value="优化扫描逻辑，先分析依赖包最小前缀路径，减少包扫描范围" />
-    <option name="LAST_COMMIT_MESSAGE" value="优化扫描逻辑，先分析依赖包最小前缀路径，减少包扫描范围" />
+    <MESSAGE value="寻找每个包的最大公共父节点" />
+    <option name="LAST_COMMIT_MESSAGE" value="寻找每个包的最大公共父节点" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -679,11 +688,6 @@
           <url>jar://$PROJECT_DIR$/../../env/gradle-8.14.2-bin/gradle-8.14.2/caches/modules-2/files-2.1/com.jetbrains.intellij.idea/ideaIC/2024.1.7/4ec8a960913b0561c398280ef9e5f888d3d996cc/ideaIC-2024.1.7-sources.jar!/com/intellij/ui/EditorNotificationPanel.java</url>
           <line>82</line>
           <option name="timeStamp" value="28" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java</url>
-          <line>57</line>
-          <option name="timeStamp" value="113" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

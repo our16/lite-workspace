@@ -14,7 +14,6 @@ import org.example.liteworkspace.bean.core.LiteProjectContext;
 
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 public class BeanScannerTask extends RecursiveAction {
     private final PsiClass clazz;
@@ -77,7 +76,7 @@ public class BeanScannerTask extends RecursiveAction {
 
                 // 3. 针对每个依赖创建子任务
                 List<BeanScannerTask> subTasks = new ArrayList<>();
-                Map<String, PsiClass> bean2Configuration = context.getBean2configuration();
+                Map<String, PsiClass> bean2Configuration = context.getSpringContext().getBean2configuration();
 
                 for (PsiClass dependency : dependencies) {
                     String depQName = dependency.getQualifiedName();
@@ -146,7 +145,7 @@ public class BeanScannerTask extends RecursiveAction {
         }
 
         //先判断是不是xml mapper, 如果是混用则要返回这个类型
-        if (clazz.isInterface() && context.getMybatisContext().hasMatchingMapperXml(clazz)) {
+        if (clazz.isInterface() && context.getMyBatisContext().getContext().hasMatchingMapperXml(clazz)) {
             return BeanType.MYBATIS;
         }
 
@@ -425,7 +424,7 @@ public class BeanScannerTask extends RecursiveAction {
         }
 
         String interfaceQName = interfaceClass.getQualifiedName();
-        Project project = this.context.getProject();
+        Project project = this.context.getProjectContext().getProject();
 
         // -------------------------------
         // 方法1：ClassInheritorsSearch（支持源码 + 库）
