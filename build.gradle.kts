@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.liteworkspace"
-version = "1.23.6-prescan"
+version = "1.23.7-pre-load"
 
 repositories {
     maven {

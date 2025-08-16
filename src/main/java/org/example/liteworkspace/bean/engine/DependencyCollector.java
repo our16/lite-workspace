@@ -3,6 +3,8 @@ package org.example.liteworkspace.bean.engine;
 import com.intellij.lang.jvm.types.JvmReferenceType;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.ClassInheritorsSearch;
 
 import java.util.*;
 
@@ -19,7 +21,7 @@ public class DependencyCollector {
             collectDependenciesIterative(root, visited, packages);
         }
 
-        return minimizePackages(packages);
+        return maximizeParentPackages(packages);
     }
 
     /**
@@ -81,6 +83,18 @@ public class DependencyCollector {
                     stack.push(iface);
                 }
             }
+            // ===== 如果是接口或抽象类，查找所有实现类/子类 =====
+            if (currentClazz.isInterface() || currentClazz.hasModifierProperty(PsiModifier.ABSTRACT)) {
+                Project project = currentClazz.getProject();
+                GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+
+                PsiClass[] impls = ClassInheritorsSearch.search(currentClazz, scope, true).toArray(PsiClass.EMPTY_ARRAY);
+                for (PsiClass impl : impls) {
+                    if (impl != null && !visited.contains(impl.getQualifiedName())) {
+                        stack.push(impl);
+                    }
+                }
+            }
         }
     }
 
@@ -140,38 +154,53 @@ public class DependencyCollector {
      *   ["com.alibaba.fastjson.parser", "com.alibaba.fastjson.serializer"]
      *   => ["com.alibaba.fastjson"]
      */
-    private static Set<String> minimizePackages(Set<String> packages) {
+    private static Set<String> maximizeParentPackages(Set<String> packages) {
         if (packages.isEmpty()) return Collections.emptySet();
-        if (packages.size() == 1) return packages;
 
-        // 拆分为二维数组
-        List<String[]> splitPkgs = new ArrayList<>();
+        // 构建前缀树
+        TrieNode root = new TrieNode();
         for (String pkg : packages) {
-            splitPkgs.add(pkg.split("\\."));
-        }
-
-        // 找公共前缀长度
-        int minLen = splitPkgs.stream().mapToInt(arr -> arr.length).min().orElse(0);
-        int prefixLen = 0;
-        outer:
-        for (int i = 0; i < minLen; i++) {
-            String token = splitPkgs.get(0)[i];
-            for (int j = 1; j < splitPkgs.size(); j++) {
-                if (!token.equals(splitPkgs.get(j)[i])) {
-                    break outer;
-                }
+            String[] parts = pkg.split("\\.");
+            TrieNode node = root;
+            for (String part : parts) {
+                node = node.children.computeIfAbsent(part, k -> new TrieNode());
             }
-            prefixLen++;
+            node.isEnd = true;
         }
 
-        // 拼接回包名
-        if (prefixLen == 0) {
-            // 没有公共前缀，返回原集合
-            return packages;
-        } else {
-            String prefix = String.join(".", Arrays.copyOf(splitPkgs.get(0), prefixLen));
-            return Collections.singleton(prefix);
+        Set<String> result = new LinkedHashSet<>();
+        for (Map.Entry<String, TrieNode> entry : root.children.entrySet()) {
+            List<String> path = new ArrayList<>();
+            path.add(entry.getKey());
+            collectMaxParent(entry.getValue(), path, result);
         }
+
+        return result;
+    }
+
+    private static void collectMaxParent(TrieNode node, List<String> path, Set<String> result) {
+        if (node.children.isEmpty()) {
+            // 叶子节点
+            result.add(String.join(".", path));
+            return;
+        }
+
+        if (node.children.size() > 1) {
+            // 多分支，当前路径就是最大公共父节点
+            result.add(String.join(".", path));
+            return;
+        }
+
+        // 只有一条子节点，继续下钻
+        Map.Entry<String, TrieNode> entry = node.children.entrySet().iterator().next();
+        path.add(entry.getKey());
+        collectMaxParent(entry.getValue(), path, result);
+        path.remove(path.size() - 1);
+    }
+
+    private static class TrieNode {
+        Map<String, TrieNode> children = new HashMap<>();
+        boolean isEnd = false;
     }
 
 }

@@ -4,15 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="接口实现类可能时beanconfig生成">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/DependencyCollector.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/PsiClassUtil.java" afterDir="false" />
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="优化扫描逻辑，先分析依赖包最小前缀路径，减少包扫描范围">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteProjectContext.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/MyJavaFileObject.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/DependencyCollector.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/DependencyCollector.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -116,27 +111,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;Application.TestRun.executor&quot;: &quot;Run&quot;,
-    &quot;Batch.download-gradle.executor&quot;: &quot;Debug&quot;,
-    &quot;Gradle.Build lite-workspace.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.Run Plugin.executor&quot;: &quot;Debug&quot;,
-    &quot;Gradle.lite-workspace [buildPlugin].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.lite-workspace [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.lite-workspace [setupDependencies].executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/project/springboot-gradle-demo&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;SDKs&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Application.TestRun.executor": "Run",
+    "Batch.download-gradle.executor": "Debug",
+    "Gradle.Build lite-workspace.executor": "Run",
+    "Gradle.Run Plugin.executor": "Debug",
+    "Gradle.lite-workspace [buildPlugin].executor": "Debug",
+    "Gradle.lite-workspace [clean].executor": "Run",
+    "Gradle.lite-workspace [setupDependencies].executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/project/springboot-gradle-demo",
+    "project.structure.last.edited": "SDKs",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="org.example.liteworkspace" />
@@ -237,14 +232,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00036" summary="依赖更新">
-      <option name="closed" value="true" />
-      <created>1751794968910</created>
-      <option name="number" value="00036" />
-      <option name="presentableId" value="LOCAL-00036" />
-      <option name="project" value="LOCAL" />
-      <updated>1751794968910</updated>
     </task>
     <task id="LOCAL-00037" summary="测试类生成">
       <option name="closed" value="true" />
@@ -630,7 +617,15 @@
       <option name="project" value="LOCAL" />
       <updated>1755308161137</updated>
     </task>
-    <option name="localTasksCounter" value="85" />
+    <task id="LOCAL-00085" summary="优化扫描逻辑，先分析依赖包最小前缀路径，减少包扫描范围">
+      <option name="closed" value="true" />
+      <created>1755349791969</created>
+      <option name="number" value="00085" />
+      <option name="presentableId" value="LOCAL-00085" />
+      <option name="project" value="LOCAL" />
+      <updated>1755349791969</updated>
+    </task>
+    <option name="localTasksCounter" value="86" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -645,7 +640,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="按照优先级扫描" />
     <MESSAGE value="只扫描resource" />
     <MESSAGE value="初始化扫描" />
     <MESSAGE value="init" />
@@ -670,7 +664,8 @@
     <MESSAGE value="适配mapstruct" />
     <MESSAGE value="扫描jar 包里面的bean定义" />
     <MESSAGE value="接口实现类可能时beanconfig生成" />
-    <option name="LAST_COMMIT_MESSAGE" value="接口实现类可能时beanconfig生成" />
+    <MESSAGE value="优化扫描逻辑，先分析依赖包最小前缀路径，减少包扫描范围" />
+    <option name="LAST_COMMIT_MESSAGE" value="优化扫描逻辑，先分析依赖包最小前缀路径，减少包扫描范围" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -688,14 +683,13 @@
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java</url>
           <line>57</line>
-          <option name="timeStamp" value="104" />
+          <option name="timeStamp" value="113" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="GradleRunConfiguration">
-        <watch expression="line" />
-        <watch expression="returnTypeName.equals(&quot;asdServiceInterJarImpl&quot;)" language="JAVA" />
+        <watch expression="miniPackageNames.toArray()[0]" />
       </configuration>
     </watches-manager>
   </component>
