@@ -1,7 +1,7 @@
 package org.example.liteworkspace.bean.core;
 
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
+import org.example.liteworkspace.bean.core.enums.BeanType;
 
 public class BeanDefinition {
     private final String beanName;

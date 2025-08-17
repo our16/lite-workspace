@@ -1,8 +1,8 @@
 package org.example.liteworkspace.bean.engine;
 
 import org.example.liteworkspace.bean.core.BeanDefinition;
-import org.example.liteworkspace.bean.core.BeanType;
-import org.example.liteworkspace.bean.core.LiteProjectContext;
+import org.example.liteworkspace.bean.core.enums.BeanType;
+import org.example.liteworkspace.bean.core.context.LiteProjectContext;
 
 import java.util.*;
 

@@ -4,7 +4,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import org.example.liteworkspace.bean.core.BeanDefinition;
 import org.example.liteworkspace.bean.core.BeanRegistry;
-import org.example.liteworkspace.bean.core.LiteProjectContext;
+import org.example.liteworkspace.bean.core.context.LiteProjectContext;
 
 import java.util.Collection;
 import java.util.Set;

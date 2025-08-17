@@ -16,7 +16,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import org.example.liteworkspace.bean.core.DatasourceConfig;
-import org.example.liteworkspace.bean.core.LiteProjectContext;
+import org.example.liteworkspace.bean.core.context.LiteProjectContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;

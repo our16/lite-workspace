@@ -1,4 +1,4 @@
-package org.example.liteworkspace.bean.core;
+package org.example.liteworkspace.bean.core.enums;
 
 public enum BuildToolType {
     UNKNOWN,

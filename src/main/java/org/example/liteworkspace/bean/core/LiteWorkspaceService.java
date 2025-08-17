@@ -4,7 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
-import org.example.liteworkspace.bean.core.*;
+import org.example.liteworkspace.bean.core.context.LiteProjectContext;
 import org.example.liteworkspace.bean.engine.*;
 import org.example.liteworkspace.cache.LiteCacheStorage;
 

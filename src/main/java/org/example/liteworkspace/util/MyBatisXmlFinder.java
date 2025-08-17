@@ -124,41 +124,48 @@ public class MyBatisXmlFinder {
         // 扫描依赖 JAR（仅 LibraryOrderEntry）
         for (Module module : ModuleManager.getInstance(project).getModules()) {
             for (OrderEntry entry : ModuleRootManager.getInstance(module).getOrderEntries()) {
-                if (!(entry instanceof LibraryOrderEntry libEntry)) continue;
+                if (!(entry instanceof LibraryOrderEntry libEntry)) {
+                    continue;
+                }
                 for (VirtualFile root : libEntry.getRootFiles(OrderRootType.CLASSES)) {
-                    if (!root.isValid()) continue;
+                    if (!root.isValid()) {
+                        continue;
+                    }
 
                     VfsUtilCore.visitChildrenRecursively(root, new VirtualFileVisitor<>() {
                         @Override
                         public boolean visitFile(@NotNull VirtualFile file) {
                             if (!file.isValid() || file.isDirectory()) return true;
                             String fName = file.getName();
-                            if (!fName.endsWith(".xml")) return true;
-                            String fPath = file.getPath().replace('\\', '/');
-                            if (!fPath.contains("/mapper/") && !fPath.contains("/mappers/") && !fName.endsWith("Mapper.xml"))
+                            if (!fName.endsWith(".xml")) {
                                 return true;
-
+                            }
                             // PSI 安全读取
-                            String ns = ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
+                            String namespace = ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
                                 PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-                                if (!(psiFile instanceof XmlFile xmlFile)) return null;
+                                if (!(psiFile instanceof XmlFile xmlFile)) {
+                                    return null;
+                                }
                                 XmlTag rootTag = xmlFile.getRootTag();
-                                if (rootTag == null || !"mapper".equals(rootTag.getName())) return null;
+                                if (rootTag == null || !"mapper".equals(rootTag.getName())) {
+                                    return null;
+                                }
                                 return rootTag.getAttributeValue("namespace");
                             });
 
-                            if (ns != null && !ns.isEmpty()) {
-                                String rel = file.getPath(); // jar 内直接使用绝对路径
-                                result.put(ns, rel);
+                            if (namespace != null && !namespace.isEmpty()) {
+                                // 生成 classpath 相对路径
+                                String relativePath = VfsUtilCore.getRelativePath(file, root, '/');
+                                if (relativePath != null && !relativePath.isEmpty()) {
+                                    result.put(namespace, relativePath);
+                                }
                             }
-
                             return true;
                         }
                     });
                 }
             }
         }
-
         return result;
     }
 

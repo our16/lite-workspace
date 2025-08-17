@@ -9,8 +9,8 @@ import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.stubs.StubIndex;
 import org.example.liteworkspace.bean.core.BeanDefinition;
 import org.example.liteworkspace.bean.core.BeanRegistry;
-import org.example.liteworkspace.bean.core.BeanType;
-import org.example.liteworkspace.bean.core.LiteProjectContext;
+import org.example.liteworkspace.bean.core.enums.BeanType;
+import org.example.liteworkspace.bean.core.context.LiteProjectContext;
 
 import java.util.*;
 import java.util.concurrent.*;

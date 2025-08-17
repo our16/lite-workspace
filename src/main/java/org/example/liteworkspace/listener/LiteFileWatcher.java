@@ -3,7 +3,7 @@ package org.example.liteworkspace.listener;
 import com.intellij.openapi.vfs.VirtualFileEvent;
 import com.intellij.openapi.vfs.VirtualFileListener;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import org.example.liteworkspace.bean.core.LiteProjectContext;
+import org.example.liteworkspace.bean.core.context.LiteProjectContext;
 import org.jetbrains.annotations.NotNull;
 
 public class LiteFileWatcher implements VirtualFileListener {
