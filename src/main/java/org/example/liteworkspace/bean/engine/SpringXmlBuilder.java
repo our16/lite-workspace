@@ -63,7 +63,7 @@ public class SpringXmlBuilder {
         for (BeanDefinition bean : list) {
             String id = bean.getBeanName();
             String className = bean.getClassName();
-            String xmlPath = context.getMyBatisContext().getContext().getMybatisNamespaceMap().get(className);
+            String xmlPath = context.getMyBatisContext().getContext().getNamespaceMap().get(className);
             if (xmlPath != null) {
                 String classpathPath = xmlPath
                         .replace("\\", "/")  // 统一使用正斜杠

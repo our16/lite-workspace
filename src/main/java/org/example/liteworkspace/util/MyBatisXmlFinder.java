@@ -1,8 +1,8 @@
 package org.example.liteworkspace.util;
 
 import com.intellij.ide.highlighter.XmlFileType;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LibraryOrderEntry;
@@ -10,7 +10,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.vfs.JarFileSystem;
+import com.intellij.openapi.vfs.*;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -19,190 +19,159 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.indexing.FileBasedIndex;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 public class MyBatisXmlFinder {
 
     private final Project project;
 
-    // 存储 namespace -> mapper XML 相对路径 的映射
-    private final Map<String, String> mybatisNamespaceMap = new HashMap<>();
+    /**
+     * namespace -> mapper XML 相对路径 映射
+     * 可以按需加载
+     */
+    private final Map<String, String> namespaceCache = new HashMap<>();
 
-    // 移除 static finder，每个 Project 单独 new 一个实例
     public MyBatisXmlFinder(Project project) {
         this.project = project;
-        // 不再在构造函数中自动加载，改为按需或由外部调用加载方法
     }
 
     /**
-     * 扫描并加载所有 Mapper XML 的 namespace -> 相对路径 映射
-     * 可由外部调用以初始化 mybatisNamespaceMap
+     * 加载所有 Mapper XML 的 namespace -> 相对路径 映射
+     * 支持按 miniPackages 过滤
      */
     public void loadMapperNamespaceMap(Set<String> miniPackages) {
-        this.mybatisNamespaceMap.clear(); // 避免重复加载
-        this.mybatisNamespaceMap.putAll(findAllMapperXmlNamespaceToPathMap(miniPackages));
+        namespaceCache.clear();
+        namespaceCache.putAll(scanAllMapperXml(miniPackages));
     }
 
     /**
-     * 获取当前已加载的 namespace -> mapper XML 路径 映射
+     * 获取缓存
      */
-    public Map<String, String> getMybatisNamespaceMap() {
-        return mybatisNamespaceMap;
+    public Map<String, String> getNamespaceMap() {
+        return namespaceCache;
     }
 
     /**
-     * 扫描项目中所有 <mapper> 类型的 XML 文件，
-     * 返回 namespace -> mapper XML 相对路径 的映射
-     */
-    private Map<String, String> findAllMapperXmlNamespaceToPathMap(Set<String> miniPackages) {
-        Map<String, String> namespaceToPathMap = new HashMap<>();
-        if (miniPackages.isEmpty()) {
-            return namespaceToPathMap;
-        }
-
-        // ------------------- 1️⃣ 扫描项目范围 -------------------
-        Collection<VirtualFile> xmlFiles = FileBasedIndex.getInstance()
-                .getContainingFiles(FileTypeIndex.NAME, XmlFileType.INSTANCE, GlobalSearchScope.projectScope(project));
-
-        // ------------------- 2️⃣ 扫描依赖库 JAR -------------------
-        for (Module module : ModuleManager.getInstance(project).getModules()) {
-            for (OrderEntry entry : ModuleRootManager.getInstance(module).getOrderEntries()) {
-                if (!(entry instanceof LibraryOrderEntry libEntry)) continue;
-
-                for (VirtualFile libRoot : libEntry.getRootFiles(OrderRootType.CLASSES)) {
-                    if (!libRoot.isValid()) continue;
-
-                    if (libRoot.isValid() && libRoot.getName().endsWith(".jar")) {
-                        // 高效扫描 JAR 内 mapper.xml
-                        xmlFiles.addAll(scanJarForMapperXmlFiles(libRoot));
-                    } else if (libRoot.isDirectory()) {
-                        // 可选：扫描目录中的 XML 文件
-                        Collection<VirtualFile> dirXmlFiles = FileTypeIndex.getFiles(
-                                XmlFileType.INSTANCE,
-                                GlobalSearchScope.fileScope(project, libRoot)
-                        );
-                        xmlFiles.addAll(dirXmlFiles);
-                    }
-                }
-            }
-        }
-
-        // ------------------- 3️⃣ 遍历所有 XML 文件 -------------------
-        for (VirtualFile file : xmlFiles) {
-            if (file == null || !file.isValid() || !"xml".equalsIgnoreCase(file.getExtension())) continue;
-
-            PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-            if (!(psiFile instanceof XmlFile xmlFile)) continue;
-
-            XmlTag root = xmlFile.getRootTag();
-            if (root == null || !"mapper".equals(root.getName())) continue;
-
-            String namespace = root.getAttributeValue("namespace");
-            if (namespace == null || namespace.trim().isEmpty()) continue;
-
-            // ------------------- 4️⃣ 严格过滤 miniPackages -------------------
-            boolean matchesPackage = miniPackages.stream().anyMatch(namespace::startsWith);
-            if (!matchesPackage) continue;
-
-            String relativePath = getRelativePathFromFile(file);
-            if (relativePath != null) {
-                namespaceToPathMap.put(namespace, relativePath);
-            }
-        }
-
-        return namespaceToPathMap;
-    }
-
-    /**
-     * 扫描 JAR 文件内部所有可能的 mapper.xml 文件
-     */
-    private List<VirtualFile> scanJarForMapperXmlFiles(VirtualFile jarFile) {
-        List<VirtualFile> result = new ArrayList<>();
-        try {
-            JarFile jar = new JarFile(new File(jarFile.getPath()));
-            Enumeration<JarEntry> entries = jar.entries();
-            while (entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();
-                String name = entry.getName();
-                // 高效过滤：只处理可能是 mapper 的 xml
-                if (!name.endsWith(".xml")) continue;
-                if (!name.contains("mapper") && !name.contains("/mapper/") && !name.contains("Mapper")) continue;
-
-                // 用 VirtualFile 或 PsiFileFactory 创建虚拟文件方便后续处理
-                VirtualFile vf = JarFileSystem.getInstance().findFileByPath(jarFile.getPath() + "!/" + name);
-                if (vf != null && vf.isValid()) {
-                    result.add(vf);
-                }
-            }
-            jar.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
-
-
-    /**
-     * 获取 XML 文件相对于项目根目录的路径
-     */
-    private String getRelativePathFromFile(VirtualFile file) {
-        String projectBasePath = project.getBasePath();
-        if (projectBasePath == null || file == null) {
-            return null;
-        }
-
-        String fullPath = file.getPath();
-        if (fullPath.startsWith(projectBasePath)) {
-            String relative = fullPath.substring(projectBasePath.length() + 1); // 去掉项目根
-            return relative.replace('\\', '/'); // 统一为 Unix 风格
-        }
-        return null;
-    }
-
-    /**
-     * 判断给定 Mapper 接口是否有对应的 XML 文件且 namespace 匹配
+     * 判断给定 Mapper Interface 是否有对应 XML
      */
     public boolean hasMatchingMapperXml(@NotNull PsiClass mapperInterface) {
         String expectedNamespace = mapperInterface.getQualifiedName();
-        if (expectedNamespace == null) {
-            return false;
-        }
+        if (expectedNamespace == null) return false;
 
-        // 先查本地缓存
-        if (mybatisNamespaceMap.containsKey(expectedNamespace)) {
+        // 先查缓存
+        if (namespaceCache.containsKey(expectedNamespace)) {
             return true;
         }
 
-        // 查项目内所有 XML 文件，并在 read action 内做 PSI 解析
-        return FileBasedIndex.getInstance()
-                .getContainingFiles(FileTypeIndex.NAME, XmlFileType.INSTANCE, GlobalSearchScope.projectScope(project))
-                .stream()
-                .filter(file -> file.getName().endsWith(".xml"))
-                .anyMatch(file -> xmlMatchesNamespaceSafe(file, expectedNamespace));
+        // 再查索引（全局搜索）
+        Collection<VirtualFile> xmlFiles = FileBasedIndex.getInstance()
+                .getContainingFiles(FileTypeIndex.NAME, XmlFileType.INSTANCE, GlobalSearchScope.projectScope(project));
+
+        for (VirtualFile vf : xmlFiles) {
+            if (!vf.getName().endsWith(".xml")) continue;
+
+            boolean match = ApplicationManager.getApplication().runReadAction((Computable<Boolean>) () -> {
+                PsiFile psiFile = PsiManager.getInstance(project).findFile(vf);
+                if (!(psiFile instanceof XmlFile xmlFile)) return false;
+                XmlTag rootTag = xmlFile.getRootTag();
+                if (rootTag == null || !"mapper".equals(rootTag.getName())) return false;
+
+                String namespace = rootTag.getAttributeValue("namespace");
+                return expectedNamespace.equals(namespace);
+            });
+
+            if (match) return true;
+        }
+
+        return false;
     }
 
     /**
-     * 线程安全版本，确保在后台线程读取 PSI 时使用 read action
+     * 扫描项目和依赖 JAR 中的 Mapper XML
      */
-    private boolean xmlMatchesNamespaceSafe(VirtualFile file, String expectedNamespace) {
-        return ApplicationManager.getApplication().runReadAction((Computable<Boolean>) () -> {
-            PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-            if (!(psiFile instanceof XmlFile xmlFile)) {
-                return false;
+    private Map<String, String> scanAllMapperXml(Set<String> miniPackages) {
+        Map<String, String> result = new HashMap<>();
+        Collection<VirtualFile> xmlFiles = FileBasedIndex.getInstance()
+                .getContainingFiles(FileTypeIndex.NAME, XmlFileType.INSTANCE, GlobalSearchScope.projectScope(project));
+
+        for (VirtualFile vf : xmlFiles) {
+            // 快速路径过滤：只保留 mapper 文件
+            if (!vf.getName().endsWith(".xml")) continue;
+            String path = vf.getPath().replace('\\', '/');
+            if (!path.contains("/mapper/") && !path.contains("/mappers/") && !vf.getName().endsWith("Mapper.xml")) {
+                continue;
             }
-            XmlTag rootTag = xmlFile.getRootTag();
-            if (rootTag == null) {
-                return false;
+
+            // PSI 安全读取 rootTag
+            String namespace = ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
+                PsiFile psiFile = PsiManager.getInstance(project).findFile(vf);
+                if (!(psiFile instanceof XmlFile xmlFile)) return null;
+                XmlTag rootTag = xmlFile.getRootTag();
+                if (rootTag == null || !"mapper".equals(rootTag.getName())) return null;
+                return rootTag.getAttributeValue("namespace");
+            });
+
+            if (namespace != null && !namespace.isEmpty()) {
+                String relative = getRelativePath(vf);
+                if (relative != null) {
+                    result.put(namespace, relative);
+                }
             }
-            String namespace = rootTag.getAttributeValue("namespace");
-            return expectedNamespace.equals(namespace);
-        });
+        }
+
+        // 扫描依赖 JAR（仅 LibraryOrderEntry）
+        for (Module module : ModuleManager.getInstance(project).getModules()) {
+            for (OrderEntry entry : ModuleRootManager.getInstance(module).getOrderEntries()) {
+                if (!(entry instanceof LibraryOrderEntry libEntry)) continue;
+                for (VirtualFile root : libEntry.getRootFiles(OrderRootType.CLASSES)) {
+                    if (!root.isValid()) continue;
+
+                    VfsUtilCore.visitChildrenRecursively(root, new VirtualFileVisitor<>() {
+                        @Override
+                        public boolean visitFile(@NotNull VirtualFile file) {
+                            if (!file.isValid() || file.isDirectory()) return true;
+                            String fName = file.getName();
+                            if (!fName.endsWith(".xml")) return true;
+                            String fPath = file.getPath().replace('\\', '/');
+                            if (!fPath.contains("/mapper/") && !fPath.contains("/mappers/") && !fName.endsWith("Mapper.xml"))
+                                return true;
+
+                            // PSI 安全读取
+                            String ns = ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
+                                PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+                                if (!(psiFile instanceof XmlFile xmlFile)) return null;
+                                XmlTag rootTag = xmlFile.getRootTag();
+                                if (rootTag == null || !"mapper".equals(rootTag.getName())) return null;
+                                return rootTag.getAttributeValue("namespace");
+                            });
+
+                            if (ns != null && !ns.isEmpty()) {
+                                String rel = file.getPath(); // jar 内直接使用绝对路径
+                                result.put(ns, rel);
+                            }
+
+                            return true;
+                        }
+                    });
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 获取项目内 XML 相对路径
+     */
+    private String getRelativePath(VirtualFile file) {
+        String base = project.getBasePath();
+        if (base == null) return null;
+        String full = file.getPath().replace('\\', '/');
+        if (full.startsWith(base.replace('\\', '/'))) {
+            return full.substring(base.length() + 1);
+        }
+        return full;
     }
 }

@@ -75,7 +75,7 @@ public class LiteWorkspaceService {
                     // 3️⃣ 保存缓存
                     LiteCacheStorage cacheStorage = new LiteCacheStorage(project);
                     cacheStorage.saveConfigurationClasses(projectContext.getSpringContext().getBean2configuration());
-                    cacheStorage.saveMapperXmlPaths(projectContext.getMyBatisContext().getContext().getMybatisNamespaceMap());
+                    cacheStorage.saveMapperXmlPaths(projectContext.getMyBatisContext().getContext().getNamespaceMap());
                     cacheStorage.saveDatasourceConfig(projectContext.getSpringContext().getDatasourceConfig());
                     cacheStorage.saveSpringScanPackages(projectContext.getSpringContext().getComponentScanPackages());
                     cacheStorage.saveBeanList(beans);

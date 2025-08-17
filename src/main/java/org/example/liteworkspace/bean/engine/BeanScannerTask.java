@@ -228,11 +228,42 @@ public class BeanScannerTask extends RecursiveAction {
                     dependencies.add(dependency);
                 }
             }
+            // ------------------- 2️⃣ 解析 @Configuration + @Bean -------------------
+            if (isConfigurationClass(current)) {
+                for (PsiMethod method : current.getMethods()) {
+                    if (!isBeanMethod(method)) {
+                        continue;
+                    }
+                    // 方法参数依赖
+                    for (PsiParameter parameter : method.getParameterList().getParameters()) {
+                        PsiClass paramClass = resolvePsiClassFromType(parameter.getType());
+                        if (paramClass != null && !isJavaLangOrPrimitive(paramClass)) {
+                            dependencies.add(paramClass);
+                        }
+                    }
+                    // 方法返回类型（可选，表示容器中暴露的Bean）
+                    PsiClass returnClass = resolvePsiClassFromType(method.getReturnType());
+                    if (returnClass != null && !isJavaLangOrPrimitive(returnClass)) {
+                        dependencies.add(returnClass);
+                    }
+                }
+            }
             // 获取父类
             current = current.getSuperClass();
         }
 
         return dependencies;
+    }
+
+    // 是否是 @Configuration 类
+    private boolean isConfigurationClass(PsiClass clazz) {
+        return clazz.getModifierList() != null &&
+                clazz.getModifierList().findAnnotation("org.springframework.context.annotation.Configuration") != null;
+    }
+
+    // 是否是 @Bean 方法
+    private boolean isBeanMethod(PsiMethod method) {
+        return method.getModifierList().findAnnotation("org.springframework.context.annotation.Bean") != null;
     }
 
     /**
