@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.liteworkspace"
-version = "1.23.7-pre-load"
+version = "1.23.9-jar-mapper-multi"
 
 repositories {
     maven {

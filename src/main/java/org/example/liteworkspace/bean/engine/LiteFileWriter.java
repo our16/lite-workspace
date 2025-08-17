@@ -84,7 +84,6 @@ public class LiteFileWriter {
                         String defaultConfigXmlPath = datasourceConfig.getImportPath();
                         Set<String> definedBeanClasses = new HashSet<>();
 
-// 解析 defaultConfigXmlPath 文件，提取 <bean class="..."/> 中的 class 属性
                         if (defaultConfigXmlPath != null) {
                             File xml = new File(defaultConfigXmlPath);
                             if (xml.exists()) {

@@ -2,8 +2,13 @@ package org.example.liteworkspace.bean.core;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
+import org.apache.commons.lang3.time.StopWatch;
 import org.example.liteworkspace.bean.core.context.LiteProjectContext;
 import org.example.liteworkspace.bean.engine.*;
 import org.example.liteworkspace.cache.LiteCacheStorage;
@@ -37,7 +42,6 @@ public class LiteWorkspaceService {
         // -------------------- Step 3: 扫描目标类依赖Bean --------------------
         LiteBeanScanner beanScanner = new LiteBeanScanner(projectContext);
         Collection<BeanDefinition> beans = beanScanner.scanAndCollectBeanList(targetClass, project);
-
         // -------------------- Step 4: 生成Spring XML --------------------
         SpringXmlBuilder xmlBuilder = new SpringXmlBuilder(projectContext);
         Map<String, String> beanMap = xmlBuilder.buildXmlMap(beans);
@@ -75,7 +79,7 @@ public class LiteWorkspaceService {
                     // 3️⃣ 保存缓存
                     LiteCacheStorage cacheStorage = new LiteCacheStorage(project);
                     cacheStorage.saveConfigurationClasses(projectContext.getSpringContext().getBean2configuration());
-                    cacheStorage.saveMapperXmlPaths(projectContext.getMyBatisContext().getContext().getNamespaceMap());
+                    cacheStorage.saveMapperXmlPaths(projectContext.getMyBatisContext().getNamespaceMap());
                     cacheStorage.saveDatasourceConfig(projectContext.getSpringContext().getDatasourceConfig());
                     cacheStorage.saveSpringScanPackages(projectContext.getSpringContext().getComponentScanPackages());
                     cacheStorage.saveBeanList(beans);

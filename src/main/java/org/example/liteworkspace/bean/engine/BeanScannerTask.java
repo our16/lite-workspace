@@ -145,7 +145,7 @@ public class BeanScannerTask extends RecursiveAction {
         }
 
         //先判断是不是xml mapper, 如果是混用则要返回这个类型
-        if (clazz.isInterface() && context.getMyBatisContext().getContext().hasMatchingMapperXml(clazz)) {
+        if (clazz.isInterface() && context.getMyBatisContext().hasMatchingMapperXml(clazz)) {
             return BeanType.MYBATIS;
         }
 
