@@ -8,7 +8,9 @@ import org.example.liteworkspace.bean.core.enums.BuildToolType;
 public class BuildToolDetector {
     public static BuildToolType detect(Project project) {
         VirtualFile[] roots = ProjectRootManager.getInstance(project).getContentRoots();
-        if (roots == null || roots.length == 0) return BuildToolType.UNKNOWN;
+        if (roots == null || roots.length == 0) {
+            return BuildToolType.UNKNOWN;
+        }
 
         for (VirtualFile root : roots) {
             if (root.findChild("pom.xml") != null) return BuildToolType.MAVEN;

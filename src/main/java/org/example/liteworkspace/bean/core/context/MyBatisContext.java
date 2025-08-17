@@ -4,9 +4,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import org.example.liteworkspace.util.MyBatisXmlFinder;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class MyBatisContext {
 
@@ -18,7 +16,7 @@ public class MyBatisContext {
         this.myBatisXmlFinder = new MyBatisXmlFinder(project);
     }
 
-    public void scan(Set<String> miniPackages) {
+    public void scan() {
         Map<String, String> result = myBatisXmlFinder.scanAllMapperXml();
         namespaceMap.putAll(result);
     }
