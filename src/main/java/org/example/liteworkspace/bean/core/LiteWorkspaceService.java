@@ -36,9 +36,9 @@ public class LiteWorkspaceService {
     public void scanAndGenerate(PsiClass targetClass) {
         Objects.requireNonNull(targetClass, "targetClass不能为空");
         // -------------------- Step 1: 收集依赖包 --------------------
-        Set<String> miniPackageNames = SpringDependencyCollector.collectSpringDependencyPackages(List.of(targetClass));
+//        Set<String> miniPackageNames = SpringDependencyCollector.collectSpringDependencyPackages(List.of(targetClass));
         // -------------------- Step 2: 初始化项目上下文 --------------------
-        LiteProjectContext projectContext = new LiteProjectContext(project, miniPackageNames);
+        LiteProjectContext projectContext = new LiteProjectContext(project, null);
         // -------------------- Step 3: 扫描目标类依赖Bean --------------------
         LiteBeanScanner beanScanner = new LiteBeanScanner(projectContext);
         Collection<BeanDefinition> beans = beanScanner.scanAndCollectBeanList(targetClass, project);

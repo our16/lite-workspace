@@ -1,8 +1,10 @@
 package org.example.liteworkspace.util;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -46,51 +48,81 @@ public class ResourceConfigAnalyzer {
         Map<String, PsiClass> beanToConfiguration = new HashMap<>();
         Project project = this.project;
 
-        // 按包路径限定搜索范围
-        GlobalSearchScope scope = GlobalSearchScope.allScope(project);
-        // 遍历指定包路径
-        for (String pkg : packagePrefixes) {
-            PsiPackage psiPackage = JavaPsiFacade.getInstance(project).findPackage(pkg);
-            if (psiPackage == null) {
-                continue;
-            }
+        Collection<PsiClass> classesToScan = new ArrayList<>();
 
-            // 递归扫描包下的类
-            Collection<PsiClass> classes = new ArrayList<>();
-            for (PsiDirectory dir : psiPackage.getDirectories(scope)) {
-                classes.addAll(List.of(JavaDirectoryService.getInstance().getClasses(dir)));
-                addSubPackageClasses(dir, classes);
-            }
+        // 默认：全量搜索
+        GlobalSearchScope baseScope = GlobalSearchScope.allScope(project);
 
-            for (PsiClass clazz : classes) {
-                if (!hasAnnotation(clazz, "org.springframework.context.annotation.Configuration")) {
+        if (packagePrefixes == null || packagePrefixes.isEmpty()) {
+            classesToScan.addAll(AllClassesSearch.search(baseScope, project).findAll());
+        } else {
+            for (String pkgOrJar : packagePrefixes) {
+                // 1️⃣ 先尝试当作包名前缀
+                PsiPackage psiPackage = JavaPsiFacade.getInstance(project).findPackage(pkgOrJar);
+                if (psiPackage != null) {
+                    for (PsiDirectory dir : psiPackage.getDirectories(baseScope)) {
+                        classesToScan.addAll(List.of(JavaDirectoryService.getInstance().getClasses(dir)));
+                        addSubPackageClasses(dir, classesToScan);
+                    }
                     continue;
                 }
 
-                for (PsiMethod method : clazz.getMethods()) {
-                    if (!hasAnnotation(method, "org.springframework.context.annotation.Bean")) {
-                        continue;
-                    }
+                // 2️⃣ 如果不是包，再尝试匹配 JAR
+                VirtualFile jarFile = findJarByName(project, pkgOrJar);
+                if (jarFile != null) {
+                    GlobalSearchScope jarScope = GlobalSearchScope.filesScope(project, Set.of(jarFile));
+                    classesToScan.addAll(AllClassesSearch.search(jarScope, project).findAll());
+                }
+            }
+        }
 
-                    PsiType returnType = method.getReturnType();
-                    if (returnType == null) {
-                        continue;
-                    }
+        // 遍历类，找到 @Configuration + @Bean 方法
+        for (PsiClass clazz : classesToScan) {
+            if (!hasAnnotation(clazz, "org.springframework.context.annotation.Configuration")) continue;
 
-                    String beanName = getBeanName(method);
-                    String returnTypeName = returnType.getCanonicalText();
+            for (PsiMethod method : clazz.getMethods()) {
+                if (!hasAnnotation(method, "org.springframework.context.annotation.Bean")) continue;
 
-                    beanToConfiguration.put(method.getName(), clazz);
-                    beanToConfiguration.put(returnTypeName, clazz);
-                    if (!beanName.equals(method.getName())) {
-                        beanToConfiguration.put(beanName, clazz);
-                    }
+                PsiType returnType = method.getReturnType();
+                if (returnType == null) continue;
+
+                String beanName = getBeanName(method);
+                String returnTypeName = returnType.getCanonicalText();
+
+                beanToConfiguration.put(method.getName(), clazz);
+                beanToConfiguration.put(returnTypeName, clazz);
+                if (!beanName.equals(method.getName())) {
+                    beanToConfiguration.put(beanName, clazz);
                 }
             }
         }
 
         return beanToConfiguration;
     }
+
+    /**
+     * 查找项目依赖中是否存在给定名字的 JAR
+     */
+    /**
+     * 在项目依赖库中查找指定名字的 JAR
+     */
+    private VirtualFile findJarByName(Project project, String jarName) {
+        Module[] modules = ModuleManager.getInstance(project).getModules();
+        for (Module module : modules) {
+            OrderEnumerator enumerator = OrderEnumerator.orderEntries(module).withoutSdk().librariesOnly();
+            for (VirtualFile root : enumerator.getClassesRoots()) {
+                // root 可能是 jar://...!/ 这样的路径
+                String name = root.getName();
+                if (name.equals(jarName) || name.startsWith(jarName)) {
+                    return root;
+                }
+            }
+        }
+        return null;
+    }
+
+
+
 
     // 递归扫描子包
     private void addSubPackageClasses(PsiDirectory dir, Collection<PsiClass> classes) {

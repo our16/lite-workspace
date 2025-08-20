@@ -2,6 +2,8 @@ package org.example.liteworkspace.bean.engine;
 
 import com.intellij.lang.jvm.types.JvmReferenceType;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.JarFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
@@ -115,17 +117,52 @@ public class SpringDependencyCollector {
         }
     }
 
+    /**
+     * 返回包名：
+     * - 项目源码类 -> 返回项目根包（前两层）
+     * - JAR 类 -> 返回 JAR 文件名
+     */
     private static String getPackageName(PsiClass clazz) {
+        if (clazz == null) return null;
+
         PsiFile file = clazz.getContainingFile();
-        if (file instanceof PsiJavaFile javaFile) {
-            return javaFile.getPackageName();
-        } else {
+        if (!(file instanceof PsiJavaFile javaFile)) return null;
+
+        VirtualFile vFile = javaFile.getVirtualFile();
+        if (vFile == null) {
+            // fallback：通过类全限定名提取
             String qName = clazz.getQualifiedName();
             if (qName != null && qName.contains(".")) {
-                return qName.substring(0, qName.lastIndexOf('.'));
+                return extractRootPackage(qName.substring(0, qName.lastIndexOf('.')));
             }
+            return null;
         }
-        return null;
+
+        // 检查类是否在 JAR 中
+        if (vFile.getFileSystem() instanceof JarFileSystem) {
+            VirtualFile jarRoot = JarFileSystem.getInstance().getVirtualFileForJar(vFile);
+            if (jarRoot != null) {
+                return jarRoot.getName(); // 返回 jar 文件名
+            }
+            // fallback
+            return vFile.getName();
+        }
+
+        // 项目源码类
+        String packageName = javaFile.getPackageName();
+        return extractRootPackage(packageName);
+    }
+
+
+    /**
+     * 提取包名的根包，例如 com.example.service -> com.example
+     * 如果包名为空，返回 null
+     */
+    private static String extractRootPackage(String packageName) {
+        if (packageName == null || packageName.isEmpty()) return null;
+        String[] parts = packageName.split("\\.");
+        if (parts.length <= 2) return packageName; // 包名只有一两层，直接返回
+        return parts[0] + "." + parts[1]; // 返回前两层作为根包
     }
 
     private static boolean isSpringBean(PsiClass clazz) {
