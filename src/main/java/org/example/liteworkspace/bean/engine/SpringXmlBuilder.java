@@ -104,7 +104,7 @@ public class SpringXmlBuilder {
 
             if (dataSourceBeanId == null || mapperLocations.isEmpty()) continue;
 
-            String sqlSessionFactoryId = dsName + "SqlSessionFactory";
+            String sqlSessionFactoryId = dsName;
 
             StringBuilder factory = new StringBuilder();
             factory.append(String.format("""
