@@ -4,11 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="并发扫描mapper">
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="先删除最小依赖包">
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/DatasourceConfigAnalyzer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/DatasourceConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/DatasourceConfig.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteWorkspaceService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteWorkspaceService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringDependencyCollector.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringDependencyCollector.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -157,7 +157,7 @@
       <recent name="org.example.liteworkspace" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.lite-workspace [buildPlugin]">
+  <component name="RunManager" selected="Gradle.Run Plugin">
     <configuration name="TestRun" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.example.liteworkspace.action.TestRun" />
       <module name="lite-workspace.main" />
@@ -233,14 +233,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00045" summary="模型信息记录">
-      <option name="closed" value="true" />
-      <created>1753000490209</created>
-      <option name="number" value="00045" />
-      <option name="presentableId" value="LOCAL-00045" />
-      <option name="project" value="LOCAL" />
-      <updated>1753000490210</updated>
     </task>
     <task id="LOCAL-00046" summary="支持调用dify">
       <option name="closed" value="true" />
@@ -626,7 +618,15 @@
       <option name="project" value="LOCAL" />
       <updated>1755436266972</updated>
     </task>
-    <option name="localTasksCounter" value="94" />
+    <task id="LOCAL-00094" summary="先删除最小依赖包">
+      <option name="closed" value="true" />
+      <created>1755703748875</created>
+      <option name="number" value="00094" />
+      <option name="presentableId" value="LOCAL-00094" />
+      <option name="project" value="LOCAL" />
+      <updated>1755703748875</updated>
+    </task>
+    <option name="localTasksCounter" value="95" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -641,7 +641,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="扫描测试文件" />
     <MESSAGE value="部分编译" />
     <MESSAGE value="根据上下文判断是不是mapper" />
     <MESSAGE value="扫描器" />
@@ -666,7 +665,8 @@
     <MESSAGE value="扫描依赖包里面的mapper文件" />
     <MESSAGE value="mapper 扫描使用相对路径，spring 不支持绝对路径" />
     <MESSAGE value="并发扫描mapper" />
-    <option name="LAST_COMMIT_MESSAGE" value="并发扫描mapper" />
+    <MESSAGE value="先删除最小依赖包" />
+    <option name="LAST_COMMIT_MESSAGE" value="先删除最小依赖包" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -681,8 +681,33 @@
           <line>82</line>
           <option name="timeStamp" value="28" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/DatasourceConfigAnalyzer.java</url>
+          <line>27</line>
+          <option name="timeStamp" value="148" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteWorkspaceService.java</url>
+          <line>41</line>
+          <option name="timeStamp" value="149" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/DatasourceConfigAnalyzer.java</url>
+          <line>141</line>
+          <option name="timeStamp" value="151" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/DatasourceConfigAnalyzer.java</url>
+          <line>176</line>
+          <option name="timeStamp" value="152" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="org.example.liteworkspace.bean.core.DatasourceConfig" memberName="configMap" />
+      </pinned-members>
+    </pin-to-top-manager>
     <watches-manager>
       <configuration name="GradleRunConfiguration">
         <watch expression="miniPackageNames.toArray()[0]" />

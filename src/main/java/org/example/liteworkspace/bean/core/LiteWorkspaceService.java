@@ -37,6 +37,9 @@ public class LiteWorkspaceService {
         Objects.requireNonNull(targetClass, "targetClass不能为空");
         // -------------------- Step 1: 收集依赖包 --------------------
 //        Set<String> miniPackageNames = SpringDependencyCollector.collectSpringDependencyPackages(List.of(targetClass));
+        DatasourceConfigAnalyzer datasourceConfigAnalyzer = new DatasourceConfigAnalyzer(project);
+        Map<String, DatasourceConfig> datasourceConfigMap = datasourceConfigAnalyzer.scanAllDatasourceConfigs();
+        System.out.println(datasourceConfigMap);
         // -------------------- Step 2: 初始化项目上下文 --------------------
         LiteProjectContext projectContext = new LiteProjectContext(project, null);
         // -------------------- Step 3: 扫描目标类依赖Bean --------------------
