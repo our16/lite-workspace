@@ -3,6 +3,9 @@ package org.example.liteworkspace.bean.engine;
 import org.example.liteworkspace.bean.core.BeanDefinition;
 import org.example.liteworkspace.bean.core.enums.BeanType;
 import org.example.liteworkspace.bean.core.context.LiteProjectContext;
+import org.example.liteworkspace.datasource.SqlSessionConfig;
+import org.example.liteworkspace.util.MapperMatcher;
+import org.example.liteworkspace.util.MybatisBeanDto;
 
 import java.util.*;
 
@@ -63,9 +66,9 @@ public class SpringXmlBuilder {
         for (BeanDefinition bean : list) {
             String id = bean.getBeanName();
             String className = bean.getClassName();
-            String xmlPath = context.getMyBatisContext().getNamespaceMap().get(className);
-            if (xmlPath != null) {
-                String classpathPath = xmlPath
+            MybatisBeanDto mybatisBeanDto = context.getMyBatisContext().getNamespace2XmlFileMap().get(className);
+            if (mybatisBeanDto != null) {
+                String classpathPath = mybatisBeanDto.getXmlFilePath()
                         .replace("\\", "/")  // 统一使用正斜杠
                         .replaceFirst(".*src/(main|test)/resources/", "")  // 去掉资源目录前缀
                         .replaceFirst("^/", "");  // 去掉可能的前导斜杠
@@ -75,9 +78,9 @@ public class SpringXmlBuilder {
             String mapperBean = String.format("""
                         <bean id="%s" class="org.mybatis.spring.mapper.MapperFactoryBean">
                             <property name="mapperInterface" value="%s"/>
-                            <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+                            <property name="sqlSessionFactory" ref="%s"/>
                         </bean>
-                    """, id, className);
+                    """, id, className, mybatisBeanDto.getSqlSessionFactory());
             xmlMap.put(id, mapperBean);
         }
 
@@ -93,25 +96,36 @@ public class SpringXmlBuilder {
             xmlMap.putAll(context.getSpringContext().getDatasourceConfig().getDefaultDatasource());
         }
 
-        // 添加 sqlSessionFactory，依赖 dataSource
-        StringBuilder factory = new StringBuilder();
-        factory.append("""
-                    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-                        <property name="dataSource" ref="dataSource"/>
-                        <property name="mapperLocations">
-                            <list>
-                """);
+        List<SqlSessionConfig> sqlSessionConfigList = context.getSqlSessionConfigList();
+        for (SqlSessionConfig sessionConfig : sqlSessionConfigList) {
+            String dsName = sessionConfig.getName();
+            String dataSourceBeanId = sessionConfig.getDataSourceBeanId();
+            List<String> mapperLocations = sessionConfig.getMapperLocations();
 
-        for (String path : mapperXmlPaths) {
-            factory.append("            <value>").append(path).append("</value>\n");
+            if (dataSourceBeanId == null || mapperLocations.isEmpty()) continue;
+
+            String sqlSessionFactoryId = dsName + "SqlSessionFactory";
+
+            StringBuilder factory = new StringBuilder();
+            factory.append(String.format("""
+                <bean id="%s" class="org.mybatis.spring.SqlSessionFactoryBean">
+                    <property name="dataSource" ref="%s"/>
+                    <property name="mapperLocations">
+                        <list>
+            """, sqlSessionFactoryId, dataSourceBeanId));
+            List<String> matchedPaths = MapperMatcher.matchMapperPaths(new ArrayList<>(mapperXmlPaths), sessionConfig.getMapperLocations());
+
+            for (String path : matchedPaths) {
+                    factory.append("            <value>").append(path).append("</value>\n");
+            }
+
+            factory.append("""
+                        </list>
+                    </property>
+                </bean>
+            """);
+
+            xmlMap.put(sqlSessionFactoryId, factory.toString());
         }
-
-        factory.append("""
-                            </list>
-                        </property>
-                    </bean>
-                """);
-
-        xmlMap.put("sqlSessionFactory", factory.toString());
     }
 }

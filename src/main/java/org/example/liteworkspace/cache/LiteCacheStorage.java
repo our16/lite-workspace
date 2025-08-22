@@ -1,20 +1,18 @@
 package org.example.liteworkspace.cache;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.example.liteworkspace.bean.core.BeanDefinition;
 import org.example.liteworkspace.bean.core.DatasourceConfig;
+import org.example.liteworkspace.datasource.SqlSessionConfig;
+import org.example.liteworkspace.util.MybatisBeanDto;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -59,7 +57,7 @@ public class LiteCacheStorage {
     /**
      * 保存 Mapper namespace -> Mapper XML 文件路径
      */
-    public void saveMapperXmlPaths(Map<String, String> namespaceToPath) {
+    public void saveMapperXmlPaths(Map<String, MybatisBeanDto> namespaceToPath) {
         saveJson("mapper_xml_paths.json", namespaceToPath);
     }
 
@@ -101,8 +99,8 @@ public class LiteCacheStorage {
         saveJson("datasource_config.json", config);
     }
 
-    public DatasourceConfig loadDatasourceConfig() {
-        return loadJson("datasource_config.json", DatasourceConfig.class);
+    public SqlSessionConfig loadDatasourceConfig() {
+        return loadJson("datasource_config.json", SqlSessionConfig.class);
     }
 
     public void saveSpringScanPackages(Set<String> packages) {

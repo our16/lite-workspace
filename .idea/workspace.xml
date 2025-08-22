@@ -5,10 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="先删除最小依赖包">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/DatasourceConfigAnalyzer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/DataSourceConfigLoader.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/SqlSessionConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/SqlSessionFactoryXmlParser.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/YamlDataSourceParser.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/MapperMatcher.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/MybatisBeanDto.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/DatasourceConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/DatasourceConfig.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteWorkspaceService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteWorkspaceService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/LiteProjectContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/LiteProjectContext.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/MyBatisContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/MyBatisContext.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/DatasourceConfigAnalyzer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/cache/LiteCacheStorage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/cache/LiteCacheStorage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/MyBatisXmlFinder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/MyBatisXmlFinder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -682,24 +693,24 @@
           <option name="timeStamp" value="28" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/DatasourceConfigAnalyzer.java</url>
-          <line>27</line>
+          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/datasource/DatasourceConfigAnalyzer.java</url>
+          <line>28</line>
           <option name="timeStamp" value="148" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteWorkspaceService.java</url>
-          <line>41</line>
-          <option name="timeStamp" value="149" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/DatasourceConfigAnalyzer.java</url>
-          <line>141</line>
+          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/datasource/DatasourceConfigAnalyzer.java</url>
+          <line>142</line>
           <option name="timeStamp" value="151" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/DatasourceConfigAnalyzer.java</url>
-          <line>176</line>
+          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/datasource/DatasourceConfigAnalyzer.java</url>
+          <line>177</line>
           <option name="timeStamp" value="152" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/datasource/DatasourceConfigAnalyzer.java</url>
+          <line>183</line>
+          <option name="timeStamp" value="154" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

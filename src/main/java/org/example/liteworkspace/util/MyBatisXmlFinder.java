@@ -10,11 +10,15 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
+import org.example.liteworkspace.datasource.SqlSessionConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.FileSystems;
+import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -28,85 +32,117 @@ public class MyBatisXmlFinder {
     }
 
     /**
-     * 并行扫描所有模块和依赖库中的 Mapper XML
-     * 直接读取文件前几行提取 namespace，绕过 PSI
+     * 按 SqlSession 配置扫描源码 + 依赖库，返回 Map<namespace, mapper相对路径>
      */
-    public Map<String, String> scanAllMapperXml() {
+    public Map<String, MybatisBeanDto> scanAllMapperXml(List<SqlSessionConfig> configs) {
+        Map<String, MybatisBeanDto> result = new HashMap<>();
+
         Module[] modules = ModuleManager.getInstance(project).getModules();
         int cpuNums = Runtime.getRuntime().availableProcessors();
-        ExecutorService pool = Executors.newFixedThreadPool(Math.min(3, cpuNums));
-        List<CompletableFuture<Map<String, String>>> futures = new ArrayList<>();
+        ExecutorService pool = Executors.newFixedThreadPool(Math.min(1, cpuNums));
+
+        List<CompletableFuture<Map<String, MybatisBeanDto>>> futures = new ArrayList<>();
+
         for (Module module : modules) {
-            futures.add(CompletableFuture.supplyAsync(() -> scanModule(module), pool));
+            for (SqlSessionConfig cfg : configs) {
+                futures.add(CompletableFuture.supplyAsync(() -> scanModuleForConfig(module, cfg), pool));
+            }
         }
 
-        Map<String, String> result = futures.stream()
-                .map(CompletableFuture::join)
-                .flatMap(map -> map.entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a));
+        for (CompletableFuture<Map<String, MybatisBeanDto>> future : futures) {
+            result.putAll(future.join());
+        }
 
         pool.shutdown();
         return result;
     }
 
     /**
-     * 扫描单个 Module（源码 + 依赖库）
+     * 扫描模块对应 SqlSessionConfig
      */
-    private Map<String, String> scanModule(Module module) {
-        Map<String, String> result = new HashMap<>();
+    private Map<String, MybatisBeanDto> scanModuleForConfig(Module module, SqlSessionConfig cfg) {
+        Map<String, MybatisBeanDto> result = new HashMap<>();
+        // xml 文件
 
-        // 1️⃣ 扫描源码目录
+        // 1️⃣ 扫描源码
         VirtualFile[] roots = ModuleRootManager.getInstance(module).getSourceRoots();
         for (VirtualFile root : roots) {
-            if (!root.isValid()) {
-                continue;
-            }
-            collectXmlFiles(root, result, true);
+            if (!root.isValid()) continue;
+            collectXmlFiles(root, cfg, result, true);
         }
 
-        // 2️⃣ 扫描依赖库 JAR
+        // 2️⃣ 扫描依赖库
         for (OrderEntry entry : ModuleRootManager.getInstance(module).getOrderEntries()) {
             if (!(entry instanceof LibraryOrderEntry libEntry)) continue;
-            // 遍历 JAR 内容
             for (VirtualFile root : libEntry.getRootFiles(OrderRootType.CLASSES)) {
-                if (!root.isValid()) {
-                    continue;
-                }
-                collectXmlFiles(root, result, false);
+                if (!root.isValid()) continue;
+                collectXmlFiles(root, cfg, result, false);
             }
         }
-
 
         return result;
     }
 
     /**
-     * 遍历目录 / Jar 根，收集 Mapper XML 并提取 namespace
+     * 遍历目录 / Jar 根，收集符合 basePackages 或 mapperLocations 的 Mapper XML
      */
-    private void collectXmlFiles(VirtualFile root, Map<String, String> result, boolean inModule) {
-        List<VirtualFile> xmlFiles = new ArrayList<>();
+    private void collectXmlFiles(VirtualFile root, SqlSessionConfig cfg,
+                                 Map<String, MybatisBeanDto> result, boolean inModule) {
+        List<String> mapperLocations = cfg.getMapperLocations();
         VfsUtilCore.visitChildrenRecursively(root, new VirtualFileVisitor<>() {
             @Override
             public boolean visitFile(@NotNull VirtualFile file) {
                 if (!file.isValid() || file.isDirectory()) {
                     return true;
                 }
-                String name = file.getName();
-                if (name.endsWith(".xml")) {
-                    xmlFiles.add(file);
+                String relativePath = computeClassPath(file, inModule);
+                // 只处理 XML 文件
+                if (!file.getName().endsWith(".xml")) {
+                    return true;
+                }
+
+                if (matchesMapperLocation(relativePath, mapperLocations)) {
+                    String ns = extractMapperNamespace(file);
+                    if (ns != null) {
+                        result.put(ns,  new MybatisBeanDto(ns, relativePath, cfg.getSqlSessionFactoryBeanId()));
+                    }
                 }
                 return true;
             }
         });
+    }
 
-        for (VirtualFile file : xmlFiles) {
-            String ns = extractMapperNamespace(file);
-            if (ns != null) {
-                String relPath = computeClassPath(file, inModule);
-                result.put(ns, relPath);
+
+    private boolean matchesMapperLocation(String absolutePath, List<String> mapperLocations) {
+        // 统一分隔符
+        String normalizedPath = absolutePath.replace("\\", "/");
+
+        for (String loc : mapperLocations) {
+            // 去掉 classpath 前缀
+            String clean = loc.replace("classpath*:", "")
+                    .replace("classpath:", "")
+                    .replace("\\", "/");
+
+            // 确保以 / 开头，方便 glob 匹配
+            if (!clean.startsWith("/")) {
+                clean = "/" + clean;
+            }
+
+            // 处理 glob 通配符
+            String globPattern = "glob:" + clean;
+
+            PathMatcher matcher = FileSystems.getDefault().getPathMatcher(globPattern);
+
+            // 用 Paths.get 转换 normalizedPath 便于匹配
+            String pathForMatch = normalizedPath.startsWith("/") ? normalizedPath : "/" + normalizedPath;
+
+            if (matcher.matches(Paths.get(pathForMatch))) {
+                return true;
             }
         }
+        return false;
     }
+
 
     /**
      * 从文件前几行提取 <mapper namespace="...">
@@ -121,7 +157,6 @@ public class MyBatisXmlFinder {
             while ((line = reader.readLine()) != null && lineCount < 20) {
                 sb.append(line.trim()).append(" ");
                 lineCount++;
-                // 一旦拼凑出的字符串包含 <mapper
                 if (sb.toString().contains("<mapper")) {
                     String mapperTag = sb.toString();
                     int idx = mapperTag.indexOf("namespace=");
@@ -132,15 +167,13 @@ public class MyBatisXmlFinder {
                             return mapperTag.substring(start + 1, end);
                         }
                     }
-                    break; // 找到 <mapper> 就停止
+                    break;
                 }
             }
-        } catch (Exception e) {
-            // ignore
+        } catch (Exception ignored) {
         }
         return null;
     }
-
 
     /**
      * 转换为 classpath 相对路径
