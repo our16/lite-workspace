@@ -12,9 +12,10 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
+import com.intellij.psi.*;
 import org.example.liteworkspace.bean.core.DatasourceConfig;
 import org.example.liteworkspace.bean.core.context.LiteProjectContext;
 import org.w3c.dom.Document;
@@ -26,10 +27,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 public class LiteFileWriter {
 
@@ -62,7 +62,7 @@ public class LiteFileWriter {
 
                         // 🔍 查找标准的 src/test/java 和 src/test/resources 目录
                         VirtualFile testJavaDir = findTestSourceFolder(module, clazz, "java");
-                        VirtualFile testResourcesDir = findTestSourceFolder(module, clazz,"resources");
+                        VirtualFile testResourcesDir = findTestSourceFolder(module, clazz, "resources");
 
                         if (testJavaDir == null || testResourcesDir == null) {
                             showError(project, "未找到标准的测试目录（src/test/java 或 src/test/resources），请确保项目是基于 Maven/Gradle 标准结构。\n" +
@@ -143,7 +143,7 @@ public class LiteFileWriter {
         );
     }
 
-    private VirtualFile findTestSourceFolder(Module module ,PsiClass clazz, String type) {
+    private VirtualFile findTestSourceFolder(Module module, PsiClass clazz, String type) {
         // 先尝试查找已经标记的测试目录
         ContentEntry[] contentEntries = ModuleRootManager.getInstance(module).getContentEntries();
         for (ContentEntry entry : contentEntries) {
@@ -235,43 +235,89 @@ public class LiteFileWriter {
         return xmlFile;
     }
 
-    private File writeJUnitTestFile(String packageName, String className, String testClassName,
-                                    String relativePath, File javaTestDir) throws IOException {
+    private File writeJUnitTestFile(String packageName,
+                                    String className,
+                                    String testClassName,
+                                    String relativePath,
+                                    File javaTestDir) throws IOException {
         File testFile = new File(javaTestDir, testClassName + ".java");
-        try (FileWriter fw = new FileWriter(testFile)) {
-            fw.write(String.format("""
-                            package %s;
-                            
-                            import org.junit.Test;
-                            import org.junit.runner.RunWith;
-                            import org.springframework.test.context.ContextConfiguration;
-                            import org.springframework.test.context.junit4.SpringRunner;
-                            import javax.annotation.Resource;
-                            
-                            @RunWith(SpringRunner.class)
-                            @ContextConfiguration(locations = "classpath:%s/%s.xml")
-                            public class %s {
-                            
-                                @Resource
-                                private %s %s;
-                            
+        String methodName = getMethodName(context.getTargetMethod());
+        String beanName = decapitalize(className);
+        if (testFile.exists()) {
+            Project project = context.getProjectContext().getProject();
+            // 已存在：用 PSI 解析 testFile，判断是否已有该方法的测试方法
+            PsiFile psiFile = PsiManager.getInstance(project)
+                    .findFile(Objects.requireNonNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(testFile)));
+            if (psiFile instanceof PsiJavaFile javaFile) {
+                PsiClass[] classes = javaFile.getClasses();
+                if (classes.length > 0) {
+                    PsiClass testClass = classes[0];
+                    // 目标方法名 -> 测试方法名
+                    String testMethodName = "test" + methodName;
+                    boolean exists = Arrays.stream(testClass.getMethods())
+                            .anyMatch(m -> m.getName().equals(testMethodName));
+
+                    if (!exists) {
+                        // 新建测试方法
+                        PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
+                        PsiMethod newMethod = factory.createMethodFromText(String.format("""
                                 @Test
-                                public void testContextLoads() {
-                                    System.out.println("%s = " + %s);
+                                public void %s() {
+                                    // TODO: add assertions
+                                    System.out.println("Run %s()");
                                 }
-                            }
-                            """,
-                    packageName,
-                    relativePath, testClassName,
-                    testClassName,
-                    className,
-                    decapitalize(className),
-                    decapitalize(className),
-                    decapitalize(className)
-            ));
+                                """, testMethodName, methodName), testClass);
+
+                        WriteCommandAction.runWriteCommandAction(project, () -> {
+                            testClass.add(newMethod);
+                        });
+                    }
+                }
+            }
+        } else {
+            // 文件不存在：用模板创建测试类
+            String template = loadTemplate(); // 从 resources 加载
+            if (template == null) {
+                throw new RuntimeException("缺少模板文件");
+            }
+            String content = template
+                    .replace("${PACKAGE}", packageName)
+                    .replace("${RELATIVE_PATH}", relativePath)
+                    .replace("${TEST_CLASS}", testClassName)
+                    .replace("${CLASS}", className)
+                    .replace("${BEAN}", beanName)
+                    .replace("${METHOD}", methodName);
+
+            try (FileWriter fw = new FileWriter(testFile)) {
+                fw.write(content);
+            }
         }
+
         return testFile;
     }
+
+    private String getMethodName(PsiMethod targetMethod) {
+        String defaultName = "ContextLoads";
+        if (targetMethod == null) {
+            return defaultName;
+        }
+        return capitalize(targetMethod.getName());
+    }
+
+    private String loadTemplate() {
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("templates/TestClassTemplate.java")) {
+            if (is == null) return null;
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private String capitalize(String name) {
+        if (name == null || name.isEmpty()) return name;
+        return Character.toUpperCase(name.charAt(0)) + name.substring(1);
+    }
+
 
     private String decapitalize(String name) {
         if (name == null || name.isEmpty()) return name;

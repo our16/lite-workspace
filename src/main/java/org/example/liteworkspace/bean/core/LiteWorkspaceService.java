@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMethod;
 import org.example.liteworkspace.bean.core.context.LiteProjectContext;
 import org.example.liteworkspace.bean.engine.*;
 import org.example.liteworkspace.cache.LiteCacheStorage;
@@ -28,12 +29,12 @@ public class LiteWorkspaceService {
     /**
      * 核心流程：扫描Bean依赖、生成Spring XML、写入文件、保存缓存
      */
-    public void scanAndGenerate(PsiClass targetClass) {
+    public void scanAndGenerate(PsiClass targetClass, PsiMethod targetMethod) {
         Objects.requireNonNull(targetClass, "targetClass不能为空");
         // -------------------- Step 1: 收集依赖包 --------------------
 //        Set<String> miniPackageNames = SpringDependencyCollector.collectSpringDependencyPackages(List.of(targetClass));
         // -------------------- Step 2: 初始化项目上下文 --------------------
-        LiteProjectContext projectContext = new LiteProjectContext(project, null);
+        LiteProjectContext projectContext = new LiteProjectContext(project,targetClass, targetMethod, null);
         // -------------------- Step 3: 扫描目标类依赖Bean --------------------
         LiteBeanScanner beanScanner = new LiteBeanScanner(projectContext);
         Collection<BeanDefinition> beans = beanScanner.scanAndCollectBeanList(targetClass, project);
