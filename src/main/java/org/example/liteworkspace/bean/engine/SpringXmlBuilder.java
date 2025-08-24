@@ -62,26 +62,32 @@ public class SpringXmlBuilder {
         List<BeanDefinition> list = grouped.get(BeanType.MYBATIS);
         if (list == null || list.isEmpty()) return;
 
-        Set<String> mapperXmlPaths = new LinkedHashSet<>();
+        Map<String, MybatisBeanDto> namespace2XmlFileMap = context.getMyBatisContext().getNamespace2XmlFileMap();
+        if (namespace2XmlFileMap.isEmpty()) {
+            return;
+        }
+        // 相对路径
+        Set<String> allMapperXmlRelativePath = new LinkedHashSet<>();
         for (BeanDefinition bean : list) {
-            String id = bean.getBeanName();
-            String className = bean.getClassName();
-            MybatisBeanDto mybatisBeanDto = context.getMyBatisContext().getNamespace2XmlFileMap().get(className);
-            if (mybatisBeanDto != null) {
-                String classpathPath = mybatisBeanDto.getXmlFilePath()
-                        .replace("\\", "/")  // 统一使用正斜杠
-                        .replaceFirst(".*src/(main|test)/resources/", "")  // 去掉资源目录前缀
-                        .replaceFirst("^/", "");  // 去掉可能的前导斜杠
-                mapperXmlPaths.add("classpath:" + classpathPath);
+            String beanName = bean.getBeanName();
+            String daoClassName = bean.getClassName();
+            MybatisBeanDto mybatisBeanDto = namespace2XmlFileMap.get(daoClassName);
+            if (mybatisBeanDto == null) {
+                continue;
             }
+            String classpathPath = mybatisBeanDto.getXmlFilePath()
+                    .replace("\\", "/")  // 统一使用正斜杠
+                    .replaceFirst(".*src/(main|test)/resources/", "")  // 去掉资源目录前缀
+                    .replaceFirst("^/", "");  // 去掉可能的前导斜杠
+            allMapperXmlRelativePath.add("classpath:" + classpathPath);
 
             String mapperBean = String.format("""
                         <bean id="%s" class="org.mybatis.spring.mapper.MapperFactoryBean">
                             <property name="mapperInterface" value="%s"/>
                             <property name="sqlSessionFactory" ref="%s"/>
                         </bean>
-                    """, id, className, mybatisBeanDto.getSqlSessionFactory());
-            xmlMap.put(id, mapperBean);
+                    """, beanName, daoClassName, mybatisBeanDto.getSqlSessionFactory());
+            xmlMap.put(beanName, mapperBean);
         }
 
         if (context.getSpringContext().getDatasourceConfig().isImported()) {
@@ -96,36 +102,43 @@ public class SpringXmlBuilder {
             xmlMap.putAll(context.getSpringContext().getDatasourceConfig().getDefaultDatasource());
         }
 
+        // 所有sqlSessionFactory配置列表
         List<SqlSessionConfig> sqlSessionConfigList = context.getSqlSessionConfigList();
         for (SqlSessionConfig sessionConfig : sqlSessionConfigList) {
-            String dsName = sessionConfig.getName();
+            String beanName = sessionConfig.getName();
             String dataSourceBeanId = sessionConfig.getDataSourceBeanId();
             List<String> mapperLocations = sessionConfig.getMapperLocations();
+            // 这个sqlSession 没有配置扫描路径
+            if (dataSourceBeanId == null || mapperLocations == null || mapperLocations.isEmpty()) {
+                continue;
+            }
 
-            if (dataSourceBeanId == null || mapperLocations.isEmpty()) continue;
+            List<String> matchedPaths = MapperMatcher
+                    .matchMapperPaths(new ArrayList<>(allMapperXmlRelativePath), sessionConfig.getMapperLocations());
+            // 这个sqlSession 匹配的mapper,即当前类不依赖这个数据源
+            if (matchedPaths.isEmpty()) {
+                continue;
+            }
 
-            String sqlSessionFactoryId = dsName;
-
+            // 构造SqlSessionFactory,把需要扫描的mapper.xml 以classpath的形式定义
             StringBuilder factory = new StringBuilder();
             factory.append(String.format("""
-                <bean id="%s" class="org.mybatis.spring.SqlSessionFactoryBean">
-                    <property name="dataSource" ref="%s"/>
-                    <property name="mapperLocations">
-                        <list>
-            """, sqlSessionFactoryId, dataSourceBeanId));
-            List<String> matchedPaths = MapperMatcher.matchMapperPaths(new ArrayList<>(mapperXmlPaths), sessionConfig.getMapperLocations());
-
+                        <bean id="%s" class="org.mybatis.spring.SqlSessionFactoryBean">
+                            <property name="dataSource" ref="%s"/>
+                            <property name="mapperLocations">
+                                <list>
+                    """, beanName, dataSourceBeanId));
             for (String path : matchedPaths) {
-                    factory.append("            <value>").append(path).append("</value>\n");
+                factory.append("            <value>").append(path).append("</value>\n");
             }
 
             factory.append("""
-                        </list>
-                    </property>
-                </bean>
-            """);
+                                </list>
+                            </property>
+                        </bean>
+                    """);
 
-            xmlMap.put(sqlSessionFactoryId, factory.toString());
+            xmlMap.put(beanName, factory.toString());
         }
     }
 }

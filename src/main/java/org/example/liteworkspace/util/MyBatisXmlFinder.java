@@ -35,26 +35,30 @@ public class MyBatisXmlFinder {
      * 按 SqlSession 配置扫描源码 + 依赖库，返回 Map<namespace, mapper相对路径>
      */
     public Map<String, MybatisBeanDto> scanAllMapperXml(List<SqlSessionConfig> configs) {
-        Map<String, MybatisBeanDto> result = new HashMap<>();
+        try {
+            Map<String, MybatisBeanDto> result = new HashMap<>();
 
-        Module[] modules = ModuleManager.getInstance(project).getModules();
-        int cpuNums = Runtime.getRuntime().availableProcessors();
-        ExecutorService pool = Executors.newFixedThreadPool(Math.min(1, cpuNums));
+            Module[] modules = ModuleManager.getInstance(project).getModules();
+            int cpuNums = Runtime.getRuntime().availableProcessors();
+            ExecutorService pool = Executors.newFixedThreadPool(Math.min(1, 1));
 
-        List<CompletableFuture<Map<String, MybatisBeanDto>>> futures = new ArrayList<>();
+            List<CompletableFuture<Map<String, MybatisBeanDto>>> futures = new ArrayList<>();
 
-        for (Module module : modules) {
-            for (SqlSessionConfig cfg : configs) {
-                futures.add(CompletableFuture.supplyAsync(() -> scanModuleForConfig(module, cfg), pool));
+            for (Module module : modules) {
+                for (SqlSessionConfig cfg : configs) {
+                    futures.add(CompletableFuture.supplyAsync(() -> scanModuleForConfig(module, cfg), pool));
+                }
             }
-        }
 
-        for (CompletableFuture<Map<String, MybatisBeanDto>> future : futures) {
-            result.putAll(future.join());
-        }
+            for (CompletableFuture<Map<String, MybatisBeanDto>> future : futures) {
+                result.putAll(future.join());
+            }
 
-        pool.shutdown();
-        return result;
+            pool.shutdown();
+            return result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -104,7 +108,7 @@ public class MyBatisXmlFinder {
                 if (matchesMapperLocation(relativePath, mapperLocations)) {
                     String ns = extractMapperNamespace(file);
                     if (ns != null) {
-                        result.put(ns,  new MybatisBeanDto(ns, relativePath, cfg.getSqlSessionFactoryBeanId()));
+                        result.put(ns, new MybatisBeanDto(ns, relativePath, cfg.getSqlSessionFactoryBeanId()));
                     }
                 }
                 return true;
@@ -113,34 +117,59 @@ public class MyBatisXmlFinder {
     }
 
 
-    private boolean matchesMapperLocation(String absolutePath, List<String> mapperLocations) {
+    /**
+     * 判断一个resource目录下的相对路径是否匹配mapperLocations
+     * 支持：
+     * - classpath:mapper/*.xml
+     * - classpath*:mapper/**\/*.xml
+     */
+    public static boolean matchesMapperLocation(String relativePath, List<String> mapperLocations) {
         // 统一分隔符
-        String normalizedPath = absolutePath.replace("\\", "/");
+        String normalizedPath = relativePath.replace("\\", "/");
+        normalizedPath = normalizedPath.replaceFirst("^[a-zA-Z]:/", ""); // 去掉盘符
 
         for (String loc : mapperLocations) {
             // 去掉 classpath 前缀
             String clean = loc.replace("classpath*:", "")
                     .replace("classpath:", "")
-                    .replace("\\", "/");
+                    .replace("\\", "/")
+                    .replaceFirst("^/", "");
 
-            // 确保以 / 开头，方便 glob 匹配
-            if (!clean.startsWith("/")) {
-                clean = "/" + clean;
-            }
+            // 转换 glob 到 regex
+            String regex = globToRegex(clean);
 
-            // 处理 glob 通配符
-            String globPattern = "glob:" + clean;
-
-            PathMatcher matcher = FileSystems.getDefault().getPathMatcher(globPattern);
-
-            // 用 Paths.get 转换 normalizedPath 便于匹配
-            String pathForMatch = normalizedPath.startsWith("/") ? normalizedPath : "/" + normalizedPath;
-
-            if (matcher.matches(Paths.get(pathForMatch))) {
+            if (normalizedPath.matches(regex)) {
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * 简单 glob -> regex 转换
+     * - ** -> .*      (跨目录)
+     * - *  -> [^/]*   (单个目录或文件名)
+     */
+    private static String globToRegex(String glob) {
+        StringBuilder sb = new StringBuilder();
+        char[] chars = glob.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
+            if (c == '*') {
+                // 双星号
+                if (i + 1 < chars.length && chars[i + 1] == '*') {
+                    sb.append(".*");
+                    i++; // 跳过下一个 *
+                } else {
+                    sb.append("[^/]*");
+                }
+            } else if (c == '.') {
+                sb.append("\\."); // 转义 .
+            } else {
+                sb.append(c);
+            }
+        }
+        return "^.*" + sb.toString() + "$"; // 前缀允许任意路径
     }
 
 

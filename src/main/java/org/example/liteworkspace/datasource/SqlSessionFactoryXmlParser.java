@@ -1,38 +1,39 @@
 package org.example.liteworkspace.datasource;
 
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.jps.model.java.JavaResourceRootType;
 
 import java.util.*;
 
 public class SqlSessionFactoryXmlParser {
 
     public static List<SqlSessionConfig> parse(Project project) {
-        List<SqlSessionConfig> result = new ArrayList<>();
-        Map<String, SqlSessionConfig> configs = new HashMap<>();
+        Set<SqlSessionConfig> result = new HashSet<>();
+        // 1️⃣ 遍历所有模块
+        for (Module module : ModuleManager.getInstance(project).getModules()) {
+            // 2️⃣ 找到每个模块的 resource 根目录
+            for (VirtualFile resourceRoot :
+                    ModuleRootManager.getInstance(module).getSourceRoots(JavaResourceRootType.RESOURCE)) {
 
-        // 1️⃣ 找到 resources 目录
-        VirtualFile baseDir = project.getBaseDir();
-        if (baseDir == null) return result;
-
-        VirtualFile resourcesDir = baseDir.findFileByRelativePath("src/main/resources");
-        if (resourcesDir == null) return result;
-
-        // 2️⃣ 扫描 resources 下的 XML 文件
-        VfsUtil.iterateChildrenRecursively(resourcesDir, file -> true, file -> {
-            if (!file.isDirectory() && "xml".equalsIgnoreCase(file.getExtension())) {
-                result.addAll(SqlSessionFactoryXmlParser.parse(project, file));
+                // 3️⃣ 扫描 resource 下的 XML 文件
+                VfsUtil.iterateChildrenRecursively(resourceRoot, file -> true, file -> {
+                    if (!file.isDirectory() && "xml".equalsIgnoreCase(file.getExtension())) {
+                        result.addAll(SqlSessionFactoryXmlParser.parse(project, file));
+                    }
+                    return true;
+                });
             }
-            return true;
-        });
-
-        result.addAll(configs.values());
-        return result;
+        }
+        return new ArrayList<>(result);
     }
 
     public static List<SqlSessionConfig> parse(Project project, VirtualFile xmlFile) {

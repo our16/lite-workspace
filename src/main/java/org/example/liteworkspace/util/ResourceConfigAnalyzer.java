@@ -43,7 +43,6 @@ public class ResourceConfigAnalyzer {
         Project project = this.project;
 
         Collection<PsiClass> classesToScan = new ArrayList<>();
-
         // 默认：全量搜索
         GlobalSearchScope baseScope = GlobalSearchScope.allScope(project);
 
@@ -72,10 +71,14 @@ public class ResourceConfigAnalyzer {
 
         // 遍历类，找到 @Configuration + @Bean 方法
         for (PsiClass clazz : classesToScan) {
-            if (!hasAnnotation(clazz, "org.springframework.context.annotation.Configuration")) continue;
+            if (!hasAnnotation(clazz, "org.springframework.context.annotation.Configuration")) {
+                continue;
+            }
 
             for (PsiMethod method : clazz.getMethods()) {
-                if (!hasAnnotation(method, "org.springframework.context.annotation.Bean")) continue;
+                if (!hasAnnotation(method, "org.springframework.context.annotation.Bean")) {
+                    continue;
+                }
 
                 PsiType returnType = method.getReturnType();
                 if (returnType == null) continue;
@@ -175,10 +178,10 @@ public class ResourceConfigAnalyzer {
      */
     public DatasourceConfig scanSpringDatasourceConfigs() {
         // 1. 优先检查是否有指定的测试数据源文件
-        VirtualFile configFile = findTestDatasourceXml();
-        if (configFile != null && configFile.isValid()) {
+        String configFile = findTestDatasourceXml(project);
+        if (configFile != null ) {
             // 如果找到指定文件，返回一个特殊标识表示使用导入文件
-            return DatasourceConfig.createImportedConfig(configFile.getPath());
+            return DatasourceConfig.createImportedConfig(configFile);
         }
         // 2. 如果没有找到文件，返回默认配置
         return DatasourceConfig.createDefaultConfig(
@@ -189,53 +192,52 @@ public class ResourceConfigAnalyzer {
         );
     }
 
-    /**
-     * 查找 test/resources/configs/testDatasource.xml 文件
-     */
-    private VirtualFile findTestDatasourceXml() {
-        // 尝试的多个可能路径（根据常见项目结构）
-        String[] possiblePaths = {
-                "src/test/resources/configs/datasource.xml",
-                "test/resources/configs/datasource.xml",
-                "configs/datasource.xml",
-        };
 
-        // 1. 首先尝试基于项目根目录查找
-        VirtualFile baseDir = project.getBaseDir();
-        if (baseDir != null) {
-            for (String path : possiblePaths) {
-                VirtualFile file = baseDir.findFileByRelativePath(path);
-                if (file != null && file.exists()) {
-                    return file;
+    /**
+     * 查找多模块项目下的 test/resources/configs/datasource.xml 文件
+     */
+    private String findTestDatasourceXml(Project project) {
+        String relativePath = "configs/datasource.xml";
+
+        // 1. 遍历所有模块 Source Roots
+        for (Module module : ModuleManager.getInstance(project).getModules()) {
+            VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots();
+            for (VirtualFile root : sourceRoots) {
+                // 只关心 test/resources 目录
+                if (root.getPath().contains("test")) {
+                    VirtualFile file = root.findFileByRelativePath(relativePath);
+                    if (file != null && file.exists() && file.isValid()) {
+                        return relativePath;
+                    }
                 }
             }
         }
 
-        // 2. 使用FilenameIndex全局搜索（更可靠的方式）
+        // 2. 全局索引搜索兜底
         GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
         Collection<VirtualFile> files = FilenameIndex.getVirtualFilesByName(
-                "testDatasource.xml",
-                scope
+                project, "datasource.xml", scope
         );
 
         for (VirtualFile file : files) {
             if (file.getPath().contains("configs")) {
-                return file;
+                return relativePath;
             }
         }
 
-        // 3. 最后尝试通过类加载器查找资源
+        // 3. 类加载器兜底（运行时资源）
         try {
             URL resourceUrl = getClass().getClassLoader()
-                    .getResource("configs/testDatasource.xml");
+                    .getResource("configs/datasource.xml");
             if (resourceUrl != null) {
-                return VirtualFileManager.getInstance()
-                        .findFileByUrl(VfsUtilCore.urlToPath(resourceUrl.toString()));
+                return relativePath;
             }
         } catch (Exception ignored) {}
 
         return null;
     }
+
+
 
     /**
      * 扫描 XML 文件中的 <bean class="...DataSource"> 以及 <property name="url" .../> 配置
