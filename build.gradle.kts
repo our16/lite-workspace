@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.liteworkspace"
-version = "1.23.19-debug"
+version = "1.23.20-adapt-xml_array_tag"
 
 repositories {
     maven {

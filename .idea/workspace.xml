@@ -4,14 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="生成测试方法">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/JSONUtil.java" afterDir="false" />
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="适配mapepr扫描目录定义形式不一样的问题，兼容list,array,set 标签">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/MyBatisContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/MyBatisContext.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/SqlSessionFactoryXmlParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/SqlSessionFactoryXmlParser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/MyBatisXmlFinder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/MyBatisXmlFinder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -236,14 +231,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00049" summary="重构1.0">
-      <option name="closed" value="true" />
-      <created>1753012896246</created>
-      <option name="number" value="00049" />
-      <option name="presentableId" value="LOCAL-00049" />
-      <option name="project" value="LOCAL" />
-      <updated>1753012896246</updated>
     </task>
     <task id="LOCAL-00050" summary="重构1.0">
       <option name="closed" value="true" />
@@ -629,7 +616,15 @@
       <option name="project" value="LOCAL" />
       <updated>1755931244661</updated>
     </task>
-    <option name="localTasksCounter" value="98" />
+    <task id="LOCAL-00098" summary="适配mapepr扫描目录定义形式不一样的问题，兼容list,array,set 标签">
+      <option name="closed" value="true" />
+      <created>1756545369045</created>
+      <option name="number" value="00098" />
+      <option name="presentableId" value="LOCAL-00098" />
+      <option name="project" value="LOCAL" />
+      <updated>1756545369045</updated>
+    </task>
+    <option name="localTasksCounter" value="99" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -644,7 +639,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="扫描器" />
     <MESSAGE value="openai 模型" />
     <MESSAGE value="datasource 配置" />
     <MESSAGE value="ui" />
@@ -669,7 +663,8 @@
     <MESSAGE value="先删除最小依赖包" />
     <MESSAGE value="多数据源适配" />
     <MESSAGE value="生成测试方法" />
-    <option name="LAST_COMMIT_MESSAGE" value="生成测试方法" />
+    <MESSAGE value="适配mapepr扫描目录定义形式不一样的问题，兼容list,array,set 标签" />
+    <option name="LAST_COMMIT_MESSAGE" value="适配mapepr扫描目录定义形式不一样的问题，兼容list,array,set 标签" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
