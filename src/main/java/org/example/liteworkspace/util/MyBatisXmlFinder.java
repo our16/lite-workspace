@@ -1,5 +1,6 @@
 package org.example.liteworkspace.util;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -16,14 +17,12 @@ import org.jetbrains.annotations.NotNull;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.FileSystems;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 public class MyBatisXmlFinder {
+
+    private final static Logger logger = Logger.getInstance(MyBatisXmlFinder.class);
 
     private final Project project;
 
@@ -40,10 +39,10 @@ public class MyBatisXmlFinder {
 
             Module[] modules = ModuleManager.getInstance(project).getModules();
             int cpuNums = Runtime.getRuntime().availableProcessors();
-            ExecutorService pool = Executors.newFixedThreadPool(Math.min(1, 1));
-
+            ExecutorService pool = Executors.newFixedThreadPool(Math.min(1, cpuNums));
+            logger.info("modules :" + modules.length);
+            logger.info("list:" + JSONUtil.info(modules));
             List<CompletableFuture<Map<String, MybatisBeanDto>>> futures = new ArrayList<>();
-
             for (Module module : modules) {
                 for (SqlSessionConfig cfg : configs) {
                     futures.add(CompletableFuture.supplyAsync(() -> scanModuleForConfig(module, cfg), pool));
@@ -53,7 +52,7 @@ public class MyBatisXmlFinder {
             for (CompletableFuture<Map<String, MybatisBeanDto>> future : futures) {
                 result.putAll(future.join());
             }
-
+            logger.info("collect result:" + JSONUtil.info(result));
             pool.shutdown();
             return result;
         } catch (Exception e) {
@@ -67,11 +66,12 @@ public class MyBatisXmlFinder {
     private Map<String, MybatisBeanDto> scanModuleForConfig(Module module, SqlSessionConfig cfg) {
         Map<String, MybatisBeanDto> result = new HashMap<>();
         // xml 文件
-
         // 1️⃣ 扫描源码
         VirtualFile[] roots = ModuleRootManager.getInstance(module).getSourceRoots();
         for (VirtualFile root : roots) {
-            if (!root.isValid()) continue;
+            if (!root.isValid()) {
+                continue;
+            }
             collectXmlFiles(root, cfg, result, true);
         }
 
@@ -104,6 +104,7 @@ public class MyBatisXmlFinder {
                 if (!file.getName().endsWith(".xml")) {
                     return true;
                 }
+                logger.info("relativePath:" + relativePath);
 
                 if (matchesMapperLocation(relativePath, mapperLocations)) {
                     String ns = extractMapperNamespace(file);

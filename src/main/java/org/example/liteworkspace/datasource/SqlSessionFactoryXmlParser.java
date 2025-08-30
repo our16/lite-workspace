@@ -56,11 +56,16 @@ public class SqlSessionFactoryXmlParser {
                 // mapperLocations
                 for (XmlTag prop : bean.findSubTags("property")) {
                     if ("mapperLocations".equals(prop.getAttributeValue("name"))) {
-                        for (XmlTag list : prop.findSubTags("list")) {
-                            for (XmlTag val : list.findSubTags("value")) {
-                                config.getMapperLocations().add(val.getValue().getText());
+                        // 兼容 list / array / set
+                        for (XmlTag container : prop.getSubTags()) {
+                            String tagName = container.getLocalName();
+                            if ("list".equals(tagName) || "array".equals(tagName) || "set".equals(tagName)) {
+                                for (XmlTag val : container.findSubTags("value")) {
+                                    config.getMapperLocations().add(val.getValue().getText());
+                                }
                             }
                         }
+
                         XmlTag value = prop.findFirstSubTag("value");
                         if (value != null) {
                             config.getMapperLocations().add(value.getValue().getText());

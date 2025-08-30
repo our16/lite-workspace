@@ -134,13 +134,11 @@ public class ResourceConfigAnalyzer {
      * 判断类或方法是否有指定注解（支持 jar 中的类）
      */
     private boolean hasAnnotation(PsiModifierListOwner owner, String annotationFqn) {
-        PsiAnnotation[] annotations = owner.getAnnotations();
-        for (PsiAnnotation annotation : annotations) {
-            if (annotationFqn.equals(annotation.getQualifiedName())) {
-                return true;
-            }
+        PsiModifierList list = owner.getModifierList();
+        if (list == null) {
+            return false;
         }
-        return false;
+        return list.findAnnotation(annotationFqn) != null;
     }
 
 

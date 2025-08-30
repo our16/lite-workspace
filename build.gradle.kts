@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.liteworkspace"
-version = "1.23.15-multi-datasource"
+version = "1.23.19-debug"
 
 repositories {
     maven {
