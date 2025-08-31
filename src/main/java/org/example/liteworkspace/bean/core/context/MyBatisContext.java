@@ -10,12 +10,18 @@ import org.example.liteworkspace.util.MybatisBeanDto;
 
 import java.util.*;
 
+/**
+ * mybatis上下文内容：
+ * 1、xml定义的mapper，和对应的dao
+ * 2、包含哪些数据源以及每个数据源对应的扫描范围
+ */
 public class MyBatisContext {
+
     private final MyBatisXmlFinder myBatisXmlFinder;
 
     private final List<SqlSessionConfig> sqlSessionConfigList;
 
-    private final Map<String, MybatisBeanDto> namespace2XmlFileMap = new HashMap();
+    private final Map<String, MybatisBeanDto> namespace2XmlFileMap = new HashMap<>();
 
     public MyBatisContext(Project project, List<SqlSessionConfig> sqlSessionConfigList) {
         this.myBatisXmlFinder = new MyBatisXmlFinder(project);
@@ -23,9 +29,10 @@ public class MyBatisContext {
     }
 
     public void refresh() {
-        LogUtil.info("sqlSessionConfigList:{}", JSONUtil.toJsonStr(sqlSessionConfigList));
+        LogUtil.info("start refresh myBatisContext, sql session config list{}", JSONUtil.toJsonStr(sqlSessionConfigList));
         Map<String, MybatisBeanDto> namespace2dao = myBatisXmlFinder.scanAllMapperXml(sqlSessionConfigList);
         namespace2XmlFileMap.putAll(namespace2dao);
+        LogUtil.info("end refresh myBatisContext, namespace map size:{}", namespace2dao.size());
     }
 
     public Map<String, MybatisBeanDto> getNamespace2XmlFileMap() {

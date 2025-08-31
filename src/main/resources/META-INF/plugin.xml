@@ -7,8 +7,13 @@
     <depends>com.intellij.modules.java</depends>
     <depends>JUnit</depends>
 
-
     <extensions defaultExtensionNs="com.intellij">
+        <!-- Notification Group 注册 -->
+        <notificationGroup
+                id="LiteWorkspace"
+                displayType="BALLOON"
+                isLogByDefault="true">
+        </notificationGroup>
         <applicationService serviceImplementation="org.example.liteworkspace.config.LiteWorkspaceSettings"/>
         <!-- your plugin extensions -->
         <applicationConfigurable instance="org.example.liteworkspace.config.LiteWorkspaceSettingsConfigurable"

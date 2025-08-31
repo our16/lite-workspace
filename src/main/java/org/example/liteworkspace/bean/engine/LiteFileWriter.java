@@ -1,5 +1,8 @@
 package org.example.liteworkspace.bean.engine;
 
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroupManager;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -18,6 +21,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import org.example.liteworkspace.bean.core.DatasourceConfig;
 import org.example.liteworkspace.bean.core.context.LiteProjectContext;
+import org.example.liteworkspace.util.LogUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -45,14 +49,14 @@ public class LiteFileWriter {
                     try {
                         Module module = ModuleUtilCore.findModuleForPsiElement(clazz);
                         if (module == null) {
-                            showError(project, "未能定位当前类所属的模块");
+                            notifyError(project, "未能定位当前类所属的模块");
                             return;
                         }
 
                         String qualifiedName = clazz.getQualifiedName();
                         String className = clazz.getName();
                         if (qualifiedName == null || className == null) {
-                            showError(project, "类名无法解析，生成终止");
+                            notifyError(project, "类名无法解析，生成终止");
                             return;
                         }
 
@@ -60,87 +64,91 @@ public class LiteFileWriter {
                         String testClassName = className + "Test";
                         String relativePath = packageName.replace('.', '/');
 
-                        // 🔍 查找标准的 src/test/java 和 src/test/resources 目录
+                        // 查找测试目录
                         VirtualFile testJavaDir = findTestSourceFolder(module, clazz, "java");
                         VirtualFile testResourcesDir = findTestSourceFolder(module, clazz, "resources");
 
                         if (testJavaDir == null || testResourcesDir == null) {
-                            showError(project, "未找到标准的测试目录（src/test/java 或 src/test/resources），请确保项目是基于 Maven/Gradle 标准结构。\n" +
-                                    "或者手动创建这些目录后再试。");
+                            notifyError(project, "未找到 src/test/java 或 src/test/resources，请检查项目结构");
                             return;
                         }
 
-                        // 确保相对路径目录存在（在测试目录下）
                         File javaTestDir = new File(testJavaDir.getPath(), relativePath);
                         File resourcesTestDir = new File(testResourcesDir.getPath(), relativePath);
+                        javaTestDir.mkdirs();
+                        resourcesTestDir.mkdirs();
 
-                        if (!javaTestDir.exists()) {
-                            javaTestDir.mkdirs();
-                        }
-                        if (!resourcesTestDir.exists()) {
-                            resourcesTestDir.mkdirs();
-                        }
-                        DatasourceConfig datasourceConfig = context.getSpringContext().getDatasourceConfig();
-                        String defaultConfigXmlPath = datasourceConfig.getImportPath();
-                        Set<String> definedBeanClasses = new HashSet<>();
+                        // 解析默认 XML 配置
+                        Set<String> definedBeanClasses = parseDefinedBeans(context.getSpringContext().getDatasourceConfig().getImportPath());
 
-                        if (defaultConfigXmlPath != null) {
-                            File xml = new File(defaultConfigXmlPath);
-                            if (xml.exists()) {
-                                try {
-                                    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-                                    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-                                    Document doc = dBuilder.parse(xml);
-                                    doc.getDocumentElement().normalize();
+                        // 过滤重复 bean
+                        beanMap.keySet().removeIf(definedBeanClasses::contains);
 
-                                    NodeList beanList = doc.getElementsByTagName("bean");
-                                    for (int i = 0; i < beanList.getLength(); i++) {
-                                        Element beanElement = (Element) beanList.item(i);
-                                        if (beanElement.hasAttribute("class")) {
-                                            definedBeanClasses.add(beanElement.getAttribute("class"));
-                                        }
-                                    }
-
-                                } catch (Exception e) {
-                                    System.err.println("Failed to parse config XML: " + defaultConfigXmlPath);
-                                    e.printStackTrace();
-                                }
-                            } else {
-                                System.err.println("Default config XML file does not exist: " + defaultConfigXmlPath);
-                            }
-                        }
-
-                        // 过滤 beanMap 中已被默认配置定义的 class
-                        Iterator<String> iter = beanMap.keySet().iterator();
-                        while (iter.hasNext()) {
-                            String definedClassName = iter.next();
-                            if (definedBeanClasses.contains(definedClassName)) {
-                                iter.remove(); // 移除重复定义的类
-                            }
-                        }
+                        // 写文件
                         File xmlFile = writeSpringXmlFile(beanMap, resourcesTestDir, testClassName);
                         File testFile = writeJUnitTestFile(packageName, className, testClassName, relativePath, javaTestDir);
 
-                        // 刷新虚拟文件系统
-                        VfsUtil.findFileByIoFile(xmlFile, true).refresh(false, false);
-                        VfsUtil.findFileByIoFile(testFile, true).refresh(false, false);
-
-                        Messages.showInfoMessage(project,
-                                "✅ 已生成：\n" +
-                                        "测试类: " + testFile.getAbsolutePath() + "\n" +
-                                        "配置文件: " + xmlFile.getAbsolutePath(),
-                                "LiteWorkspace");
-                        // 打开测试文件
-                        VirtualFile virtualFile = VfsUtil.findFileByIoFile(testFile, true);
-                        if (virtualFile != null) {
-                            FileEditorManager.getInstance(project).openFile(virtualFile, true);
+                        Objects.requireNonNull(VfsUtil.findFileByIoFile(xmlFile, true)).refresh(false, false);
+                        VirtualFile virtualTestFile = VfsUtil.findFileByIoFile(testFile, true);
+                        if (virtualTestFile != null) {
+                            virtualTestFile.refresh(false, false);
+                            FileEditorManager.getInstance(project).openFile(virtualTestFile, true);
                         }
 
+                        notifyInfo(project,
+                                "测试类与配置已生成",
+                                "测试类: " + testFile.getAbsolutePath() + "\n配置文件: " + xmlFile.getAbsolutePath());
+                        LogUtil.info("已生成测试类={} 配置文件={}", testFile.getAbsolutePath(), xmlFile.getAbsolutePath());
                     } catch (Exception ex) {
-                        showError(project, "❌ 生成失败：" + ex.getMessage());
+                        notifyError(project, "生成失败: " + ex.getMessage());
+                        LogUtil.error("生成测试文件失败", ex);
                     }
                 })
         );
+    }
+
+    private Set<String> parseDefinedBeans(String xmlPath) {
+        Set<String> definedBeans = new HashSet<>();
+        if (xmlPath == null) {
+            return definedBeans;
+        }
+
+        File xml = new File(xmlPath);
+        if (!xml.exists()) {
+            LogUtil.warn("配置文件不存在: {}", xmlPath);
+            return definedBeans;
+        }
+        try {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(xml);
+            doc.getDocumentElement().normalize();
+
+            NodeList beanList = doc.getElementsByTagName("bean");
+            for (int i = 0; i < beanList.getLength(); i++) {
+                Element beanElement = (Element) beanList.item(i);
+                if (beanElement.hasAttribute("class")) {
+                    definedBeans.add(beanElement.getAttribute("class"));
+                }
+            }
+        } catch (Exception e) {
+            LogUtil.error("解析配置文件失败: " + xmlPath, e);
+        }
+        return definedBeans;
+    }
+
+    private void notifyInfo(Project project, String title, String content) {
+        Notification notification = NotificationGroupManager.getInstance()
+                .getNotificationGroup("LiteWorkspace")
+                .createNotification(title, content, NotificationType.INFORMATION);
+        notification.notify(project);
+    }
+
+    private void notifyError(Project project, String content) {
+        Notification notification = NotificationGroupManager.getInstance()
+                .getNotificationGroup("LiteWorkspace")
+                .createNotification("生成失败", content, NotificationType.ERROR);
+        notification.notify(project);
     }
 
     private VirtualFile findTestSourceFolder(Module module, PsiClass clazz, String type) {

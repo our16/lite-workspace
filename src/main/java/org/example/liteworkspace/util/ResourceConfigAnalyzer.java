@@ -23,11 +23,9 @@ import java.util.*;
 public class ResourceConfigAnalyzer {
 
     private final Project project;
-    private final ProjectCacheStore cacheStore;
 
     public ResourceConfigAnalyzer(Project project, String projectId) {
         this.project = project;
-        this.cacheStore = new ProjectCacheStore(projectId);
     }
 
     public Set<String> scanComponentScanPackages() {
