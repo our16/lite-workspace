@@ -1,18 +1,16 @@
 package org.example.liteworkspace.bean.core.context;
 
-import com.google.gson.Gson;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import org.example.liteworkspace.datasource.SqlSessionConfig;
 import org.example.liteworkspace.util.JSONUtil;
+import org.example.liteworkspace.util.LogUtil;
 import org.example.liteworkspace.util.MyBatisXmlFinder;
 import org.example.liteworkspace.util.MybatisBeanDto;
 
 import java.util.*;
 
 public class MyBatisContext {
-    private final static Logger logger = Logger.getInstance(MyBatisContext.class);
     private final MyBatisXmlFinder myBatisXmlFinder;
 
     private final List<SqlSessionConfig> sqlSessionConfigList;
@@ -24,8 +22,8 @@ public class MyBatisContext {
         this.sqlSessionConfigList = sqlSessionConfigList;
     }
 
-    public void scan() {
-        logger.info("sqlSessionConfigList:"+ JSONUtil.info(sqlSessionConfigList));
+    public void refresh() {
+        LogUtil.info("sqlSessionConfigList:{}", JSONUtil.toJsonStr(sqlSessionConfigList));
         Map<String, MybatisBeanDto> namespace2dao = myBatisXmlFinder.scanAllMapperXml(sqlSessionConfigList);
         namespace2XmlFileMap.putAll(namespace2dao);
     }

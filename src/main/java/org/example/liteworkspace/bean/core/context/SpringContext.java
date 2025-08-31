@@ -22,7 +22,7 @@ public class SpringContext {
         this.resourceAnalyzer = new ResourceConfigAnalyzer(project, "");
     }
 
-    public void scan(Set<String> miniPackages) {
+    public void refresh(Set<String> miniPackages) {
         componentScanPackages.addAll(resourceAnalyzer.scanComponentScanPackages());
         datasourceConfig = resourceAnalyzer.scanSpringDatasourceConfigs();
         Map<String, PsiClass> configs = resourceAnalyzer.scanConfigurationClasses(miniPackages);

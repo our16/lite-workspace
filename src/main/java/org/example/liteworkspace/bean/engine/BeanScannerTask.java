@@ -455,7 +455,7 @@ public class BeanScannerTask extends RecursiveAction {
         }
 
         String interfaceQName = interfaceClass.getQualifiedName();
-        Project project = this.context.getProjectContext().getProject();
+        Project project = this.context.getProject();
 
         // -------------------------------
         // 方法1：ClassInheritorsSearch（支持源码 + 库）

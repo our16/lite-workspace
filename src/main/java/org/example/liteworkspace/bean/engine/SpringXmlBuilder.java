@@ -93,7 +93,7 @@ public class SpringXmlBuilder {
         if (context.getSpringContext().getDatasourceConfig().isImported()) {
             // 使用标准Spring import格式
             String importPath = context.getSpringContext().getDatasourceConfig().getImportPath();
-            String relativePath = importPath.replace(context.getProjectContext().getProject().getBasePath() + "/", "");
+            String relativePath = importPath.replace(context.getProject().getBasePath() + "/", "");
             xmlMap.put("defaultDatasource",
                     String.format("    <import resource=\"classpath:%s\"/>",
                             relativePath.replace("src/test/resources/", "")));

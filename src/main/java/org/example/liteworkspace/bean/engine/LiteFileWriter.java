@@ -244,7 +244,7 @@ public class LiteFileWriter {
         String methodName = getMethodName(context.getTargetMethod());
         String beanName = decapitalize(className);
         if (testFile.exists()) {
-            Project project = context.getProjectContext().getProject();
+            Project project = context.getProject();
             // 已存在：用 PSI 解析 testFile，判断是否已有该方法的测试方法
             PsiFile psiFile = PsiManager.getInstance(project)
                     .findFile(Objects.requireNonNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(testFile)));

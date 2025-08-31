@@ -1,6 +1,5 @@
 package org.example.liteworkspace.util;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -22,8 +21,6 @@ import java.util.concurrent.*;
 
 public class MyBatisXmlFinder {
 
-    private final static Logger logger = Logger.getInstance(MyBatisXmlFinder.class);
-
     private final Project project;
 
     public MyBatisXmlFinder(Project project) {
@@ -40,8 +37,8 @@ public class MyBatisXmlFinder {
             Module[] modules = ModuleManager.getInstance(project).getModules();
             int cpuNums = Runtime.getRuntime().availableProcessors();
             ExecutorService pool = Executors.newFixedThreadPool(Math.min(1, cpuNums));
-            logger.info("modules :" + modules.length);
-            logger.info("list:" + JSONUtil.info(modules));
+            LogUtil.info("modules :{}", modules.length);
+            LogUtil.info("list:{}", JSONUtil.toJsonStr(modules));
             List<CompletableFuture<Map<String, MybatisBeanDto>>> futures = new ArrayList<>();
             for (Module module : modules) {
                 for (SqlSessionConfig cfg : configs) {
@@ -52,7 +49,7 @@ public class MyBatisXmlFinder {
             for (CompletableFuture<Map<String, MybatisBeanDto>> future : futures) {
                 result.putAll(future.join());
             }
-            logger.info("collect result:" + JSONUtil.info(result));
+            LogUtil.info("mybatis sqlSession collect result:{}", JSONUtil.toJsonStr(result));
             pool.shutdown();
             return result;
         } catch (Exception e) {
@@ -104,7 +101,6 @@ public class MyBatisXmlFinder {
                 if (!file.getName().endsWith(".xml")) {
                     return true;
                 }
-                logger.info("relativePath:" + relativePath);
 
                 if (matchesMapperLocation(relativePath, mapperLocations)) {
                     String ns = extractMapperNamespace(file);

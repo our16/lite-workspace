@@ -7,7 +7,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import org.example.liteworkspace.bean.core.context.LiteProjectContext;
 import org.example.liteworkspace.bean.engine.*;
-import org.example.liteworkspace.cache.LiteCacheStorage;
+import org.example.liteworkspace.util.LogUtil;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,18 +31,26 @@ public class LiteWorkspaceService {
      */
     public void scanAndGenerate(PsiClass targetClass, PsiMethod targetMethod) {
         Objects.requireNonNull(targetClass, "targetClass不能为空");
+        LogUtil.info("start scanAndGenerate java bean an xml file");
         // -------------------- Step 1: 收集依赖包 --------------------
 //        Set<String> miniPackageNames = SpringDependencyCollector.collectSpringDependencyPackages(List.of(targetClass));
         // -------------------- Step 2: 初始化项目上下文 --------------------
-        LiteProjectContext projectContext = new LiteProjectContext(project,targetClass, targetMethod, null);
+        LiteProjectContext projectContext = new LiteProjectContext(project, targetClass, targetMethod, null);
+        LogUtil.info("complete project context init ");
         // -------------------- Step 3: 扫描目标类依赖Bean --------------------
         LiteBeanScanner beanScanner = new LiteBeanScanner(projectContext);
+        LogUtil.info("start scanner relation bean list");
         Collection<BeanDefinition> beans = beanScanner.scanAndCollectBeanList(targetClass, project);
+        LogUtil.info("end scanner relation bean list,size:{}", beans.size());
         // -------------------- Step 4: 生成Spring XML --------------------
         SpringXmlBuilder xmlBuilder = new SpringXmlBuilder(projectContext);
+        LogUtil.info("start build spring xml config");
         Map<String, String> beanMap = xmlBuilder.buildXmlMap(beans);
+        LogUtil.info("end build spring xml config,size:{}", beanMap.size());
         // -------------------- Step 5: 写入文件（Psi / 本地文件） --------------------
+        LogUtil.info("start write xml file");
         writeFiles(projectContext, targetClass, beanMap, beans);
+        LogUtil.info("end write xml file");
     }
 
     /**
@@ -72,13 +80,13 @@ public class LiteWorkspaceService {
                         throw new RuntimeException("写入 bean-classes.txt 失败", e);
                     }
 
-                    // 3️⃣ 保存缓存
-                    LiteCacheStorage cacheStorage = new LiteCacheStorage(project);
-                    cacheStorage.saveConfigurationClasses(projectContext.getSpringContext().getBean2configuration());
-                    cacheStorage.saveMapperXmlPaths(projectContext.getMyBatisContext().getNamespace2XmlFileMap());
-                    cacheStorage.saveDatasourceConfig(projectContext.getSpringContext().getDatasourceConfig());
-                    cacheStorage.saveSpringScanPackages(projectContext.getSpringContext().getComponentScanPackages());
-                    cacheStorage.saveBeanList(beans);
+//                    // 3️⃣ 保存缓存
+//                    LiteCacheStorage cacheStorage = new LiteCacheStorage(project);
+//                    cacheStorage.saveConfigurationClasses(projectContext.getSpringContext().getBean2configuration());
+//                    cacheStorage.saveMapperXmlPaths(projectContext.getMyBatisContext().getNamespace2XmlFileMap());
+//                    cacheStorage.saveDatasourceConfig(projectContext.getSpringContext().getDatasourceConfig());
+//                    cacheStorage.saveSpringScanPackages(projectContext.getSpringContext().getComponentScanPackages());
+//                    cacheStorage.saveBeanList(beans);
                 })
         );
     }
