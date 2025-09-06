@@ -33,7 +33,7 @@ LiteWorkspace is an IntelliJ IDEA plugin that helps developers **optimize Spring
 - Large **Spring Boot** projects with long startup times.  
 - Multi-module projects needing **precise dependency analysis**.  
 - Debugging sessions where developers want to **limit Spring context scope**.  
-- Analyzing **third-party JAR auto-configurations** in the project classpath.  
+- Analyzing **third-party JAR auto-configurations** in the project classpath.
 
 ---
 
@@ -43,3 +43,7 @@ LiteWorkspace is an IntelliJ IDEA plugin that helps developers **optimize Spring
 2. Or build from source:
    ```bash
    ./gradlew buildPlugin
+---
+<img width="1888" height="757" alt="企业微信截图_17571522179138" src="https://github.com/user-attachments/assets/92b70d2f-dba7-4563-9325-25529a62a1db" />
+<img width="1386" height="696" alt="企业微信截图_17571522948750" src="https://github.com/user-attachments/assets/f59e43c2-de81-463a-9809-2dc1664875db" />
+
