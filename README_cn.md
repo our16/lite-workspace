@@ -1,3 +1,5 @@
+**其他语言版本: [English](README.md), [中文](README_zh.md).**
+
 # LiteWorkspace - IntelliJ IDEA 插件
 
 LiteWorkspace 是一个 IntelliJ IDEA 插件，旨在 **优化 Spring 应用启动速度**。  
