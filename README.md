@@ -1,3 +1,5 @@
+**Read this in other languages: [English](README.md), [中文](README_zh.md).**
+
 # LiteWorkspace - IntelliJ IDEA Plugin
 
 LiteWorkspace is an IntelliJ IDEA plugin that helps developers **optimize Spring application startup** by scanning and analyzing bean definitions, reducing unnecessary Spring context loading, and improving development efficiency.
