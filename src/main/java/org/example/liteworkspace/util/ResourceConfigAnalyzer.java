@@ -4,9 +4,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.*;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -14,7 +12,6 @@ import com.intellij.psi.search.searches.AllClassesSearch;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.example.liteworkspace.bean.core.DatasourceConfig;
-import org.example.liteworkspace.bean.core.ProjectCacheStore;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;

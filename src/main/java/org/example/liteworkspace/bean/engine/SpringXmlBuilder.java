@@ -90,16 +90,16 @@ public class SpringXmlBuilder {
             xmlMap.put(beanName, mapperBean);
         }
 
-        if (context.getSpringContext().getDatasourceConfig().isImported()) {
+        if (context.getDatasourceConfig().isImported()) {
             // 使用标准Spring import格式
-            String importPath = context.getSpringContext().getDatasourceConfig().getImportPath();
+            String importPath = context.getDatasourceConfig().getImportPath();
             String relativePath = importPath.replace(context.getProject().getBasePath() + "/", "");
             xmlMap.put("defaultDatasource",
                     String.format("    <import resource=\"classpath:%s\"/>",
                             relativePath.replace("src/test/resources/", "")));
         } else {
             // 使用模板方式填充默认配置
-            xmlMap.putAll(context.getSpringContext().getDatasourceConfig().getDefaultDatasource());
+            xmlMap.putAll(context.getDatasourceConfig().getDefaultDatasource());
         }
 
         // 所有sqlSessionFactory配置列表

@@ -1,7 +1,18 @@
 <idea-plugin>
-    <id>org.example.lite-workspace</id>
+    <id>io.perfmark.lite-workspace</id>
     <name>Lite-workspace</name>
     <vendor email="mongezheng@gmail.com" url="http://example.com">Example</vendor>
+    <description>
+        LiteWorkspace is a lightweight IntelliJ IDEA plugin designed to optimize Spring application startup.
+        It scans and analyzes component definitions to reduce unnecessary Spring context loading,
+        helping developers accelerate development efficiency.
+
+        功能亮点：
+        - 自动扫描 @ComponentScan 和 XML 中的 component-scan 配置
+        - 支持多模块项目，分析模块级 Bean 定义
+        - 扫描依赖 JAR 中的 spring.factories，推断自动配置类
+        - 减少上下文加载范围，加快启动速度
+    </description>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>

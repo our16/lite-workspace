@@ -79,7 +79,7 @@ public class LiteFileWriter {
                         resourcesTestDir.mkdirs();
 
                         // 解析默认 XML 配置
-                        Set<String> definedBeanClasses = parseDefinedBeans(context.getSpringContext().getDatasourceConfig().getImportPath());
+                        Set<String> definedBeanClasses = parseDefinedBeans(context.getDatasourceConfig().getImportPath());
 
                         // 过滤重复 bean
                         beanMap.keySet().removeIf(definedBeanClasses::contains);
