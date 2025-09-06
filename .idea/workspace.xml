@@ -4,19 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="添加日志">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/ExportGraphToNeo4j.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/QueryGraphDb.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringConfigurationScanner.java" afterDir="false" />
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="commit changes">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/ProjectCacheStore.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/LiteProjectContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/LiteProjectContext.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/SpringContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/SpringContext.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteFileWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteFileWriter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringXmlBuilder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -271,14 +261,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00053" summary="默认数据源">
-      <option name="closed" value="true" />
-      <created>1753019563088</created>
-      <option name="number" value="00053" />
-      <option name="presentableId" value="LOCAL-00053" />
-      <option name="project" value="LOCAL" />
-      <updated>1753019563088</updated>
     </task>
     <task id="LOCAL-00054" summary="按照优先级扫描">
       <option name="closed" value="true" />
@@ -664,7 +646,15 @@
       <option name="project" value="LOCAL" />
       <updated>1756627485559</updated>
     </task>
-    <option name="localTasksCounter" value="102" />
+    <task id="LOCAL-00102" summary="commit changes">
+      <option name="closed" value="true" />
+      <created>1757174061987</created>
+      <option name="number" value="00102" />
+      <option name="presentableId" value="LOCAL-00102" />
+      <option name="project" value="LOCAL" />
+      <updated>1757174061987</updated>
+    </task>
+    <option name="localTasksCounter" value="103" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -679,7 +669,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="datasource 配置" />
     <MESSAGE value="ui" />
     <MESSAGE value="自定义编译器" />
     <MESSAGE value="使用idea 的编译器" />
@@ -704,7 +693,8 @@
     <MESSAGE value="生成测试方法" />
     <MESSAGE value="适配mapepr扫描目录定义形式不一样的问题，兼容list,array,set 标签" />
     <MESSAGE value="添加日志" />
-    <option name="LAST_COMMIT_MESSAGE" value="添加日志" />
+    <MESSAGE value="commit changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="commit changes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
