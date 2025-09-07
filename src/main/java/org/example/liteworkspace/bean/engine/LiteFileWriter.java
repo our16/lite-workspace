@@ -184,7 +184,11 @@ public class LiteFileWriter {
                     ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
                     ContentEntry contentEntry = null;
                     for (ContentEntry ce : model.getContentEntries()) {
-                        if (testPath.startsWith(ce.getFile().getPath())) {
+                        VirtualFile file = ce.getFile();
+                        if (file == null) {
+                            continue;
+                        }
+                        if (testPath.startsWith(file.getPath())) {
                             contentEntry = ce;
                             break;
                         }

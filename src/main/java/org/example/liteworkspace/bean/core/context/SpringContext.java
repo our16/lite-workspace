@@ -4,35 +4,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaDirectoryService;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiAnnotationMemberValue;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiClassOwner;
-import com.intellij.psi.PsiCodeBlock;
-import com.intellij.psi.PsiConditionalExpression;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiExpression;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiImportList;
-import com.intellij.psi.PsiImportStatement;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
-import com.intellij.psi.PsiJavaFile;
-import com.intellij.psi.PsiLiteralExpression;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiMethodCallExpression;
-import com.intellij.psi.PsiModifier;
-import com.intellij.psi.PsiModifierList;
-import com.intellij.psi.PsiModifierListOwner;
-import com.intellij.psi.PsiNewExpression;
-import com.intellij.psi.PsiPackage;
-import com.intellij.psi.PsiReferenceExpression;
-import com.intellij.psi.PsiReturnStatement;
-import com.intellij.psi.PsiStatement;
-import com.intellij.psi.PsiType;
-import com.intellij.psi.PsiVariable;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PackageScope;
 import com.intellij.psi.search.searches.AllClassesSearch;
@@ -117,37 +89,59 @@ public class SpringContext {
                 }
 
                 String beanName = getBeanName(method);
-                String returnTypeName = returnType.getCanonicalText();
+                String returnTypeName = null;
+                if (returnType instanceof PsiClassType) {
+                    PsiClass psiClass = ((PsiClassType) returnType).resolve();
+                    if (psiClass != null) {
+                        // 先取标准 FQN
+                        returnTypeName = psiClass.getQualifiedName();
+                        if (returnTypeName == null) {
+                            // 如果 FQN 为空（匿名类/局部类等情况）
+                            // 用包名 + 类名来拼
+                            String pkg = ((PsiJavaFile) psiClass.getContainingFile())
+                                    .getPackageName();
+                            returnTypeName = pkg + "." + psiClass.getName();
+                        }
+                    }
+                }
 
+                if (returnTypeName == null) {
+                    // 同包只会返回类名，没有包名
+                    returnTypeName = returnType.getCanonicalText(); // 兜底
+                }
                 beanToConfiguration.put(method.getName(), configClass);
                 beanToConfiguration.put(returnTypeName, configClass);
                 if (!beanName.equals(method.getName())) {
                     beanToConfiguration.put(beanName, configClass);
                 }
-
                 // 如果返回类型是接口或抽象类，查找实现类
-                PsiClass returnPsiClass = PsiUtil.resolveClassInType(returnType);
-                if (returnPsiClass != null && (returnPsiClass.isInterface() || returnPsiClass.hasModifierProperty(PsiModifier.ABSTRACT))) {
-                    LogUtil.info("查找 {} 的实现类", returnTypeName);
-                    List<PsiClass> implementations = findImplementations(returnPsiClass, configClass, project);
-                    for (PsiClass implClass : implementations) {
-                        String implClassName = implClass.getQualifiedName();
-                        if (implClassName != null) {
-                            // 检查实现类是否有 Spring Bean 定义注解
-                            if (!hasSpringBeanAnnotation(implClass)) {
-                                LogUtil.info("实现类 {} 没有 Spring Bean 注解，添加到映射", implClassName);
-                                beanToConfiguration.put(implClassName, configClass);
-                            } else {
-                                LogUtil.info("实现类 {} 有 Spring Bean 注解，跳过", implClassName);
-                            }
-                        }
-                    }
-                }
+                resolveInterfaceAndAbstract(configClass, returnType, returnTypeName, project, beanToConfiguration);
             }
         }
 
         LogUtil.info("找到 {} 个配置类", beanToConfiguration.size());
         return beanToConfiguration;
+    }
+
+    private void resolveInterfaceAndAbstract(PsiClass configClass, PsiType returnType, String returnTypeName,
+                                             Project project, Map<String, PsiClass> beanToConfiguration) {
+        PsiClass returnPsiClass = PsiUtil.resolveClassInType(returnType);
+        if (returnPsiClass != null && (returnPsiClass.isInterface() || returnPsiClass.hasModifierProperty(PsiModifier.ABSTRACT))) {
+            LogUtil.info("查找 {} 的实现类", returnTypeName);
+            List<PsiClass> implementations = findImplementations(returnPsiClass, configClass, project);
+            for (PsiClass implClass : implementations) {
+                String implClassName = implClass.getQualifiedName();
+                if (implClassName != null) {
+                    // 检查实现类是否有 Spring Bean 定义注解
+                    if (!hasSpringBeanAnnotation(implClass)) {
+                        LogUtil.info("实现类 {} 没有 Spring Bean 注解，添加到映射", implClassName);
+                        beanToConfiguration.put(implClassName, configClass);
+                    } else {
+                        LogUtil.info("实现类 {} 有 Spring Bean 注解，跳过", implClassName);
+                    }
+                }
+            }
+        }
     }
 
     private String resolveActualBeanType(PsiMethod method) {

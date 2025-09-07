@@ -56,7 +56,13 @@ public class LogUtil {
             } else {
                 value = JSONUtil.toJsonStr(param);
             }
-            result = result.replaceFirst("\\{\\}", value);
+            try {
+                assert value != null;
+                result = result.replaceFirst("\\{\\}", value);
+            } catch (Exception e) {
+                e.printStackTrace();
+                result = null;
+            }
         }
         return result;
     }
