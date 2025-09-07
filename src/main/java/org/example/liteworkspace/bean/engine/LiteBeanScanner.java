@@ -25,27 +25,39 @@ public class LiteBeanScanner {
      * @return 基础类依赖的bean列表
      */
     public Collection<BeanDefinition> scanAndCollectBeanList(PsiClass rootClass, Project project) {
-        ForkJoinPool pool = new ForkJoinPool(5);
+        // 使用固定大小的线程池，避免 ForkJoinPool 可能导致的死锁
+        ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
         Set<String> visited = ConcurrentHashMap.newKeySet();
         Set<String> normalDependencies = ConcurrentHashMap.newKeySet();
         BeanRegistry registry = new BeanRegistry();
 
-        BeanScannerTask rootTask = new BeanScannerTask(rootClass, registry, context, visited, normalDependencies);
-
-        // 用 Future 接口执行，设置超时
-        ForkJoinTask<?> future = pool.submit(rootTask);
-
         try {
-            // 等待最多3分钟
-            future.get(3, TimeUnit.MINUTES);
-        } catch (TimeoutException e) {
-            // 超时，可能死锁，取消任务
-            future.cancel(true);
-            System.err.println("Bean scanning task timed out and was cancelled due to possible deadlock.");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            // 创建根任务
+            BeanScannerTask rootTask = new BeanScannerTask(rootClass, registry, context, visited, normalDependencies, executorService);
+            // 提交根任务
+            Future<?> future = executorService.submit(rootTask);
+            
+            try {
+                // 等待最多3分钟
+                future.get(3, TimeUnit.MINUTES);
+            } catch (TimeoutException e) {
+                // 超时，取消任务
+                future.cancel(true);
+                System.err.println("Bean scanning task timed out and was cancelled due to possible deadlock.");
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         } finally {
-            pool.shutdownNow();
+            // 关闭线程池
+            executorService.shutdown();
+            try {
+                if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
+                    executorService.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                executorService.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }
 
         return registry.getAllBeans();

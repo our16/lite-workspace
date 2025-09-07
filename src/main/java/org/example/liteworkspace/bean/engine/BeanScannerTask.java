@@ -1,6 +1,7 @@
 package org.example.liteworkspace.bean.engine;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -19,7 +20,8 @@ import org.example.liteworkspace.util.MyPsiClassUtil;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class BeanScannerTask extends RecursiveAction {
+public class BeanScannerTask implements Callable<Void> {
+    private final ExecutorService executorService;
     private final PsiClass clazz;
     private final BeanRegistry registry;
     private final LiteProjectContext context;
@@ -34,6 +36,7 @@ public class BeanScannerTask extends RecursiveAction {
         this.context = context;
         this.visited = visited;
         this.normalDependencies = normalDependencies;
+        this.executorService = null;
     }
 
     public BeanScannerTask(PsiClass clazz, BeanRegistry registry, LiteProjectContext context,
@@ -44,15 +47,37 @@ public class BeanScannerTask extends RecursiveAction {
         this.visited = visited;
         this.normalDependencies = normalDependencies;
         this.isConfigBean = isConfigBean;
+        this.executorService = null;
+    }
+
+    public BeanScannerTask(PsiClass clazz, BeanRegistry registry, LiteProjectContext context,
+                           Set<String> visited, Set<String> normalDependencies, boolean isConfigBean, ExecutorService executorService) {
+        this.clazz = clazz;
+        this.registry = registry;
+        this.context = context;
+        this.visited = visited;
+        this.normalDependencies = normalDependencies;
+        this.isConfigBean = isConfigBean;
+        this.executorService = executorService;
+    }
+
+    public BeanScannerTask(PsiClass clazz, BeanRegistry registry, LiteProjectContext context,
+                           Set<String> visited, Set<String> normalDependencies, ExecutorService executorService) {
+        this.clazz = clazz;
+        this.registry = registry;
+        this.context = context;
+        this.visited = visited;
+        this.normalDependencies = normalDependencies;
+        this.executorService = executorService;
     }
 
     @Override
-    protected void compute() {
-        ApplicationManager.getApplication().runReadAction(() -> {
+    public Void call() {
+        return ReadAction.compute(() -> {
             try {
                 String qName = clazz.getQualifiedName();
                 if (qName == null || !visited.add(qName)) {
-                    return;
+                    return null;
                 }
                 LogUtil.info("开始扫描类: {}", qName);
                 // 1. 解析当前类的 Bean 类型
@@ -71,14 +96,14 @@ public class BeanScannerTask extends RecursiveAction {
                 } else {
                     // 不是spring或mybatis管理的直接return
                     LogUtil.info("类 {} 不是Spring/MyBatis管理的Bean，跳过扫描", qName);
-                    return;
+                    return null;
                 }
 
                 // 2. 提取当前类引用的所有依赖类
                 Set<PsiClass> dependencies = extractDependencies(clazz);
                 LogUtil.info("类 {} 发现 {} 个依赖", qName, dependencies.size());
                 if (dependencies.isEmpty()) {
-                    return;
+                    return null;
                 }
 
                 // 3. 针对每个依赖创建子任务
@@ -90,13 +115,12 @@ public class BeanScannerTask extends RecursiveAction {
                     if (depQName == null) {
                         continue;
                     }
-
                     LogUtil.info("处理依赖: {}", depQName);
                     BeanType depType = resolveBeanType(dependency);
                     if (depType != BeanType.PLAIN) {
                         // 如果依赖本身也是一个 Bean，则递归扫描
                         LogUtil.info("依赖 {} 是Bean，类型: {}", depQName, depType);
-                        subTasks.add(new BeanScannerTask(dependency, registry, context, visited, normalDependencies));
+                        subTasks.add(new BeanScannerTask(dependency, registry, context, visited, normalDependencies, executorService));
                     } else if (dependency.isInterface()) {
                         // 查找接口的所有实现类
                         LogUtil.info("依赖 {} 是接口，查找实现类", depQName);
@@ -108,20 +132,20 @@ public class BeanScannerTask extends RecursiveAction {
                                 // 扫描对应的 configuration 类
                                 PsiClass relateConfiguration = bean2Configuration.get(subClassQualifiedName);
                                 LogUtil.info("实现类 {} 有对应的配置类 {}", subClassQualifiedName, relateConfiguration.getQualifiedName());
-                                subTasks.add(new BeanScannerTask(relateConfiguration, registry, context, visited, normalDependencies));
+                                subTasks.add(new BeanScannerTask(relateConfiguration, registry, context, visited, normalDependencies, executorService));
                                 // 自己也加进去是为了找依赖的类
-                                subTasks.add(new BeanScannerTask(subClass, registry, context, visited, normalDependencies, true));
+                                subTasks.add(new BeanScannerTask(subClass, registry, context, visited, normalDependencies, true, executorService));
                             } else {
-                                subTasks.add(new BeanScannerTask(subClass, registry, context, visited, normalDependencies));
+                                subTasks.add(new BeanScannerTask(subClass, registry, context, visited, normalDependencies, executorService));
                             }
                         }
                     } else if (bean2Configuration.containsKey(depQName)) {
                         // 扫描对应的 configuration 类
                         PsiClass relateConfiguration = bean2Configuration.get(depQName);
                         LogUtil.info("普通依赖 {} 有对应的配置类 {}", depQName, relateConfiguration.getQualifiedName());
-                        subTasks.add(new BeanScannerTask(relateConfiguration, registry, context, visited, normalDependencies));
+                        subTasks.add(new BeanScannerTask(relateConfiguration, registry, context, visited, normalDependencies, executorService));
                         // 自己也加进去是为了找依赖的类
-                        subTasks.add(new BeanScannerTask(dependency, registry, context, visited, normalDependencies, true));
+                        subTasks.add(new BeanScannerTask(dependency, registry, context, visited, normalDependencies, true, executorService));
                         normalDependencies.add(depQName);
                     } else {
                         // 普通依赖
@@ -132,12 +156,52 @@ public class BeanScannerTask extends RecursiveAction {
 
                 // 4. 并发执行所有子任务
                 LogUtil.info("类 {} 扫描完成，创建 {} 个子任务", qName, subTasks.size());
-                invokeAll(subTasks);
+                executeSubTasks(subTasks);
+                return null;
             } catch (Exception e) {
                 LogUtil.error("扫描类 {} 时发生错误: {}", e, clazz.getQualifiedName(), e.getMessage());
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    /**
+     * 执行子任务，使用线程池避免死锁
+     */
+    private void executeSubTasks(List<BeanScannerTask> subTasks) {
+        if (subTasks.isEmpty()) {
+            return;
+        }
+
+        if (executorService != null) {
+            // 使用外部线程池执行子任务
+            try {
+                List<Future<Void>> futures = new ArrayList<>();
+                for (BeanScannerTask subTask : subTasks) {
+                    futures.add(executorService.submit(subTask));
+                }
+
+                // 等待所有子任务完成
+                for (Future<Void> future : futures) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Task interrupted", e);
+                    } catch (ExecutionException e) {
+                        throw new RuntimeException("Task execution failed", e.getCause());
+                    }
+                }
+            } catch (Exception e) {
+                LogUtil.error("执行子任务时发生错误: {}", e, e.getMessage());
+                throw e;
+            }
+        } else {
+            // 如果没有外部线程池，串行执行
+            for (BeanScannerTask subTask : subTasks) {
+                subTask.call();
+            }
+        }
     }
 
     /**
