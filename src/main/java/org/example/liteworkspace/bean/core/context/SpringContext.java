@@ -7,8 +7,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.PackageScope;
 import com.intellij.psi.search.searches.AllClassesSearch;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
+import com.intellij.psi.search.searches.ClassInheritorsSearch;
+import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.apache.commons.collections.CollectionUtils;
@@ -51,18 +54,15 @@ public class SpringContext {
         Project project = this.project;
 
         Collection<PsiClass> classesToScan = new ArrayList<>();
-        // 默认：全量搜索
-        GlobalSearchScope baseScope = GlobalSearchScope.allScope(project);
-
         for (String pkgOrJar : packagePrefixes) {
             // 1️⃣ 先尝试当作包名前缀
             PsiPackage psiPackage = JavaPsiFacade.getInstance(project).findPackage(pkgOrJar);
             if (psiPackage != null) {
-                PsiDirectory[] directories = psiPackage.getDirectories(baseScope);
-                for (PsiDirectory dir : directories) {
-                    classesToScan.addAll(List.of(JavaDirectoryService.getInstance().getClasses(dir)));
-                    addSubPackageClasses(dir, classesToScan);
-                }
+                // 使用 PackageScope 创建搜索范围，包含库文件
+                GlobalSearchScope packageScope = new PackageScope(psiPackage, true, true);
+                LogUtil.info("为包 {} 创建 PackageScope，包含库文件", pkgOrJar);
+                // 在包范围内搜索所有类
+                classesToScan.addAll(AllClassesSearch.search(packageScope, project).findAll());
                 continue;
             }
 
@@ -70,9 +70,12 @@ public class SpringContext {
             VirtualFile jarFile = findJarByName(project, pkgOrJar);
             if (jarFile != null) {
                 GlobalSearchScope jarScope = GlobalSearchScope.filesScope(project, Set.of(jarFile));
+                LogUtil.info("为 JAR 文件 {} 创建搜索范围", jarFile.getName());
                 classesToScan.addAll(AllClassesSearch.search(jarScope, project).findAll());
             }
         }
+
+        LogUtil.info("总共找到 {} 个类需要扫描", classesToScan.size());
 
         // 遍历类，找到 @Configuration + @Bean 方法
         for (PsiClass clazz : classesToScan) {
@@ -86,7 +89,9 @@ public class SpringContext {
                 }
 
                 PsiType returnType = method.getReturnType();
-                if (returnType == null) continue;
+                if (returnType == null) {
+                    continue;
+                }
 
                 String beanName = getBeanName(method);
                 String returnTypeName = returnType.getCanonicalText();
@@ -96,11 +101,118 @@ public class SpringContext {
                 if (!beanName.equals(method.getName())) {
                     beanToConfiguration.put(beanName, clazz);
                 }
+                
+                // 如果返回类型是接口或抽象类，查找实现类
+                PsiClass returnPsiClass = PsiUtil.resolveClassInType(returnType);
+                if (returnPsiClass != null && (returnPsiClass.isInterface() || returnPsiClass.hasModifierProperty(PsiModifier.ABSTRACT))) {
+                    LogUtil.info("查找 {} 的实现类", returnTypeName);
+                    List<PsiClass> implementations = findImplementations(returnPsiClass, project);
+                    for (PsiClass implClass : implementations) {
+                        String implClassName = implClass.getQualifiedName();
+                        if (implClassName != null) {
+                            // 检查实现类是否有 Spring Bean 定义注解
+                            if (!hasSpringBeanAnnotation(implClass)) {
+                                LogUtil.info("实现类 {} 没有 Spring Bean 注解，添加到映射", implClassName);
+                                beanToConfiguration.put(implClassName, clazz);
+                            } else {
+                                LogUtil.info("实现类 {} 有 Spring Bean 注解，跳过", implClassName);
+                            }
+                        }
+                    }
+                }
             }
         }
 
+        LogUtil.info("找到 {} 个配置类", beanToConfiguration.size());
         return beanToConfiguration;
     }
+
+    private String resolveActualBeanType(PsiMethod method) {
+        PsiType returnType = method.getReturnType();
+        if (returnType == null) {
+            return null;
+        }
+
+        String fallbackType = returnType.getCanonicalText();
+
+        PsiCodeBlock body = method.getBody();
+        if (body == null) {
+            return fallbackType;
+        }
+
+        for (PsiStatement stmt : body.getStatements()) {
+            if (stmt instanceof PsiReturnStatement returnStmt) {
+                PsiExpression returnExpr = returnStmt.getReturnValue();
+                String resolved = resolveExpressionType(returnExpr, new HashSet<>(), 0);
+                if (resolved != null) {
+                    return resolved;
+                }
+            }
+        }
+
+        return fallbackType;
+    }
+
+    /**
+     * 递归解析表达式的实际类型
+     */
+    private String resolveExpressionType(PsiExpression expr, Set<PsiElement> visited, int depth) {
+        if (expr == null || depth > 10) { // 避免无限递归
+            LogUtil.info("递归超过10层，停止递归");
+            return null;
+        }
+        // 访问过了
+        if (!visited.add(expr)) {
+            return null;
+        }
+
+        // case 1: new XxxImpl(...)
+        if (expr instanceof PsiNewExpression newExpr) {
+            PsiJavaCodeReferenceElement classRef = newExpr.getClassReference();
+            if (classRef != null) {
+                PsiElement resolved = classRef.resolve();
+                if (resolved instanceof PsiClass implClass) {
+                    return implClass.getQualifiedName();
+                }
+            }
+        }
+
+        // case 2: method call
+        if (expr instanceof PsiMethodCallExpression callExpr) {
+            PsiMethod calledMethod = callExpr.resolveMethod();
+            if (calledMethod != null && calledMethod.getBody() != null) {
+                return resolveActualBeanType(calledMethod);
+            }
+            // 如果解析不到方法体，退化为方法返回类型
+            PsiType type = callExpr.getType();
+            return type != null ? type.getCanonicalText() : null;
+        }
+
+        // case 3: reference to variable/field
+        if (expr instanceof PsiReferenceExpression refExpr) {
+            PsiElement resolved = refExpr.resolve();
+            if (resolved instanceof PsiVariable var) {
+                PsiExpression initializer = var.getInitializer();
+                if (initializer != null) {
+                    return resolveExpressionType(initializer, visited, depth + 1);
+                }
+            }
+        }
+
+        // case 4: 三元表达式 a ? b : c
+        if (expr instanceof PsiConditionalExpression condExpr) {
+            String thenType = resolveExpressionType(condExpr.getThenExpression(), visited, depth + 1);
+            if (thenType != null) {
+                return thenType;
+            }
+            return resolveExpressionType(condExpr.getElseExpression(), visited, depth + 1);
+        }
+
+        // case 5: 类型直接推断
+        PsiType type = expr.getType();
+        return type != null ? type.getCanonicalText() : null;
+    }
+
 
     /**
      * 查找项目依赖中是否存在给定名字的 JAR
@@ -169,6 +281,162 @@ public class SpringContext {
 
         // 默认返回方法名
         return method.getName();
+    }
+
+    /**
+     * 查找接口或抽象类的所有实现类
+     *
+     * @param interfaceClass 接口或抽象类
+     * @param project 项目对象
+     * @return 实现类列表
+     */
+    private List<PsiClass> findImplementations(PsiClass interfaceClass, Project project) {
+        if (interfaceClass == null || !interfaceClass.isValid()) {
+            return Collections.emptyList();
+        }
+
+        String interfaceQName = interfaceClass.getQualifiedName();
+        LogUtil.info("查找接口 {} 的实现类", interfaceQName);
+
+        // 使用 ClassInheritorsSearch 查找所有实现类
+        GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+        Collection<PsiClass> implementations = ClassInheritorsSearch.search(interfaceClass, scope, true).findAll();
+
+        // 过滤出真正的实现类（排除接口和注解）
+        List<PsiClass> allImplementations = new ArrayList<>();
+        for (PsiClass implClass : implementations) {
+            if (!implClass.isInterface() && !implClass.isAnnotationType()) {
+                allImplementations.add(implClass);
+                LogUtil.info("找到候选实现类: {}", implClass.getQualifiedName());
+            }
+        }
+
+        // 如果没有配置类或者配置类不在文件中，直接返回所有实现类
+        if (interfaceClass.getContainingFile() == null) {
+            LogUtil.info("接口 {} 没有包含文件，返回所有 {} 个实现类", interfaceQName, allImplementations.size());
+            return allImplementations;
+        }
+
+        // 获取接口所在的配置类
+        PsiFile containingFile = interfaceClass.getContainingFile();
+        PsiClass configClass = null;
+        if (containingFile instanceof PsiJavaFile) {
+            PsiClass[] classes = ((PsiJavaFile) containingFile).getClasses();
+            if (classes.length > 0) {
+                configClass = classes[0]; // 假设第一个类是配置类
+            }
+        }
+
+        if (configClass == null) {
+            LogUtil.info("接口 {} 没有找到配置类，返回所有 {} 个实现类", interfaceQName, allImplementations.size());
+            return allImplementations;
+        }
+
+        // 1. 分析配置类的 import 范围
+        Set<String> importedClasses = getImportedClasses(configClass);
+        LogUtil.info("配置类 {} 导入了 {} 个类", configClass.getQualifiedName(), importedClasses.size());
+
+        // 2. 分析配置类的同包目录
+        String configPackage = getPackageName(configClass);
+        LogUtil.info("配置类 {} 所在包: {}", configClass.getQualifiedName(), configPackage);
+
+        // 3. 过滤实现类
+        List<PsiClass> filteredImplementations = new ArrayList<>();
+        for (PsiClass implClass : allImplementations) {
+            String implClassName = implClass.getQualifiedName();
+            if (implClassName == null) {
+                continue;
+            }
+
+            // 检查是否在 import 范围内
+            boolean isInImportScope = importedClasses.contains(implClassName);
+            
+            // 检查是否在同包目录
+            boolean isInSamePackage = false;
+            String implPackage = getPackageName(implClass);
+            if (implPackage != null && implPackage.equals(configPackage)) {
+                isInSamePackage = true;
+            }
+
+            if (isInImportScope || isInSamePackage) {
+                filteredImplementations.add(implClass);
+                LogUtil.info("实现类 {} 通过过滤 (import: {}, samePackage: {})",
+                    implClassName, isInImportScope, isInSamePackage);
+            } else {
+                LogUtil.info("实现类 {} 未通过过滤 (import: {}, samePackage: {})",
+                    implClassName, isInImportScope, isInSamePackage);
+            }
+        }
+
+        LogUtil.info("接口 {} 过滤后找到 {} 个实现类", interfaceQName, filteredImplementations.size());
+        return filteredImplementations;
+    }
+
+    /**
+     * 获取类的所有导入类
+     *
+     * @param psiClass 要分析的类
+     * @return 导入类的全限定名集合
+     */
+    private Set<String> getImportedClasses(PsiClass psiClass) {
+        Set<String> importedClasses = new HashSet<>();
+        
+        PsiFile containingFile = psiClass.getContainingFile();
+        if (containingFile instanceof PsiJavaFile) {
+            PsiImportList importList = ((PsiJavaFile) containingFile).getImportList();
+            if (importList != null) {
+                for (PsiImportStatement importStatement : importList.getImportStatements()) {
+                    String qualifiedName = importStatement.getQualifiedName();
+                    if (qualifiedName != null) {
+                        importedClasses.add(qualifiedName);
+                    }
+                }
+            }
+        }
+        
+        return importedClasses;
+    }
+
+    /**
+     * 获取类所在的包名
+     *
+     * @param psiClass 要分析的类
+     * @return 包名，如果无法确定则返回 null
+     */
+    private String getPackageName(PsiClass psiClass) {
+        String qualifiedName = psiClass.getQualifiedName();
+        if (qualifiedName == null) {
+            return null;
+        }
+        
+        int lastDotIndex = qualifiedName.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+            return qualifiedName.substring(0, lastDotIndex);
+        }
+        
+        return null; // 默认包
+    }
+
+    /**
+     * 检查类是否有 Spring Bean 定义注解
+     *
+     * @param psiClass 要检查的类
+     * @return 如果有 Spring Bean 注解则返回 true，否则返回 false
+     */
+    private boolean hasSpringBeanAnnotation(PsiClass psiClass) {
+        if (psiClass == null) {
+            return false;
+        }
+
+        // 检查常见的 Spring Bean 注解
+        return hasAnnotation(psiClass, "org.springframework.stereotype.Component") ||
+                hasAnnotation(psiClass, "org.springframework.stereotype.Service") ||
+                hasAnnotation(psiClass, "org.springframework.stereotype.Repository") ||
+                hasAnnotation(psiClass, "org.springframework.stereotype.Controller") ||
+                hasAnnotation(psiClass, "org.springframework.stereotype.RestController") ||
+                hasAnnotation(psiClass, "org.springframework.context.annotation.Configuration") ||
+                hasAnnotation(psiClass, "org.springframework.beans.factory.annotation.Autowired") ||
+                hasAnnotation(psiClass, "org.apache.ibatis.annotations.Mapper");
     }
 
     public Set<String> getComponentScanPackages() {

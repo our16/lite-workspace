@@ -4,13 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="commit changes">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/CostUtil.java" afterDir="false" />
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="优化扫描范围，根据上下文配置，扫描配置的目录">
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/MyPsiClassUtil.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteWorkspaceService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteWorkspaceService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/SpringContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/SpringContext.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringConfigurationScanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/SpringConfigurationScanner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/LogUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/LogUtil.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -101,7 +101,7 @@
     <option name="FILTER_WARNINGS" value="false" />
     <option name="FILTER_INFO" value="false" />
     <option name="FILTER_DEBUG" value="false" />
-    <option name="CUSTOM_FILTER" value="LiteWorkspace" />
+    <option name="CUSTOM_FILTER" value="liteworkspace" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 1
@@ -123,7 +123,7 @@
     "Application.TestRun.executor": "Run",
     "Batch.download-gradle.executor": "Debug",
     "Gradle.Build lite-workspace.executor": "Run",
-    "Gradle.Run Plugin.executor": "Debug",
+    "Gradle.Run Plugin.executor": "Run",
     "Gradle.lite-workspace [buildPlugin].executor": "Run",
     "Gradle.lite-workspace [clean].executor": "Run",
     "Gradle.lite-workspace [setupDependencies].executor": "Run",
@@ -265,14 +265,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00055" summary="只扫描resource">
-      <option name="closed" value="true" />
-      <created>1753020439362</created>
-      <option name="number" value="00055" />
-      <option name="presentableId" value="LOCAL-00055" />
-      <option name="project" value="LOCAL" />
-      <updated>1753020439362</updated>
     </task>
     <task id="LOCAL-00056" summary="初始化扫描">
       <option name="closed" value="true" />
@@ -658,7 +650,15 @@
       <option name="project" value="LOCAL" />
       <updated>1757180018902</updated>
     </task>
-    <option name="localTasksCounter" value="104" />
+    <task id="LOCAL-00104" summary="优化扫描范围，根据上下文配置，扫描配置的目录">
+      <option name="closed" value="true" />
+      <created>1757226817288</created>
+      <option name="number" value="00104" />
+      <option name="presentableId" value="LOCAL-00104" />
+      <option name="project" value="LOCAL" />
+      <updated>1757226817288</updated>
+    </task>
+    <option name="localTasksCounter" value="105" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -673,7 +673,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="ui" />
     <MESSAGE value="自定义编译器" />
     <MESSAGE value="使用idea 的编译器" />
     <MESSAGE value="一个完善版本" />
@@ -698,7 +697,8 @@
     <MESSAGE value="适配mapepr扫描目录定义形式不一样的问题，兼容list,array,set 标签" />
     <MESSAGE value="添加日志" />
     <MESSAGE value="commit changes" />
-    <option name="LAST_COMMIT_MESSAGE" value="commit changes" />
+    <MESSAGE value="优化扫描范围，根据上下文配置，扫描配置的目录" />
+    <option name="LAST_COMMIT_MESSAGE" value="优化扫描范围，根据上下文配置，扫描配置的目录" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

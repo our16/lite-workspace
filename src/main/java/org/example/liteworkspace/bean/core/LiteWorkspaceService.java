@@ -52,7 +52,7 @@ public class LiteWorkspaceService {
         // -------------------- Step 5: 写入文件（Psi / 本地文件） --------------------
         LogUtil.info("start write xml file");
         writeFiles(projectContext, targetClass, beanMap, beans);
-        LogUtil.info("end write xml file,cost:{}ms", CostUtil.end(targetClass.getQualifiedName()));
+        LogUtil.info("end write xml file,cost:{} s", CostUtil.end(targetClass.getQualifiedName())/ 1000);
     }
 
     /**

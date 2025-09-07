@@ -3,8 +3,11 @@ package org.example.liteworkspace.util;
 import com.intellij.openapi.diagnostic.Logger;
 import org.example.liteworkspace.bean.core.LiteWorkspaceService;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class LogUtil {
 
@@ -27,6 +30,14 @@ public class LogUtil {
                 value = "null";
             } else if (isPrimitiveOrString(param)) {
                 value = String.valueOf(param);
+            } else if (param instanceof Collection<?> col) {
+                value = col.stream()
+                        .map(Object::toString) // 或者 clazz.getQualifiedName()
+                        .collect(Collectors.joining(", ", "[", "]"));
+            } else if (param instanceof Map<?, ?> map) {
+                value = map.entrySet().stream()
+                        .map(e -> e.getKey() + "=" + e.getValue())
+                        .collect(Collectors.joining(", ", "{", "}"));
             } else {
                 value = JSONUtil.toJsonStr(param);
             }
