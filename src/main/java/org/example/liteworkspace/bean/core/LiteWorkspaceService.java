@@ -7,6 +7,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import org.example.liteworkspace.bean.core.context.LiteProjectContext;
 import org.example.liteworkspace.bean.engine.*;
+import org.example.liteworkspace.util.CostUtil;
 import org.example.liteworkspace.util.LogUtil;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ public class LiteWorkspaceService {
      */
     public void scanAndGenerate(PsiClass targetClass, PsiMethod targetMethod) {
         Objects.requireNonNull(targetClass, "targetClass不能为空");
+        CostUtil.start(targetClass.getQualifiedName());
         LogUtil.info("start scanAndGenerate java bean an xml file");
         // -------------------- Step 1: 收集依赖包 --------------------
 //        Set<String> miniPackageNames = SpringDependencyCollector.collectSpringDependencyPackages(List.of(targetClass));
@@ -50,7 +52,7 @@ public class LiteWorkspaceService {
         // -------------------- Step 5: 写入文件（Psi / 本地文件） --------------------
         LogUtil.info("start write xml file");
         writeFiles(projectContext, targetClass, beanMap, beans);
-        LogUtil.info("end write xml file");
+        LogUtil.info("end write xml file,cost:{}ms", CostUtil.end(targetClass.getQualifiedName()));
     }
 
     /**
@@ -63,22 +65,22 @@ public class LiteWorkspaceService {
 
         // 使用IDEA WriteCommandAction保证写入安全
         ApplicationManager.getApplication().invokeLater(() ->
-                WriteCommandAction.runWriteCommandAction(project, () -> {
+                        WriteCommandAction.runWriteCommandAction(project, () -> {
 
-                    // 1️⃣ 写Spring XML文件
-                    new LiteFileWriter(projectContext).write(project, targetClass, beanMap);
+                            // 1️⃣ 写Spring XML文件
+                            new LiteFileWriter(projectContext).write(project, targetClass, beanMap);
 
-                    // 2️⃣ 写 bean-classes.txt
-                    Path file = Paths.get(project.getBasePath(), "build/lite/bean-classes.txt");
-                    try {
-                        Files.createDirectories(file.getParent());
-                        Set<String> classNames = beans.stream()
-                                .map(BeanDefinition::getClassName)
-                                .collect(Collectors.toCollection(LinkedHashSet::new));
-                        Files.write(file, classNames, StandardCharsets.UTF_8);
-                    } catch (IOException e) {
-                        throw new RuntimeException("写入 bean-classes.txt 失败", e);
-                    }
+                            // 2️⃣ 写 bean-classes.txt
+                            Path file = Paths.get(project.getBasePath(), "build/lite/bean-classes.txt");
+                            try {
+                                Files.createDirectories(file.getParent());
+                                Set<String> classNames = beans.stream()
+                                        .map(BeanDefinition::getClassName)
+                                        .collect(Collectors.toCollection(LinkedHashSet::new));
+                                Files.write(file, classNames, StandardCharsets.UTF_8);
+                            } catch (IOException e) {
+                                throw new RuntimeException("写入 bean-classes.txt 失败", e);
+                            }
 
 //                    // 3️⃣ 保存缓存
 //                    LiteCacheStorage cacheStorage = new LiteCacheStorage(project);
@@ -87,7 +89,7 @@ public class LiteWorkspaceService {
 //                    cacheStorage.saveDatasourceConfig(projectContext.getSpringContext().getDatasourceConfig());
 //                    cacheStorage.saveSpringScanPackages(projectContext.getSpringContext().getComponentScanPackages());
 //                    cacheStorage.saveBeanList(beans);
-                })
+                        })
         );
     }
 }

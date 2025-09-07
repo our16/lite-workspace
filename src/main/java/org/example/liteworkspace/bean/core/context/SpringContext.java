@@ -8,8 +8,10 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.AllClassesSearch;
+import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.apache.commons.collections.CollectionUtils;
 import org.example.liteworkspace.bean.engine.SpringConfigurationScanner;
 import org.example.liteworkspace.util.LogUtil;
 import org.jetbrains.annotations.Nullable;
@@ -31,6 +33,11 @@ public class SpringContext {
         SpringConfigurationScanner scanner = new SpringConfigurationScanner();
         // 收集配置的bean扫描目录
         componentScanPackages.addAll(scanner.scanEffectiveComponentScanPackages(project));
+        if (CollectionUtils.isEmpty(miniPackages)) {
+            miniPackages = componentScanPackages;
+        } else {
+            miniPackages.addAll(componentScanPackages);
+        }
         LogUtil.info("componentScanPackages：{}", componentScanPackages);
         //收集 @bean 定义的bean
         Map<String, PsiClass> configs = getConfigurationClasses(miniPackages);
@@ -47,26 +54,23 @@ public class SpringContext {
         // 默认：全量搜索
         GlobalSearchScope baseScope = GlobalSearchScope.allScope(project);
 
-        if (packagePrefixes == null || packagePrefixes.isEmpty()) {
-            classesToScan.addAll(AllClassesSearch.search(baseScope, project).findAll());
-        } else {
-            for (String pkgOrJar : packagePrefixes) {
-                // 1️⃣ 先尝试当作包名前缀
-                PsiPackage psiPackage = JavaPsiFacade.getInstance(project).findPackage(pkgOrJar);
-                if (psiPackage != null) {
-                    for (PsiDirectory dir : psiPackage.getDirectories(baseScope)) {
-                        classesToScan.addAll(List.of(JavaDirectoryService.getInstance().getClasses(dir)));
-                        addSubPackageClasses(dir, classesToScan);
-                    }
-                    continue;
+        for (String pkgOrJar : packagePrefixes) {
+            // 1️⃣ 先尝试当作包名前缀
+            PsiPackage psiPackage = JavaPsiFacade.getInstance(project).findPackage(pkgOrJar);
+            if (psiPackage != null) {
+                PsiDirectory[] directories = psiPackage.getDirectories(baseScope);
+                for (PsiDirectory dir : directories) {
+                    classesToScan.addAll(List.of(JavaDirectoryService.getInstance().getClasses(dir)));
+                    addSubPackageClasses(dir, classesToScan);
                 }
+                continue;
+            }
 
-                // 2️⃣ 如果不是包，再尝试匹配 JAR
-                VirtualFile jarFile = findJarByName(project, pkgOrJar);
-                if (jarFile != null) {
-                    GlobalSearchScope jarScope = GlobalSearchScope.filesScope(project, Set.of(jarFile));
-                    classesToScan.addAll(AllClassesSearch.search(jarScope, project).findAll());
-                }
+            // 2️⃣ 如果不是包，再尝试匹配 JAR
+            VirtualFile jarFile = findJarByName(project, pkgOrJar);
+            if (jarFile != null) {
+                GlobalSearchScope jarScope = GlobalSearchScope.filesScope(project, Set.of(jarFile));
+                classesToScan.addAll(AllClassesSearch.search(jarScope, project).findAll());
             }
         }
 
@@ -118,8 +122,6 @@ public class SpringContext {
         }
         return null;
     }
-
-
 
 
     // 递归扫描子包

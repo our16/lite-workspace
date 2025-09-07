@@ -2,6 +2,7 @@ package org.example.liteworkspace.bean.engine;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.java.stubs.index.JavaFullClassNameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -457,17 +458,30 @@ public class BeanScannerTask extends RecursiveAction {
         String interfaceQName = interfaceClass.getQualifiedName();
         Project project = this.context.getProject();
 
+        // 获取Spring上下文中配置的组件扫描包
+        Set<String> scanPackages = context.getSpringContext().getComponentScanPackages();
+        
+        // 创建搜索范围
+        GlobalSearchScope scope;
+        if (scanPackages == null || scanPackages.isEmpty()) {
+            // 如果没有配置扫描包，默认扫描所有类
+            scope = GlobalSearchScope.allScope(project);
+        } else {
+            // 根据扫描包创建搜索范围
+            scope = createSearchScopeForPackages(project, scanPackages);
+        }
+
         // -------------------------------
         // 方法1：ClassInheritorsSearch（支持源码 + 库）
         // -------------------------------
-        GlobalSearchScope scope = GlobalSearchScope.allScope(project); // 包含模块 + 库（jar）
-        Set<PsiClass> implementations = new LinkedHashSet<>(ClassInheritorsSearch.search(interfaceClass, scope, true).findAll());
+        Collection<PsiClass> implementations = ClassInheritorsSearch.search(interfaceClass, scope, true).findAll();
+        Set<PsiClass> allImplementations = new LinkedHashSet<>(implementations);
 
         // -------------------------------
         // 方法2：JavaPsiFacade查找类（备用）
         // -------------------------------
         PsiClass[] classes = JavaPsiFacade.getInstance(project).findClasses(interfaceQName, scope);
-        implementations.addAll(Arrays.asList(classes));
+        allImplementations.addAll(Arrays.asList(classes));
 
         // -------------------------------
         // 方法3：StubIndex底层扫描（可选，性能稍低）
@@ -483,7 +497,7 @@ public class BeanScannerTask extends RecursiveAction {
                         for (PsiClassType type : psiClass.getImplementsListTypes()) {
                             PsiClass resolved = type.resolve();
                             if (resolved != null && interfaceQName.equals(resolved.getQualifiedName())) {
-                                implementations.add(psiClass);
+                                allImplementations.add(psiClass);
                                 break;
                             }
                         }
@@ -492,8 +506,104 @@ public class BeanScannerTask extends RecursiveAction {
                 }
         );
 
-        return new ArrayList<>(implementations);
+        // 过滤出真正的实现类，并确保在扫描包范围内
+        List<PsiClass> filteredImplementations = new ArrayList<>();
+        for (PsiClass implClass : allImplementations) {
+            // 检查是否是接口或注解类型
+            if (implClass.isInterface() || implClass.isAnnotationType()) {
+                continue;
+            }
+            
+            // 检查是否实现了目标接口
+            for (PsiClassType type : implClass.getImplementsListTypes()) {
+                PsiClass resolved = type.resolve();
+                if (resolved != null && interfaceQName.equals(resolved.getQualifiedName())) {
+                    filteredImplementations.add(implClass);
+                    break;
+                }
+            }
+        }
+
+        return filteredImplementations;
     }
 
+    /**
+     * 根据包前缀创建搜索范围
+     *
+     * @param project 当前项目
+     * @param packagePrefixes 包前缀集合
+     * @return 搜索范围
+     */
+    private GlobalSearchScope createSearchScopeForPackages(Project project, Set<String> packagePrefixes) {
+        List<GlobalSearchScope> scopes = new ArrayList<>();
+        
+        for (String pkgPrefix : packagePrefixes) {
+            // 尝试当作包名前缀
+            PsiPackage psiPackage = JavaPsiFacade.getInstance(project).findPackage(pkgPrefix);
+            if (psiPackage != null) {
+                // 使用包的目录创建搜索范围
+                for (PsiDirectory dir : psiPackage.getDirectories(GlobalSearchScope.allScope(project))) {
+                    VirtualFile virtualFile = dir.getVirtualFile();
+                    scopes.add(GlobalSearchScope.filesScope(project, Set.of(virtualFile)));
+                    // 添加子包
+                    addSubPackageScopes(dir, scopes, project);
+                }
+            }
+        }
+        
+        if (scopes.isEmpty()) {
+            return GlobalSearchScope.allScope(project);
+        } else if (scopes.size() == 1) {
+            return scopes.get(0);
+        } else {
+            return GlobalSearchScope.union(scopes);
+        }
+    }
+    
+    /**
+     * 递归添加子包的搜索范围
+     *
+     * @param dir 当前目录
+     * @param scopes 搜索范围列表
+     * @param project 项目对象
+     */
+    private void addSubPackageScopes(PsiDirectory dir, List<GlobalSearchScope> scopes, Project project) {
+        for (PsiDirectory subDir : dir.getSubdirectories()) {
+            VirtualFile virtualFile = subDir.getVirtualFile();
+            scopes.add(GlobalSearchScope.filesScope(project, Set.of(virtualFile)));
+            addSubPackageScopes(subDir, scopes, project);
+        }
+    }
+
+    /**
+     * 检查给定的类是否在 Spring 上下文中配置的组件扫描包范围内
+     *
+     * @param psiClass 要检查的类
+     * @return 如果类在组件扫描包范围内则返回 true，否则返回 false
+     */
+    private boolean isInComponentScanPackages(PsiClass psiClass) {
+        if (psiClass == null) {
+            return false;
+        }
+        
+        String className = psiClass.getQualifiedName();
+        if (className == null) {
+            return false;
+        }
+        
+        Set<String> scanPackages = context.getSpringContext().getComponentScanPackages();
+        if (scanPackages == null || scanPackages.isEmpty()) {
+            // 如果没有配置扫描包，默认扫描所有类
+            return true;
+        }
+        
+        for (String scanPackage : scanPackages) {
+            if (className.startsWith(scanPackage)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 
 }

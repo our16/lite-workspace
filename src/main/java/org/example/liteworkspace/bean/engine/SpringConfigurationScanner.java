@@ -10,6 +10,7 @@ import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.psi.util.PsiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +28,7 @@ public class SpringConfigurationScanner {
     private static final String COMPONENT_SCAN_ANNOTATION = "org.springframework.context.annotation.ComponentScan";
     private static final String CONFIGURATION_ANNOTATION = "org.springframework.context.annotation.Configuration";
     private static final String SPRING_BOOT_APP_ANNOTATION = "org.springframework.boot.autoconfigure.SpringBootApplication";
+    private static final String MAPPER_SCAN_ANNOTATION = "org.mybatis.spring.annotation.MapperScan";
     private static final String SPRING_FACTORIES_PATH = "META-INF/spring.factories";
     private static final String ENABLE_AUTO_CONFIGURATION_KEY = "org.springframework.boot.autoconfigure.EnableAutoConfiguration";
 
@@ -69,8 +71,8 @@ public class SpringConfigurationScanner {
             VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots(false);
 
             for (VirtualFile sourceRoot : sourceRoots) {
-                // --- 修正点：使用递归遍历来查找 Java 文件 ---
-                collectComponentScanPackagesFromJava(project, sourceRoot, scanPackages);
+                // --- 使用索引查找带有特定注解的类 ---
+                collectComponentScanPackagesFromJava(project, module, scanPackages);
                 // --- 修正点结束 ---
 
                 // 扫描 XML 配置 (这部分保持不变)
@@ -82,116 +84,227 @@ public class SpringConfigurationScanner {
     }
 
     /**
-     * --- 修正点：新增方法，递归遍历 VirtualFile 目录结构来查找 Java 文件并处理 ---
-     * 递归地收集源根目录下所有 Java 文件中定义的 @ComponentScan 包路径。
+     * 使用 IntelliJ IDEA 索引系统查找模块中带有特定注解的类
      *
      * @param project       当前项目
-     * @param directory     当前遍历的 VirtualFile 目录
+     * @param module        要扫描的模块
      * @param scanPackages  用于收集扫描包路径的集合
      */
-    private void collectComponentScanPackagesFromJava(@NotNull Project project, @NotNull VirtualFile directory, @NotNull Set<String> scanPackages) {
-        // 遍历目录下的所有子文件/文件夹
-        for (VirtualFile file : directory.getChildren()) {
-            if (file.isDirectory()) {
-                // 如果是目录，递归调用
-                collectComponentScanPackagesFromJava(project, file, scanPackages);
-            } else if ("java".equals(file.getExtension())) {
-                // 如果是 .java 文件，处理它
-                processJavaFileForComponentScan(project, file, scanPackages);
-            }
-        }
+    private void collectComponentScanPackagesFromJava(@NotNull Project project, @NotNull Module module, @NotNull Set<String> scanPackages) {
+        // 创建模块范围的搜索范围
+        GlobalSearchScope moduleScope = GlobalSearchScope.moduleScope(module);
+        
+        // 查找带有 @SpringBootApplication 注解的类
+        findAndProcessAnnotatedClasses(project, moduleScope, SPRING_BOOT_APP_ANNOTATION, scanPackages);
+        
+        // 查找带有 @ComponentScan 注解的类
+        findAndProcessAnnotatedClasses(project, moduleScope, COMPONENT_SCAN_ANNOTATION, scanPackages);
+        
+        // 查找带有 @MapperScan 注解的类
+        findAndProcessAnnotatedClasses(project, moduleScope, MAPPER_SCAN_ANNOTATION, scanPackages);
     }
-
+    
     /**
-     * --- 修正点：新增方法，处理单个 Java 文件 ---
-     * 处理单个 Java 文件，查找其中的 @ComponentScan, @SpringBootApplication, @MapperScan 等注解并提取相关包路径。
+     * 查找并处理带有特定注解的类
      *
      * @param project       当前项目
-     * @param javaFile      要处理的 Java VirtualFile
-     * @param scanPackages  用于收集扫描包路径的集合 (用于 @ComponentScan, @SpringBootApplication)
+     * @param searchScope   搜索范围
+     * @param annotationName 注解全限定名
+     * @param scanPackages  用于收集扫描包路径的集合
      */
-    private void processJavaFileForComponentScan(@NotNull Project project, @NotNull VirtualFile javaFile, @NotNull Set<String> scanPackages) {
-        PsiFile psiFile = PsiManager.getInstance(project).findFile(javaFile);
-        if (!(psiFile instanceof PsiJavaFile)) {
-            return; // 不是有效的 Java 文件
+    private void findAndProcessAnnotatedClasses(@NotNull Project project, @NotNull GlobalSearchScope searchScope,
+                                               @NotNull String annotationName, @NotNull Set<String> scanPackages) {
+        // 使用索引查找所有带有指定注解的类
+        // 首先获取注解类，使用项目范围而不是模块范围，因为注解类可能在依赖库中
+        PsiClass annotationClass = JavaPsiFacade.getInstance(project).findClass(annotationName, GlobalSearchScope.allScope(project));
+        if (annotationClass == null) {
+            // 如果找不到注解类，尝试使用另一种方法查找带有该注解的类
+            findAnnotatedClassesByAnnotationName(project, searchScope, annotationName, scanPackages);
+            return;
         }
-        PsiJavaFile javaPsiFile = (PsiJavaFile) psiFile;
+        
+        // 使用索引查找所有带有指定注解的类
+        Collection<PsiClass> annotatedClasses = AnnotatedElementsSearch.searchPsiClasses(
+                annotationClass,
+                searchScope
+        ).findAll();
+        
+        // 处理每个带有注解的类
+        for (PsiClass psiClass : annotatedClasses) {
+            processAnnotatedClass(psiClass, annotationName, scanPackages, project);
+        }
+    }
+    
+    /**
+     * 当无法直接获取注解类时，通过注解名称查找带有该注解的类
+     *
+     * @param project       当前项目
+     * @param searchScope   搜索范围
+     * @param annotationName 注解全限定名
+     * @param scanPackages  用于收集扫描包路径的集合
+     */
+    private void findAnnotatedClassesByAnnotationName(@NotNull Project project, @NotNull GlobalSearchScope searchScope,
+                                                    @NotNull String annotationName, @NotNull Set<String> scanPackages) {
+        // 使用 JavaPsiFacade 搜索所有类，然后检查它们是否带有指定的注解
+        JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
+        
+        // 获取搜索范围内的所有类
+        PsiClass[] allClasses = javaPsiFacade.findClasses("*", searchScope);
+        
+        for (PsiClass psiClass : allClasses) {
+            // 检查类是否带有指定的注解
+            PsiAnnotation annotation = psiClass.getAnnotation(annotationName);
+            if (annotation != null) {
+                processAnnotatedClass(psiClass, annotationName, scanPackages, project);
+            }
+        }
+    }
+    
+    /**
+     * 处理带有特定注解的类，提取包路径信息
+     *
+     * @param psiClass      带有注解的类
+     * @param annotationName 注解全限定名
+     * @param scanPackages  用于收集扫描包路径的集合
+     * @param project       当前项目
+     */
+    private void processAnnotatedClass(@NotNull PsiClass psiClass, @NotNull String annotationName,
+                                      @NotNull Set<String> scanPackages, @NotNull Project project) {
+        // 根据注解类型进行不同的处理
+        if (SPRING_BOOT_APP_ANNOTATION.equals(annotationName)) {
+            processSpringBootApplicationAnnotation(psiClass, scanPackages, project);
+        } else if (COMPONENT_SCAN_ANNOTATION.equals(annotationName)) {
+            processComponentScanAnnotation(psiClass, scanPackages, project);
+        } else if (MAPPER_SCAN_ANNOTATION.equals(annotationName)) {
+            processMapperScanAnnotation(psiClass, scanPackages, project);
+        }
+    }
+    
+    /**
+     * 处理 @SpringBootApplication 注解
+     *
+     * @param psiClass      带有注解的类
+     * @param scanPackages  用于收集扫描包路径的集合
+     * @param project       当前项目
+     */
+    private void processSpringBootApplicationAnnotation(@NotNull PsiClass psiClass, @NotNull Set<String> scanPackages,
+                                                      @NotNull Project project) {
+        PsiAnnotation springBootAppAnnotation = psiClass.getAnnotation(SPRING_BOOT_APP_ANNOTATION);
+        if (springBootAppAnnotation != null) {
+            boolean hasExplicitBasePackages = false;
+            boolean hasExplicitBasePackageClasses = false;
 
-        // 遍历文件中的所有类 (包括内部类，尽管主类通常在顶层)
-        for (PsiClass psiClass : javaPsiFile.getClasses()) {
-
-            // --- 处理 @SpringBootApplication ---
-            PsiAnnotation springBootAppAnnotation = psiClass.getAnnotation(SPRING_BOOT_APP_ANNOTATION);
-            if (springBootAppAnnotation != null) {
-                boolean hasExplicitBasePackages = false;
-                boolean hasExplicitBasePackageClasses = false;
-
-                // 检查 @SpringBootApplication 的 basePackages 属性 (覆盖内部 @ComponentScan 的)
-                PsiAnnotationMemberValue sbBasePackagesValue = springBootAppAnnotation.findDeclaredAttributeValue("basePackages");
-                if (sbBasePackagesValue != null) {
-                    hasExplicitBasePackages = true;
-                    List<String> packages = parseStringArrayOrList(sbBasePackagesValue);
-                    scanPackages.addAll(packages);
-                }
-
-                // 检查 @SpringBootApplication 的 basePackageClasses 属性 (覆盖内部 @ComponentScan 的)
-                PsiAnnotationMemberValue sbBasePackageClassesValue = springBootAppAnnotation.findDeclaredAttributeValue("basePackageClasses");
-                if (sbBasePackageClassesValue != null) {
-                    hasExplicitBasePackageClasses = true;
-                    List<String> packageFromClassRefs = parseClassArray(sbBasePackageClassesValue, project);
-                    scanPackages.addAll(packageFromClassRefs);
-                }
-
-                // 如果 @SpringBootApplication 没有显式指定 basePackages 或 basePackageClasses，
-                // 则默认扫描主应用类所在的包及其子包
-                if (!hasExplicitBasePackages && !hasExplicitBasePackageClasses) {
-                    String defaultPackage = getPackageName(psiClass);
-                    if (defaultPackage != null && !defaultPackage.isEmpty()) {
-                        scanPackages.add(defaultPackage);
-                    }
-                }
-                // 注意：即使 @SpringBootApplication 没有显式指定扫描路径，
-                // 它内部的 @ComponentScan 也不会被触发，因为外部的属性已经处理了。
+            // 检查 @SpringBootApplication 的 basePackages 属性
+            PsiAnnotationMemberValue sbBasePackagesValue = springBootAppAnnotation.findDeclaredAttributeValue("basePackages");
+            if (sbBasePackagesValue != null) {
+                hasExplicitBasePackages = true;
+                List<String> packages = parseStringArrayOrList(sbBasePackagesValue);
+                scanPackages.addAll(packages);
             }
 
-            // --- 处理独立的 @ComponentScan ---
-            // (通常在非 Spring Boot 项目或需要额外扫描路径时使用)
-            // 只有在没有 @SpringBootApplication 或者 @SpringBootApplication 没有覆盖时才考虑
-            // 为了简化，我们假设两者可以独立存在并都生效
-            PsiAnnotation componentScanAnnotation = psiClass.getAnnotation(COMPONENT_SCAN_ANNOTATION);
-            if (componentScanAnnotation != null) {
-                boolean hasExplicitBasePackages = false;
-                boolean hasExplicitBasePackageClasses = false;
+            // 检查 @SpringBootApplication 的 basePackageClasses 属性
+            PsiAnnotationMemberValue sbBasePackageClassesValue = springBootAppAnnotation.findDeclaredAttributeValue("basePackageClasses");
+            if (sbBasePackageClassesValue != null) {
+                hasExplicitBasePackageClasses = true;
+                List<String> packageFromClassRefs = parseClassArray(sbBasePackageClassesValue, project);
+                scanPackages.addAll(packageFromClassRefs);
+            }
 
-                // 1. 检查 basePackages 属性
-                PsiAnnotationMemberValue basePackagesValue = componentScanAnnotation.findDeclaredAttributeValue("basePackages");
-                if (basePackagesValue != null) {
-                    hasExplicitBasePackages = true;
-                    List<String> packages = parseStringArrayOrList(basePackagesValue);
-                    scanPackages.addAll(packages);
-                }
-
-                // 2. 检查 basePackageClasses 属性
-                PsiAnnotationMemberValue basePackageClassesValue = componentScanAnnotation.findDeclaredAttributeValue("basePackageClasses");
-                if (basePackageClassesValue != null) {
-                    hasExplicitBasePackageClasses = true;
-                    List<String> packageFromClassRefs = parseClassArray(basePackageClassesValue, project);
-                    scanPackages.addAll(packageFromClassRefs);
-                }
-
-                // 3. 如果 @ComponentScan 没有显式指定，则使用默认包 (当前类所在的包)
-                // 注意：如果类上同时有 @SpringBootApplication 和 @ComponentScan，
-                // 且 @SpringBootApplication 没有指定路径，那么这里的默认路径和上面的默认路径是同一个。
-                // 这是符合 Spring 行为的，因为它们都指向同一个包。
-                if (!hasExplicitBasePackages && !hasExplicitBasePackageClasses) {
-                    String defaultPackage = getPackageName(psiClass);
-                    if (defaultPackage != null && !defaultPackage.isEmpty()) {
-                        scanPackages.add(defaultPackage);
-                    }
+            // 如果 @SpringBootApplication 没有显式指定 basePackages 或 basePackageClasses，
+            // 则默认扫描主应用类所在的包及其子包
+            if (!hasExplicitBasePackages && !hasExplicitBasePackageClasses) {
+                String defaultPackage = getPackageName(psiClass);
+                if (defaultPackage != null && !defaultPackage.isEmpty()) {
+                    scanPackages.add(defaultPackage);
                 }
             }
         }
     }
+    
+    /**
+     * 处理 @ComponentScan 注解
+     *
+     * @param psiClass      带有注解的类
+     * @param scanPackages  用于收集扫描包路径的集合
+     * @param project       当前项目
+     */
+    private void processComponentScanAnnotation(@NotNull PsiClass psiClass, @NotNull Set<String> scanPackages,
+                                              @NotNull Project project) {
+        PsiAnnotation componentScanAnnotation = psiClass.getAnnotation(COMPONENT_SCAN_ANNOTATION);
+        if (componentScanAnnotation != null) {
+            boolean hasExplicitBasePackages = false;
+            boolean hasExplicitBasePackageClasses = false;
+
+            // 1. 检查 basePackages 属性
+            PsiAnnotationMemberValue basePackagesValue = componentScanAnnotation.findDeclaredAttributeValue("basePackages");
+            if (basePackagesValue != null) {
+                hasExplicitBasePackages = true;
+                List<String> packages = parseStringArrayOrList(basePackagesValue);
+                scanPackages.addAll(packages);
+            }
+
+            // 2. 检查 value 属性（basePackages 的别名）
+            if (!hasExplicitBasePackages) {
+                PsiAnnotationMemberValue valueAttr = componentScanAnnotation.findDeclaredAttributeValue("value");
+                if (valueAttr != null) {
+                    hasExplicitBasePackages = true;
+                    List<String> packages = parseStringArrayOrList(valueAttr);
+                    scanPackages.addAll(packages);
+                }
+            }
+
+            // 3. 检查 basePackageClasses 属性
+            PsiAnnotationMemberValue basePackageClassesValue = componentScanAnnotation.findDeclaredAttributeValue("basePackageClasses");
+            if (basePackageClassesValue != null) {
+                hasExplicitBasePackageClasses = true;
+                List<String> packageFromClassRefs = parseClassArray(basePackageClassesValue, project);
+                scanPackages.addAll(packageFromClassRefs);
+            }
+
+            // 4. 如果 @ComponentScan 没有显式指定，则使用默认包 (当前类所在的包)
+            if (!hasExplicitBasePackages && !hasExplicitBasePackageClasses) {
+                String defaultPackage = getPackageName(psiClass);
+                if (defaultPackage != null && !defaultPackage.isEmpty()) {
+                    scanPackages.add(defaultPackage);
+                }
+            }
+        }
+    }
+    
+    /**
+     * 处理 @MapperScan 注解
+     *
+     * @param psiClass      带有注解的类
+     * @param scanPackages  用于收集扫描包路径的集合
+     * @param project       当前项目
+     */
+    private void processMapperScanAnnotation(@NotNull PsiClass psiClass, @NotNull Set<String> scanPackages,
+                                           @NotNull Project project) {
+        PsiAnnotation mapperScanAnnotation = psiClass.getAnnotation(MAPPER_SCAN_ANNOTATION);
+        if (mapperScanAnnotation != null) {
+            // 处理 basePackages 属性
+            PsiAnnotationMemberValue basePackagesValue = mapperScanAnnotation.findDeclaredAttributeValue("basePackages");
+            if (basePackagesValue != null) {
+                List<String> packages = parseStringArrayOrList(basePackagesValue);
+                scanPackages.addAll(packages);
+            }
+            
+            // 处理 value 属性（basePackages 的别名）
+            PsiAnnotationMemberValue valueAttr = mapperScanAnnotation.findDeclaredAttributeValue("value");
+            if (valueAttr != null) {
+                List<String> packages = parseStringArrayOrList(valueAttr);
+                scanPackages.addAll(packages);
+            }
+            
+            // 处理 basePackageClasses 属性
+            PsiAnnotationMemberValue basePackageClassesValue = mapperScanAnnotation.findDeclaredAttributeValue("basePackageClasses");
+            if (basePackageClassesValue != null) {
+                List<String> packageFromClassRefs = parseClassArray(basePackageClassesValue, project);
+                scanPackages.addAll(packageFromClassRefs);
+            }
+        }
+    }
+
 
     /**
      * 从模块的资源文件中提取 XML 配置定义的 <context:component-scan> 包路径。
@@ -207,15 +320,106 @@ public class SpringConfigurationScanner {
     }
 
     /**
+     * 检查XML文件是否是Spring配置文件（包含bean依赖相关配置）
+     * 通过内容判断而非文件名
+     *
+     * @param xmlFile 要检查的XML文件
+     * @return 如果是Spring配置文件返回true，否则返回false
+     */
+    private boolean isSpringConfigurationFile(VirtualFile xmlFile) {
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            File file = new File(xmlFile.getPath());
+            org.w3c.dom.Document document = builder.parse(file);
+            
+            // 检查是否包含Spring相关的命名空间
+            org.w3c.dom.Element rootElement = document.getDocumentElement();
+            if (rootElement == null) {
+                return false;
+            }
+            
+            // 检查根元素的命名空间
+            String namespaceURI = rootElement.getNamespaceURI();
+            if (namespaceURI != null && (
+                    namespaceURI.contains("springframework.org") ||
+                    namespaceURI.contains("spring.io"))) {
+                return true;
+            }
+            
+            // 检查根元素的标签名
+            String tagName = rootElement.getTagName();
+            if (tagName != null && (
+                    tagName.contains("beans") ||
+                    tagName.contains("context") ||
+                    tagName.contains("component-scan") ||
+                    tagName.contains("bean") ||
+                    tagName.contains("import"))) {
+                return true;
+            }
+            
+            // 检查是否包含Spring相关的元素
+            // 检查component-scan元素
+            org.w3c.dom.NodeList componentScanNodes = document.getElementsByTagNameNS("http://www.springframework.org/schema/context", "component-scan");
+            if (componentScanNodes.getLength() > 0) {
+                return true;
+            }
+            componentScanNodes = document.getElementsByTagName("context:component-scan");
+            if (componentScanNodes.getLength() > 0) {
+                return true;
+            }
+            componentScanNodes = document.getElementsByTagName("component-scan");
+            if (componentScanNodes.getLength() > 0) {
+                return true;
+            }
+            
+            // 检查bean元素
+            org.w3c.dom.NodeList beanNodes = document.getElementsByTagNameNS("http://www.springframework.org/schema/beans", "bean");
+            if (beanNodes.getLength() > 0) {
+                return true;
+            }
+            beanNodes = document.getElementsByTagName("bean");
+            if (beanNodes.getLength() > 0) {
+                return true;
+            }
+            
+            // 检查import元素
+            org.w3c.dom.NodeList importNodes = document.getElementsByTagNameNS("http://www.springframework.org/schema/beans", "import");
+            if (importNodes.getLength() > 0) {
+                return true;
+            }
+            importNodes = document.getElementsByTagName("import");
+            if (importNodes.getLength() > 0) {
+                return true;
+            }
+            
+            // 检查是否包含MyBatis相关的元素（这些通常不是Spring bean配置）
+            org.w3c.dom.NodeList mapperNodes = document.getElementsByTagName("mapper");
+            if (mapperNodes.getLength() > 0) {
+                return false; // 这是MyBatis mapper文件，不是Spring配置文件
+            }
+            
+            return false;
+        } catch (Exception e) {
+            // 如果解析出错，默认认为不是Spring配置文件
+            return false;
+        }
+    }
+
+    /**
      * 递归收集并解析目录下的 XML 文件
-     * (此方法保持不变)
+     * 优化：排除mapper.xml文件，只扫描bean依赖相关的XML文件，通过内容判断而非文件名
      */
     private void collectAndParseXmlFiles(VirtualFile directory, Set<String> scanPackages) {
         for (VirtualFile file : directory.getChildren()) {
             if (file.isDirectory()) {
                 collectAndParseXmlFiles(file, scanPackages);
             } else if ("xml".equalsIgnoreCase(file.getExtension())) {
-                parseXmlFileForComponentScan(file, scanPackages);
+                // 首先检查是否是Spring配置文件（通过内容判断）
+                if (isSpringConfigurationFile(file)) {
+                    parseXmlFileForComponentScan(file, scanPackages);
+                }
             }
         }
     }
