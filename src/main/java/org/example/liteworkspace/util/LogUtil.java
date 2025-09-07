@@ -5,19 +5,34 @@ import org.example.liteworkspace.bean.core.LiteWorkspaceService;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 public class LogUtil {
 
     private final static Logger log = Logger.getInstance(LiteWorkspaceService.class);
 
-    private final static ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
-        Thread t = new Thread(r, "LiteWorkspace-Log");
-        t.setDaemon(true);
-        return t;
-    });
+    private final static BlockingQueue<Runnable> logQueue = new LinkedBlockingQueue<>();
+    private final static Thread logThread;
+
+    static {
+        logThread = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Runnable task = logQueue.take();
+                    task.run();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                } catch (Exception e) {
+                    log.error("Log thread exception", e);
+                }
+            }
+        }, "LiteWorkspace-Log");
+        logThread.setDaemon(true);
+        logThread.start();
+    }
 
     private static String format(String str, Object... params) {
         if (params == null || params.length == 0) {
@@ -32,7 +47,7 @@ public class LogUtil {
                 value = String.valueOf(param);
             } else if (param instanceof Collection<?> col) {
                 value = col.stream()
-                        .map(Object::toString) // 或者 clazz.getQualifiedName()
+                        .map(Object::toString)
                         .collect(Collectors.joining(", ", "[", "]"));
             } else if (param instanceof Map<?, ?> map) {
                 value = map.entrySet().stream()
@@ -55,25 +70,29 @@ public class LogUtil {
                 || clazz == Character.class;
     }
 
+    private static void submit(Runnable task) {
+        logQueue.offer(task); // 非阻塞方式入队
+    }
+
     public static void info(String str, Object... params) {
-        executor.submit(() -> log.info(format(str, params)));
+        submit(() -> log.info(format(str, params)));
     }
 
     public static void warn(String str, Object... params) {
-        executor.submit(() -> log.warn(format(str, params)));
+        submit(() -> log.warn(format(str, params)));
     }
 
     public static void error(String str, Throwable t, Object... params) {
-        executor.submit(() -> log.error(format(str, params), t));
+        submit(() -> log.error(format(str, params), t));
     }
 
     public static void debug(String str, Object... params) {
         if (log.isDebugEnabled()) {
-            executor.submit(() -> log.debug(format(str, params)));
+            submit(() -> log.debug(format(str, params)));
         }
     }
 
     public static void shutdown() {
-        executor.shutdown();
+        logThread.interrupt();
     }
 }

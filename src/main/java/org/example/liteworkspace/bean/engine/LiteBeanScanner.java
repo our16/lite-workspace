@@ -25,7 +25,7 @@ public class LiteBeanScanner {
      * @return 基础类依赖的bean列表
      */
     public Collection<BeanDefinition> scanAndCollectBeanList(PsiClass rootClass, Project project) {
-        ForkJoinPool pool = new ForkJoinPool(10);
+        ForkJoinPool pool = new ForkJoinPool(5);
         Set<String> visited = ConcurrentHashMap.newKeySet();
         Set<String> normalDependencies = ConcurrentHashMap.newKeySet();
         BeanRegistry registry = new BeanRegistry();
