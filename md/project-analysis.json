@@ -1,0 +1,311 @@
+{
+  "projectName": "Lite-Workspace",
+  "projectDescription": "IntelliJ IDEA plugin for optimizing Spring application startup speed",
+  "modules": [
+    {
+      "name": "Bean Core Module",
+      "package": "org.example.liteworkspace.bean",
+      "features": [
+        "Spring Bean definition and management",
+        "Bean registration and indexing",
+        "Core service orchestration"
+      ],
+      "mainComponents": [
+        "BeanDefinition",
+        "BeanRegistry",
+        "LiteWorkspaceService"
+      ],
+      "technologies": [
+        "IntelliJ PSI API",
+        "Java Reflection"
+      ],
+      "notes": [
+        "Core module for Spring Bean management",
+        "Uses IntelliJ PSI API for code analysis"
+      ]
+    },
+    {
+      "name": "Context Management Module",
+      "package": "org.example.liteworkspace.bean.core.context",
+      "features": [
+        "Project context management",
+        "Spring context integration",
+        "MyBatis context support"
+      ],
+      "mainComponents": [
+        "LiteProjectContext",
+        "SpringContext",
+        "MyBatisContext"
+      ],
+      "technologies": [
+        "Context management patterns",
+        "Framework integration"
+      ],
+      "notes": [
+        "Unified context management for multiple frameworks",
+        "Supports both Spring and MyBatis contexts"
+      ]
+    },
+    {
+      "name": "Scanning Engine Module",
+      "package": "org.example.liteworkspace.bean.engine",
+      "features": [
+        "Bean dependency scanning",
+        "XML configuration generation",
+        "File writing operations"
+      ],
+      "mainComponents": [
+        "LiteBeanScanner",
+        "BeanScannerTask",
+        "SpringXmlBuilder",
+        "LiteFileWriter"
+      ],
+      "technologies": [
+        "Single-threaded execution",
+        "Recursive dependency scanning"
+      ],
+      "notes": [
+        "Uses single-threaded executor to avoid concurrency issues",
+        "Supports recursive dependency scanning"
+      ]
+    },
+    {
+      "name": "Cache Module",
+      "package": "org.example.liteworkspace.cache",
+      "features": [
+        "Result caching",
+        "Configuration storage",
+        "Version control"
+      ],
+      "mainComponents": [
+        "LiteCacheStorage",
+        "CacheVersionChecker",
+        "GsonProvider"
+      ],
+      "technologies": [
+        "File system storage",
+        "JSON serialization",
+        "Version checking"
+      ],
+      "notes": [
+        "Uses file system for cache storage",
+        "Supports version control for cache validation"
+      ]
+    },
+    {
+      "name": "Configuration Module",
+      "package": "org.example.liteworkspace.config",
+      "features": [
+        "Plugin settings management",
+        "User interface for configuration"
+      ],
+      "mainComponents": [
+        "LiteWorkspaceSettings",
+        "LiteWorkspaceSettingsConfigurable"
+      ],
+      "technologies": [
+        "IntelliJ configuration system",
+        "Swing UI components"
+      ],
+      "notes": [
+        "Integrates with IntelliJ IDEA's configuration system",
+        "Provides user-friendly configuration interface"
+      ]
+    },
+    {
+      "name": "Datasource Module",
+      "package": "org.example.liteworkspace.datasource",
+      "features": [
+        "Datasource configuration",
+        "SQL session management",
+        "Multiple format support"
+      ],
+      "mainComponents": [
+        "DataSourceConfigLoader",
+        "SqlSessionConfig",
+        "SqlSessionFactoryXmlParser",
+        "YamlDataSourceParser"
+      ],
+      "technologies": [
+        "XML parsing",
+        "YAML parsing",
+        "SQL session management"
+      ],
+      "notes": [
+        "Supports multiple configuration formats",
+        "Provides comprehensive datasource management"
+      ]
+    },
+    {
+      "name": "Extensions Module",
+      "package": "org.example.liteworkspace.extensions",
+      "features": [
+        "IntelliJ IDEA extensions",
+        "JUnit integration"
+      ],
+      "mainComponents": [
+        "CustomCompileJUnitProducer"
+      ],
+      "technologies": [
+        "IntelliJ extension points",
+        "JUnit framework"
+      ],
+      "notes": [
+        "Extends IntelliJ IDEA functionality",
+        "Provides custom JUnit integration"
+      ]
+    },
+    {
+      "name": "LLM Integration Module",
+      "package": "org.example.liteworkspace.model",
+      "features": [
+        "Large Language Model integration",
+        "Code analysis",
+        "Multiple provider support"
+      ],
+      "mainComponents": [
+        "LlmModelInvoker",
+        "LlmProvider",
+        "OpenAiLlmProvider",
+        "DifyLlmProvider"
+      ],
+      "technologies": [
+        "OpenAI API",
+        "Dify API",
+        "Provider pattern"
+      ],
+      "notes": [
+        "Supports multiple LLM providers",
+        "Extensible provider architecture"
+      ]
+    },
+    {
+      "name": "UI Module",
+      "package": "org.example.liteworkspace.ui",
+      "features": [
+        "User interface components",
+        "Tool window integration"
+      ],
+      "mainComponents": [
+        "LlmAnalysisToolWindow"
+      ],
+      "technologies": [
+        "Swing",
+        "IntelliJ tool window API"
+      ],
+      "notes": [
+        "Provides UI components for the plugin",
+        "Integrates with IntelliJ tool window system"
+      ]
+    },
+    {
+      "name": "Actions Module",
+      "package": "org.example.liteworkspace.action",
+      "features": [
+        "User-triggered actions",
+        "Code scanning",
+        "LLM analysis",
+        "On-demand compilation"
+      ],
+      "mainComponents": [
+        "LiteScanAction",
+        "LlmCodeAnalyzerPlugin",
+        "RunOnDemandAction",
+        "CompileAndRunDialog",
+        "CustomCompileRunAction"
+      ],
+      "technologies": [
+        "IntelliJ action system",
+        "Background tasks",
+        "Progress indicators"
+      ],
+      "notes": [
+        "Provides various user actions",
+        "Supports background processing"
+      ]
+    },
+    {
+      "name": "Utilities Module",
+      "package": "org.example.liteworkspace.util",
+      "features": [
+        "Utility functions",
+        "PSI utilities",
+        "Logging",
+        "Performance monitoring"
+      ],
+      "mainComponents": [
+        "ConsoleService",
+        "CostUtil",
+        "JSONUtil",
+        "LogUtil",
+        "MyBatisXmlFinder",
+        "PsiClassUtil",
+        "ResourceConfigAnalyzer",
+        "RunOnDemandCompiler"
+      ],
+      "technologies": [
+        "IntelliJ PSI API",
+        "JSON processing",
+        "Logging frameworks"
+      ],
+      "notes": [
+        "Provides various utility functions",
+        "Contains diverse functionality that could be further organized"
+      ]
+    }
+  ],
+  "dependencies": {
+    "main": [
+      {
+        "name": "com.google.code.gson:gson",
+        "purpose": "JSON processing"
+      },
+      {
+        "name": "fr.inria.gforge.spoon:spoon-core",
+        "purpose": "Code analysis and transformation"
+      },
+      {
+        "name": "org.neo4j:neo4j",
+        "purpose": "Graph database support"
+      },
+      {
+        "name": "com.theokanning.openai-gpt3-java:service",
+        "purpose": "OpenAI API integration"
+      }
+    ],
+    "intellij": [
+      {
+        "name": "org.jetbrains.intellij",
+        "purpose": "IntelliJ IDEA plugin development support"
+      },
+      {
+        "name": "org.jetbrains.kotlin.jvm",
+        "purpose": "Kotlin support"
+      }
+    ]
+  },
+  "optimizationSuggestions": {
+    "codeStructure": [
+      "Consider further subdividing the util module which contains diverse functionality",
+      "Implement dependency injection for better component management",
+      "Define interfaces for key components to improve extensibility and testability"
+    ],
+    "performance": [
+      "Optimize the single-threaded execution in LiteBeanScanner for better concurrency",
+      "Improve caching strategies to reduce redundant scanning",
+      "Implement incremental scanning for changed files only"
+    ],
+    "featureExpansion": [
+      "Add support for more Java frameworks (Micronaut, Quarkus)",
+      "Support generation of additional configuration types (YAML, Properties)",
+      "Provide more specific code optimization suggestions based on LLM analysis",
+      "Implement visualization of dependency relationships"
+    ],
+    "userExperience": [
+      "Enhance configuration interface for better user experience",
+      "Improve error handling and user feedback",
+      "Complete user documentation and API documentation"
+    ]
+  },
+  "summary": "Lite-Workspace is a feature-rich IntelliJ IDEA plugin focused on optimizing Spring application startup speed. The project has a clear structure with reasonable module division and good extensibility. Further optimization and feature expansion can provide better user experience and wider application scenarios."
+}

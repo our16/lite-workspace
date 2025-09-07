@@ -4,15 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="backup">
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="总结项目功能">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/SpringContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/SpringContext.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteBeanScanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteBeanScanner.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteFileWriter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/LiteFileWriter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/JSONUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/JSONUtil.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/LogUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/LogUtil.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -165,7 +158,7 @@
       <recent name="org.example.liteworkspace" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.Run Plugin">
+  <component name="RunManager" selected="Gradle.lite-workspace [buildPlugin]">
     <configuration name="ExportGraphToNeo4j" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.example.liteworkspace.ExportGraphToNeo4j" />
       <module name="lite-workspace.main" />
@@ -251,10 +244,10 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
         <item itemvalue="Application.QueryGraphDb" />
         <item itemvalue="Application.Neo4jUi" />
         <item itemvalue="Application.ExportGraphToNeo4j" />
-        <item itemvalue="Gradle.lite-workspace [buildPlugin]" />
         <item itemvalue="Application.TestRun" />
       </list>
     </recent_temporary>
@@ -267,14 +260,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00059" summary="启动加载基础依赖">
-      <option name="closed" value="true" />
-      <created>1753059528452</created>
-      <option name="number" value="00059" />
-      <option name="presentableId" value="LOCAL-00059" />
-      <option name="project" value="LOCAL" />
-      <updated>1753059528452</updated>
     </task>
     <task id="LOCAL-00060" summary="写操作要在 WriteAction 中">
       <option name="closed" value="true" />
@@ -660,7 +645,15 @@
       <option name="project" value="LOCAL" />
       <updated>1757250586903</updated>
     </task>
-    <option name="localTasksCounter" value="108" />
+    <task id="LOCAL-00108" summary="1、调整为单线程&#10;2、根据配置的扫描路径扫描,减少扫描范围">
+      <option name="closed" value="true" />
+      <created>1757255865417</created>
+      <option name="number" value="00108" />
+      <option name="presentableId" value="LOCAL-00108" />
+      <option name="project" value="LOCAL" />
+      <updated>1757255865417</updated>
+    </task>
+    <option name="localTasksCounter" value="109" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -675,8 +668,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="打印编译过程" />
-    <MESSAGE value="过滤自定义的bean" />
     <MESSAGE value="加入并发扫描" />
     <MESSAGE value="基础信息" />
     <MESSAGE value="扫描" />
@@ -700,7 +691,9 @@
     <MESSAGE value="尝试查找适配类" />
     <MESSAGE value="适配jar里面的config配置" />
     <MESSAGE value="backup" />
-    <option name="LAST_COMMIT_MESSAGE" value="backup" />
+    <MESSAGE value="1、调整为单线程&#10;2、根据配置的扫描路径扫描,减少扫描范围" />
+    <MESSAGE value="总结项目功能" />
+    <option name="LAST_COMMIT_MESSAGE" value="总结项目功能" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
