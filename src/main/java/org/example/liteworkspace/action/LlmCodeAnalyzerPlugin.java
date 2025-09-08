@@ -11,7 +11,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import org.example.liteworkspace.model.LlmModelInvoker;
+//import org.example.liteworkspace.model.LlmModelInvoker;
 import org.example.liteworkspace.ui.LlmAnalysisToolWindow;
 
 import javax.swing.*;
@@ -48,15 +48,15 @@ public class LlmCodeAnalyzerPlugin extends AnAction {
                     LlmAnalysisToolWindow.updateTextArea(project, content);
 
                     // 调用 LLM 模型
-                    LlmModelInvoker invoker = new LlmModelInvoker();
-                    String outputText = invoker.invoke("""
-                            You are a senior Java developer. Analyze the following code and point out any potential issues and possible improvements.
-                            Return a short and clear summary. End your response with Analysis complete.
-                            """ + content);
+//                    LlmModelInvoker invoker = new LlmModelInvoker();
+//                    String outputText = invoker.invoke("""
+//                            You are a senior Java developer. Analyze the following code and point out any potential issues and possible improvements.
+//                            Return a short and clear summary. End your response with Analysis complete.
+//                            """ + content);
 
                     // 更新工具窗口内容
                     ApplicationManager.getApplication().invokeLater(() -> {
-                        LlmAnalysisToolWindow.updateTextArea(project, outputText);
+                        LlmAnalysisToolWindow.updateTextArea(project, "暂时为接入");
                     });
 
                 } catch (Exception ex) {

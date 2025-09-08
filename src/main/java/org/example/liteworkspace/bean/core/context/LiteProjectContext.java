@@ -136,9 +136,7 @@ public class LiteProjectContext {
 
         // 2. 全局索引搜索兜底
         GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
-        Collection<VirtualFile> files = FilenameIndex.getVirtualFilesByName(
-                project, "datasource.xml", scope
-        );
+        Collection<VirtualFile> files = FilenameIndex.getVirtualFilesByName("datasource.xml", scope);
 
         for (VirtualFile file : files) {
             if (file.getPath().contains("configs")) {

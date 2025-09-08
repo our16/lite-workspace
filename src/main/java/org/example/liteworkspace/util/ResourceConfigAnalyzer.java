@@ -208,9 +208,7 @@ public class ResourceConfigAnalyzer {
 
         // 2. 全局索引搜索兜底
         GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
-        Collection<VirtualFile> files = FilenameIndex.getVirtualFilesByName(
-                project, "datasource.xml", scope
-        );
+        Collection<VirtualFile> files = FilenameIndex.getVirtualFilesByName("datasource.xml", scope);
 
         for (VirtualFile file : files) {
             if (file.getPath().contains("configs")) {
@@ -220,8 +218,7 @@ public class ResourceConfigAnalyzer {
 
         // 3. 类加载器兜底（运行时资源）
         try {
-            URL resourceUrl = getClass().getClassLoader()
-                    .getResource("configs/datasource.xml");
+            URL resourceUrl = getClass().getClassLoader().getResource("configs/datasource.xml");
             if (resourceUrl != null) {
                 return relativePath;
             }

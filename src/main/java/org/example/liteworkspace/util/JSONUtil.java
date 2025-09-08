@@ -23,12 +23,7 @@ public class JSONUtil {
         if (obj == null) {
             return "null";
         }
-        try {
-            return mapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            // 不要抛异常或返回 "null"，直接返回 null
-            log.warn("对象序列化失败: {}", obj.getClass().getName(), e);
-            return "null";
-        }
+
+        return PsiSafeJsonUtil.toJsonStr(obj);
     }
 }

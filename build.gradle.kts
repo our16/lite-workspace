@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.liteworkspace"
-version = "1.24.1"
+version = "1.24.3.fixDeprecated"
 
 repositories {
     maven {
@@ -16,9 +16,6 @@ repositories {
 dependencies {
     // Gson 依赖
     implementation("com.google.code.gson:gson:2.10.1")
-    implementation("fr.inria.gforge.spoon:spoon-core:10.0.0")
-    implementation("org.neo4j:neo4j:5.13.0")
-    implementation("com.theokanning.openai-gpt3-java:service:0.18.2")
 }
 
 
@@ -43,6 +40,7 @@ tasks {
 
     patchPluginXml {
         sinceBuild.set("223")
+        untilBuild.set("252.*")
     }
 
     signPlugin {

@@ -4,35 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/md/workflow-design-analysis.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/analyze/AnalysisModule.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/core/api/GenerationService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/core/api/ProjectContext.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/core/api/ProjectContextFactory.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/core/api/ScanService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/core/domain/GenerationRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/core/domain/GenerationResult.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/core/domain/ScanRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/core/domain/ScanResult.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/core/factory/LiteWorkspaceServiceFactory.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/core/impl/GenerationServiceImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/core/impl/LiteProjectContextAdapter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/core/impl/LiteProjectContextFactory.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/core/impl/ScanServiceImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/generate/GenerationModule.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/module/ModuleFactory.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/scan/ScanModule.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/ui/LiteWorkspaceUIController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/ui/LiteWorkspaceUIFactory.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/ui/LiteWorkspaceUIService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/ui/UIModule.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/org/example/liteworkspace/core/api/ScanServiceTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/org/example/liteworkspace/core/domain/GenerationRequestTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/org/example/liteworkspace/core/domain/GenerationResultTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/org/example/liteworkspace/core/domain/ScanRequestTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/org/example/liteworkspace/core/domain/ScanResultTest.java" afterDir="false" />
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="mermaid relationship">
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/PsiSafeJsonUtil.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/ExportGraphToNeo4j.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/QueryGraphDb.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LlmCodeAnalyzerPlugin.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LlmCodeAnalyzerPlugin.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/LiteProjectContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/LiteProjectContext.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/extensions/CustomCompileJUnitProducer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/LlmModelInvoker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/LlmModelInvoker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/provider/impl/DifyLlmProvider.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/provider/impl/DifyLlmProvider.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/provider/impl/OpenAiLlmProvider.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/model/provider/impl/OpenAiLlmProvider.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/JSONUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/JSONUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/util/ResourceConfigAnalyzer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/META-INF/plugin.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,30 +123,30 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;Application.ExportGraphToNeo4j.executor&quot;: &quot;Run&quot;,
-    &quot;Application.Neo4jUi.executor&quot;: &quot;Run&quot;,
-    &quot;Application.QueryGraphDb.executor&quot;: &quot;Run&quot;,
-    &quot;Application.TestRun.executor&quot;: &quot;Run&quot;,
-    &quot;Batch.download-gradle.executor&quot;: &quot;Debug&quot;,
-    &quot;Gradle.Build lite-workspace.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.Run Plugin.executor&quot;: &quot;Debug&quot;,
-    &quot;Gradle.lite-workspace [buildPlugin].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.lite-workspace [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.lite-workspace [setupDependencies].executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/project/springboot-gradle-demo&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;SDKs&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Application.ExportGraphToNeo4j.executor": "Run",
+    "Application.Neo4jUi.executor": "Run",
+    "Application.QueryGraphDb.executor": "Run",
+    "Application.TestRun.executor": "Run",
+    "Batch.download-gradle.executor": "Debug",
+    "Gradle.Build lite-workspace.executor": "Run",
+    "Gradle.Run Plugin.executor": "Run",
+    "Gradle.lite-workspace [buildPlugin].executor": "Run",
+    "Gradle.lite-workspace [clean].executor": "Run",
+    "Gradle.lite-workspace [setupDependencies].executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/project/springboot-gradle-demo",
+    "project.structure.last.edited": "SDKs",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="org.example.liteworkspace" />
@@ -185,7 +172,7 @@
       <recent name="org.example.liteworkspace" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.lite-workspace [buildPlugin]">
+  <component name="RunManager" selected="Gradle.Run Plugin">
     <configuration name="ExportGraphToNeo4j" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.example.liteworkspace.ExportGraphToNeo4j" />
       <module name="lite-workspace.main" />
@@ -287,22 +274,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00061" summary="写操作要在 WriteAction 中">
-      <option name="closed" value="true" />
-      <created>1753073490476</created>
-      <option name="number" value="00061" />
-      <option name="presentableId" value="LOCAL-00061" />
-      <option name="project" value="LOCAL" />
-      <updated>1753073490476</updated>
-    </task>
-    <task id="LOCAL-00062" summary="打开测试文件">
-      <option name="closed" value="true" />
-      <created>1753277762753</created>
-      <option name="number" value="00062" />
-      <option name="presentableId" value="LOCAL-00062" />
-      <option name="project" value="LOCAL" />
-      <updated>1753277762753</updated>
     </task>
     <task id="LOCAL-00063" summary="扫描测试文件">
       <option name="closed" value="true" />
@@ -680,7 +651,23 @@
       <option name="project" value="LOCAL" />
       <updated>1757262427477</updated>
     </task>
-    <option name="localTasksCounter" value="110" />
+    <task id="LOCAL-00110" summary="del temp file">
+      <option name="closed" value="true" />
+      <created>1757262662816</created>
+      <option name="number" value="00110" />
+      <option name="presentableId" value="LOCAL-00110" />
+      <option name="project" value="LOCAL" />
+      <updated>1757262662816</updated>
+    </task>
+    <task id="LOCAL-00111" summary="mermaid relationship">
+      <option name="closed" value="true" />
+      <created>1757263394268</created>
+      <option name="number" value="00111" />
+      <option name="presentableId" value="LOCAL-00111" />
+      <option name="project" value="LOCAL" />
+      <updated>1757263394268</updated>
+    </task>
+    <option name="localTasksCounter" value="112" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -695,8 +682,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="基础信息" />
-    <MESSAGE value="扫描" />
     <MESSAGE value="适配mapstruct" />
     <MESSAGE value="扫描jar 包里面的bean定义" />
     <MESSAGE value="接口实现类可能时beanconfig生成" />
@@ -720,7 +705,9 @@
     <MESSAGE value="1、调整为单线程&#10;2、根据配置的扫描路径扫描,减少扫描范围" />
     <MESSAGE value="总结项目功能" />
     <MESSAGE value="md" />
-    <option name="LAST_COMMIT_MESSAGE" value="md" />
+    <MESSAGE value="del temp file" />
+    <MESSAGE value="mermaid relationship" />
+    <option name="LAST_COMMIT_MESSAGE" value="mermaid relationship" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

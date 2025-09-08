@@ -1,5 +1,6 @@
 package org.example.liteworkspace.bean.engine;
 
+import com.intellij.lang.jvm.types.JvmPrimitiveTypeKind;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
@@ -421,7 +422,11 @@ public class BeanScannerTask implements Runnable  {
 
         // 返回类型必须是 void
         PsiType returnType = method.getReturnType();
-        return returnType != null && returnType.equals(PsiTypes.voidType());
+        return isVoid(returnType);
+    }
+
+    private boolean isVoid(PsiType returnType) {
+       return returnType != null && PsiType.VOID.equals(returnType);
     }
 
     /**
