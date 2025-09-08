@@ -169,6 +169,14 @@ public class BeanScannerTask implements Runnable  {
      * 判断一个类是否为需要注册的 Bean 类型
      */
     private BeanType resolveBeanType(PsiClass clazz) {
+        // Spring Boot 主配置类
+        if (clazz.hasAnnotation("org.springframework.boot.autoconfigure.SpringBootApplication") ||
+            clazz.hasAnnotation("org.springframework.boot.SpringBootConfiguration") ||
+            clazz.hasAnnotation("org.springframework.boot.autoconfigure.EnableAutoConfiguration")) {
+            return BeanType.JAVA_CONFIG;
+        }
+
+        // Spring 配置类
         if (clazz.hasAnnotation("org.springframework.context.annotation.Configuration")) {
             return BeanType.JAVA_CONFIG;
         }
@@ -177,11 +185,28 @@ public class BeanScannerTask implements Runnable  {
             return BeanType.MAPPER_STRUCT;
         }
 
+        // Spring 核心注解
         if (clazz.hasAnnotation("org.springframework.stereotype.Component") ||
                 clazz.hasAnnotation("org.springframework.stereotype.Service") ||
                 clazz.hasAnnotation("org.springframework.stereotype.Repository") ||
                 clazz.hasAnnotation("org.springframework.stereotype.Controller") ||
-                clazz.hasAnnotation("org.springframework.stereotype.RestController")) {
+                clazz.hasAnnotation("org.springframework.stereotype.RestController") ||
+                clazz.hasAnnotation("org.springframework.web.bind.annotation.RestController")) {
+            return BeanType.ANNOTATION;
+        }
+
+        // Spring Boot 特有注解
+        if (clazz.hasAnnotation("org.springframework.web.bind.annotation.RestControllerAdvice") ||
+                clazz.hasAnnotation("org.springframework.web.bind.annotation.ControllerAdvice") ||
+                clazz.hasAnnotation("org.springframework.web.bind.annotation.Controller") ||
+                clazz.hasAnnotation("org.springframework.boot.autoconfigure.condition.ConditionalOnClass") ||
+                clazz.hasAnnotation("org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean") ||
+                clazz.hasAnnotation("org.springframework.boot.autoconfigure.condition.ConditionalOnProperty") ||
+                clazz.hasAnnotation("org.springframework.boot.context.properties.ConfigurationProperties") ||
+                clazz.hasAnnotation("org.springframework.boot.context.properties.EnableConfigurationProperties") ||
+                clazz.hasAnnotation("org.springframework.context.annotation.Import") ||
+                clazz.hasAnnotation("org.springframework.context.annotation.ComponentScan") ||
+                clazz.hasAnnotation("org.springframework.context.annotation.EnableAspectJAutoProxy")) {
             return BeanType.ANNOTATION;
         }
 
