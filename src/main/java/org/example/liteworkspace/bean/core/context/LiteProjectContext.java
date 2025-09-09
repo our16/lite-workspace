@@ -71,7 +71,7 @@ public class LiteProjectContext {
         this.springContext.refresh(miniPackages);
         // 数据源配置初始化
         this.sqlSessionConfigList = DataSourceConfigLoader.load(project);
-
+        LogUtil.info("sqlSessionConfigList：{}", sqlSessionConfigList);
         // mybatis 上下文初始化
         this.myBatisContext = new MyBatisContext(project, sqlSessionConfigList);
         this.myBatisContext.refresh();

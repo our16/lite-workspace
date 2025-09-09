@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "org.liteworkspace"
-version = "1.24.3.fixDeprecated"
+version = "1.24.3.multi-spring-version"
 
 repositories {
     maven {

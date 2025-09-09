@@ -27,7 +27,7 @@ public class SpringContext {
     }
 
     public void refresh(Set<String> miniPackages) {
-        LogUtil.info("miniPackages：{}", miniPackages);
+        LogUtil.info("start refresh SpringContext");
         SpringConfigurationScanner scanner = new SpringConfigurationScanner();
         // 收集配置的bean扫描目录
         componentScanPackages.addAll(scanner.scanEffectiveComponentScanPackages(project));

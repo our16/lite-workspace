@@ -27,7 +27,7 @@ public class SqlSessionFactoryXmlParser {
                 // 3️⃣ 扫描 resource 下的 XML 文件
                 VfsUtil.iterateChildrenRecursively(resourceRoot, file -> true, file -> {
                     if (!file.isDirectory() && "xml".equalsIgnoreCase(file.getExtension())) {
-                        result.addAll(SqlSessionFactoryXmlParser.parse(project, file));
+                        result.addAll(parse(project, file));
                     }
                     return true;
                 });

@@ -295,6 +295,7 @@ public class BeanScannerTask implements Runnable  {
                 }
             }
             // ------------------- 2️⃣ 解析 @Configuration + @Bean -------------------
+            // Configuration 有@bean的方法参数也要注入进来
             if (isConfigurationClass(current)) {
                 for (PsiMethod method : current.getMethods()) {
                     if (!isBeanMethod(method)) {
@@ -336,6 +337,11 @@ public class BeanScannerTask implements Runnable  {
      * 判断一个字段是否通过构造器或 Setter 注入（即使没有注解）
      */
     private boolean isInjectedViaConstructorOrSetter(PsiClass clazz, PsiField field) {
+        // 检查是否有 Lombok @AllArgsConstructor 注解,有的话所有field都可以交给spring管理
+        if (hasLombokAllArgsConstructor(clazz)) {
+            return true;
+        }
+
         PsiType fieldType = field.getType();
         // 构造器参数匹配
         for (PsiMethod constructor : clazz.getConstructors()) {
@@ -460,6 +466,13 @@ public class BeanScannerTask implements Runnable  {
     private boolean hasAnnotation(PsiModifierListOwner element, String annotationFqn) {
         PsiModifierList modifierList = element.getModifierList();
         return modifierList != null && modifierList.findAnnotation(annotationFqn) != null;
+    }
+
+    /**
+     * 判断类是否有 Lombok @AllArgsConstructor 注解
+     */
+    private boolean hasLombokAllArgsConstructor(PsiClass clazz) {
+        return hasAnnotation(clazz, "lombok.AllArgsConstructor");
     }
 
 

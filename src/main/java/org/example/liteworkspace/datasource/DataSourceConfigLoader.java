@@ -11,8 +11,20 @@ import java.util.*;
 public class DataSourceConfigLoader {
 
     public static List<SqlSessionConfig> load(Project project) {
+        List<SqlSessionConfig> result = new ArrayList<>();
 
-        // 2. XML 解析
-        return new ArrayList<>(SqlSessionFactoryXmlParser.parse(project));
+        // 1. XML 解析
+        result.addAll(SqlSessionFactoryXmlParser.parse(project));
+        
+        // 2. YAML 解析
+        result.addAll(YamlDataSourceParser.parse(project));
+        
+        // 3. Properties 解析
+        result.addAll(PropertiesDataSourceParser.parse(project));
+        
+        // 4. @MapperScan 注解解析
+        result.addAll(MapperScanAnnotationParser.parse(project));
+        
+        return result;
     }
 }
