@@ -4,12 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="适配多环境配置">
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="暂时不支持mapperscan ，兼容有点问题">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/MapperScanAnnotationParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/MapperScanAnnotationParser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/PropertiesDataSourceParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/PropertiesDataSourceParser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/SqlSessionFactoryXmlParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/SqlSessionFactoryXmlParser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/YamlDataSourceParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/YamlDataSourceParser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/action/LiteScanAction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteWorkspaceService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/LiteWorkspaceService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -126,7 +124,7 @@
     "Application.TestRun.executor": "Run",
     "Batch.download-gradle.executor": "Debug",
     "Gradle.Build lite-workspace.executor": "Run",
-    "Gradle.Run Plugin.executor": "Run",
+    "Gradle.Run Plugin.executor": "Debug",
     "Gradle.lite-workspace [buildPlugin].executor": "Run",
     "Gradle.lite-workspace [clean].executor": "Run",
     "Gradle.lite-workspace [setupDependencies].executor": "Run",
@@ -268,14 +266,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00067" summary="扫描器">
-      <option name="closed" value="true" />
-      <created>1753372309160</created>
-      <option name="number" value="00067" />
-      <option name="presentableId" value="LOCAL-00067" />
-      <option name="project" value="LOCAL" />
-      <updated>1753372309160</updated>
     </task>
     <task id="LOCAL-00068" summary="扫描器">
       <option name="closed" value="true" />
@@ -661,7 +651,15 @@
       <option name="project" value="LOCAL" />
       <updated>1757431132765</updated>
     </task>
-    <option name="localTasksCounter" value="116" />
+    <task id="LOCAL-00116" summary="暂时不支持mapperscan ，兼容有点问题">
+      <option name="closed" value="true" />
+      <created>1757432617675</created>
+      <option name="number" value="00116" />
+      <option name="presentableId" value="LOCAL-00116" />
+      <option name="project" value="LOCAL" />
+      <updated>1757432617675</updated>
+    </task>
+    <option name="localTasksCounter" value="117" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -676,7 +674,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="优化扫描逻辑，先分析依赖包最小前缀路径，减少包扫描范围" />
     <MESSAGE value="寻找每个包的最大公共父节点" />
     <MESSAGE value="包结构调整" />
     <MESSAGE value="xml 扫依赖包" />
@@ -701,7 +698,8 @@
     <MESSAGE value="适配不同版本spring 注解包不一样的问题" />
     <MESSAGE value="适配mybatis 扫描路径的不同配置方式：&#10;1、xml&#10;2、yml&#10;3、properties&#10;4、@mapperScan注解" />
     <MESSAGE value="适配多环境配置" />
-    <option name="LAST_COMMIT_MESSAGE" value="适配多环境配置" />
+    <MESSAGE value="暂时不支持mapperscan ，兼容有点问题" />
+    <option name="LAST_COMMIT_MESSAGE" value="暂时不支持mapperscan ，兼容有点问题" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -42,14 +42,17 @@ public class LiteScanAction extends AnAction {
             log.info("没有找到具体方法");
         }
 
-        new Task.Backgroundable(project, "LiteWorkspace 生成中...") {
+        new Task.Backgroundable(project, "LiteWorkspace 生成中...", true) {
             @Override
             public void run(ProgressIndicator indicator) {
                 try {
-                    ApplicationManager.getApplication().runReadAction(() -> {
-                        LiteWorkspaceService service = new LiteWorkspaceService(project);
-                        service.scanAndGenerate(targetClass, targetMethod);
-                    });
+                    indicator.setIndeterminate(false);
+                    indicator.setText("正在扫描项目依赖...");
+                    indicator.setFraction(0.1);
+                    
+                    // 直接在后台线程中执行，不使用 runReadAction
+                    LiteWorkspaceService service = new LiteWorkspaceService(project);
+                    service.scanAndGenerate(targetClass, targetMethod, indicator);
                 } catch (Exception ex) {
                     showError(project, "❌ 生成失败：" + ex.getMessage());
                 }
