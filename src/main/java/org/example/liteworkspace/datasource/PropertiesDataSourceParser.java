@@ -47,11 +47,20 @@ public class PropertiesDataSourceParser {
             Properties props = new Properties();
             props.load(inputStream);
             
+            // 获取文件名，判断是否为多环境配置文件
+            String fileName = propertiesFile.getName();
+            String env = extractEnvironmentFromFileName(fileName);
+            
             // 解析 MyBatis 配置
-            parseMyBatisConfig(props, result);
+            parseMyBatisConfig(props, result, env);
             
             // 解析 MyBatis-Plus 配置
-            parseMyBatisPlusConfig(props, result);
+            parseMyBatisPlusConfig(props, result, env);
+            
+            // 解析多环境特定配置
+            if (env != null && !env.isEmpty()) {
+                parseEnvironmentSpecificConfig(props, result, env);
+            }
             
         } catch (IOException e) {
             e.printStackTrace();
@@ -60,9 +69,9 @@ public class PropertiesDataSourceParser {
         return result;
     }
 
-    private static void parseMyBatisConfig(Properties props, List<SqlSessionConfig> result) {
+    private static void parseMyBatisConfig(Properties props, List<SqlSessionConfig> result, String env) {
         SqlSessionConfig config = new SqlSessionConfig();
-        config.setName("default");
+        config.setName(env != null && !env.isEmpty() ? env : "default");
         config.setSqlSessionFactoryBeanId("sqlSessionFactory");
         
         // 解析 mapper-locations
@@ -86,9 +95,9 @@ public class PropertiesDataSourceParser {
         }
     }
 
-    private static void parseMyBatisPlusConfig(Properties props, List<SqlSessionConfig> result) {
+    private static void parseMyBatisPlusConfig(Properties props, List<SqlSessionConfig> result, String env) {
         SqlSessionConfig config = new SqlSessionConfig();
-        config.setName("default");
+        config.setName(env != null && !env.isEmpty() ? env : "default");
         config.setSqlSessionFactoryBeanId("sqlSessionFactory");
         
         // 解析 mapper-locations
@@ -109,6 +118,55 @@ public class PropertiesDataSourceParser {
         
         if (!config.getMapperLocations().isEmpty() || !config.getMapperBasePackages().isEmpty()) {
             result.add(config);
+        }
+    }
+
+    /**
+     * 从文件名中提取环境名称
+     * 例如：application-dev.properties -> dev
+     *       application-prod.properties -> prod
+     *       application.properties -> null
+     */
+    private static String extractEnvironmentFromFileName(String fileName) {
+        if (fileName == null || fileName.isEmpty()) {
+            return null;
+        }
+        
+        // 去掉扩展名
+        String nameWithoutExt = fileName;
+        if (fileName.endsWith(".properties")) {
+            nameWithoutExt = fileName.substring(0, fileName.length() - 11);
+        }
+        
+        // 检查是否为 application-<env> 格式
+        if (nameWithoutExt.startsWith("application-")) {
+            return nameWithoutExt.substring("application-".length());
+        }
+        
+        return null;
+    }
+
+    /**
+     * 解析多环境特定配置
+     * 例如：
+     * spring.profiles.active=dev
+     * spring.profiles=dev
+     */
+    private static void parseEnvironmentSpecificConfig(Properties props, List<SqlSessionConfig> result, String env) {
+        // 解析 spring.profiles.active 配置
+        String activeProfile = props.getProperty("spring.profiles.active");
+        if (env.equals(activeProfile)) {
+            // 解析当前环境下的 MyBatis 配置
+            parseMyBatisConfig(props, result, env);
+            parseMyBatisPlusConfig(props, result, env);
+        }
+        
+        // 解析 spring.profiles 配置
+        String profiles = props.getProperty("spring.profiles");
+        if (env.equals(profiles)) {
+            // 解析当前环境下的 MyBatis 配置
+            parseMyBatisConfig(props, result, env);
+            parseMyBatisPlusConfig(props, result, env);
         }
     }
 }

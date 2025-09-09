@@ -4,14 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="适配不同版本spring 注解包不一样的问题">
+    <list default="true" id="5be5cc13-a502-422b-964b-ff05c9e324f6" name="Changes" comment="适配mybatis 扫描路径的不同配置方式：&#10;1、xml&#10;2、yml&#10;3、properties&#10;4、@mapperScan注解">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/LiteProjectContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/LiteProjectContext.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/SpringContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/core/context/SpringContext.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/bean/engine/BeanScannerTask.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/DataSourceConfigLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/DataSourceConfigLoader.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/SqlSessionFactoryXmlParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/SqlSessionFactoryXmlParser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/PropertiesDataSourceParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/PropertiesDataSourceParser.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/YamlDataSourceParser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/liteworkspace/datasource/YamlDataSourceParser.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -271,14 +266,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1751641421534</updated>
-    </task>
-    <task id="LOCAL-00065" summary="部分编译">
-      <option name="closed" value="true" />
-      <created>1753368209574</created>
-      <option name="number" value="00065" />
-      <option name="presentableId" value="LOCAL-00065" />
-      <option name="project" value="LOCAL" />
-      <updated>1753368209574</updated>
     </task>
     <task id="LOCAL-00066" summary="根据上下文判断是不是mapper">
       <option name="closed" value="true" />
@@ -664,7 +651,15 @@
       <option name="project" value="LOCAL" />
       <updated>1757345668611</updated>
     </task>
-    <option name="localTasksCounter" value="114" />
+    <task id="LOCAL-00114" summary="适配mybatis 扫描路径的不同配置方式：&#10;1、xml&#10;2、yml&#10;3、properties&#10;4、@mapperScan注解">
+      <option name="closed" value="true" />
+      <created>1757430254409</created>
+      <option name="number" value="00114" />
+      <option name="presentableId" value="LOCAL-00114" />
+      <option name="project" value="LOCAL" />
+      <updated>1757430254409</updated>
+    </task>
+    <option name="localTasksCounter" value="115" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -679,7 +674,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="扫描jar 包里面的bean定义" />
     <MESSAGE value="接口实现类可能时beanconfig生成" />
     <MESSAGE value="优化扫描逻辑，先分析依赖包最小前缀路径，减少包扫描范围" />
     <MESSAGE value="寻找每个包的最大公共父节点" />
@@ -704,7 +698,8 @@
     <MESSAGE value="del temp file" />
     <MESSAGE value="mermaid relationship" />
     <MESSAGE value="适配不同版本spring 注解包不一样的问题" />
-    <option name="LAST_COMMIT_MESSAGE" value="适配不同版本spring 注解包不一样的问题" />
+    <MESSAGE value="适配mybatis 扫描路径的不同配置方式：&#10;1、xml&#10;2、yml&#10;3、properties&#10;4、@mapperScan注解" />
+    <option name="LAST_COMMIT_MESSAGE" value="适配mybatis 扫描路径的不同配置方式：&#10;1、xml&#10;2、yml&#10;3、properties&#10;4、@mapperScan注解" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
