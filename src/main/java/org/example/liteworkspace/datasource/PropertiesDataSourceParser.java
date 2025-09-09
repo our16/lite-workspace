@@ -6,6 +6,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.example.liteworkspace.util.LogUtil;
 import org.jetbrains.jps.model.java.JavaResourceRootType;
 
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.util.Properties;
 public class PropertiesDataSourceParser {
 
     public static List<SqlSessionConfig> parse(Project project) {
+        LogUtil.info("PropertiesDataSourceParser.parse");
         List<SqlSessionConfig> result = new ArrayList<>();
         
         // 1. 遍历所有模块

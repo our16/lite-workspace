@@ -23,7 +23,7 @@ public class DataSourceConfigLoader {
         result.addAll(PropertiesDataSourceParser.parse(project));
         
         // 4. @MapperScan 注解解析
-        result.addAll(MapperScanAnnotationParser.parse(project));
+//        result.addAll(MapperScanAnnotationParser.parse(project));
         
         return result;
     }

@@ -12,6 +12,7 @@ import com.intellij.psi.PsiAnnotationMemberValue;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.search.GlobalSearchScope;
+import org.example.liteworkspace.util.LogUtil;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import java.util.List;
 public class MapperScanAnnotationParser {
 
     public static List<SqlSessionConfig> parse(Project project) {
+        LogUtil.info("MapperScanAnnotationParser.parse");
         List<SqlSessionConfig> result = new ArrayList<>();
         
         // 1. 遍历所有模块

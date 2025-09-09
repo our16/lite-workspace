@@ -10,6 +10,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.example.liteworkspace.util.LogUtil;
 import org.jetbrains.jps.model.java.JavaResourceRootType;
 
 import java.util.*;
@@ -17,6 +18,7 @@ import java.util.*;
 public class SqlSessionFactoryXmlParser {
 
     public static List<SqlSessionConfig> parse(Project project) {
+        LogUtil.info("SqlSessionFactoryXmlParser.parse");
         Set<SqlSessionConfig> result = new HashSet<>();
         // 1️⃣ 遍历所有模块
         for (Module module : ModuleManager.getInstance(project).getModules()) {
