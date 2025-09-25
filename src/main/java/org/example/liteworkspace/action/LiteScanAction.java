@@ -50,7 +50,7 @@ public class LiteScanAction extends AnAction {
                     indicator.setText("正在扫描项目依赖...");
                     indicator.setFraction(0.1);
                     
-                    // 直接在后台线程中执行，不使用 runReadAction
+                    // 在后台线程中创建服务，PSI 操作将在服务内部使用 runReadAction 包装
                     LiteWorkspaceService service = new LiteWorkspaceService(project);
                     service.scanAndGenerate(targetClass, targetMethod, indicator);
                 } catch (Exception ex) {

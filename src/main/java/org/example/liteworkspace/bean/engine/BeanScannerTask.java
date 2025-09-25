@@ -43,6 +43,7 @@ public class BeanScannerTask implements Runnable  {
 
     @Override
     public void run() {
+        // 确保在 read-action 中执行 PSI 操作
         ApplicationManager.getApplication().runReadAction(() -> {
             LogUtil.info("BeanScannerTask started: {}", clazz.getQualifiedName());
             executeTask();

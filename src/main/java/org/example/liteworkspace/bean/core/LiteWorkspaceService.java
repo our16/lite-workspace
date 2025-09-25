@@ -1,6 +1,7 @@
 package org.example.liteworkspace.bean.core;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -16,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Service层：负责完整的扫描、生成、写入和缓存流程
@@ -47,7 +49,13 @@ public class LiteWorkspaceService {
             // -------------------- Step 1: 初始化项目上下文 --------------------
             indicator.setText2("初始化项目上下文...");
             indicator.setFraction(0.2);
-            LiteProjectContext projectContext = new LiteProjectContext(project, targetClass, targetMethod, null);
+            
+            // 使用 runReadAction 确保在正确的线程上下文中创建项目上下文
+            final LiteProjectContext[] projectContextHolder = new LiteProjectContext[1];
+            ApplicationManager.getApplication().runReadAction(() -> {
+                projectContextHolder[0] = new LiteProjectContext(project, targetClass, targetMethod, null);
+            });
+            LiteProjectContext projectContext = projectContextHolder[0];
             LogUtil.info("complete project context init ");
             
             // -------------------- Step 2: 扫描目标类依赖Bean --------------------
@@ -62,27 +70,28 @@ public class LiteWorkspaceService {
                 beans[0] = beanScanner.scanAndCollectBeanList(targetClass, project);
             });
             
-            LogUtil.info("end scanner relation bean list,size:{}", beans[0].size());
+            Collection<BeanDefinition> beansCollection = beans[0];
+            LogUtil.info("end scanner relation bean list,size:{}", beansCollection.size());
             
             // -------------------- Step 3: 生成Spring XML --------------------
             indicator.setText2("生成Spring XML配置...");
             indicator.setFraction(0.6);
             SpringXmlBuilder xmlBuilder = new SpringXmlBuilder(projectContext);
             LogUtil.info("start build spring xml config");
-            Map<String, String> beanMap = xmlBuilder.buildXmlMap(beans[0]);
+            Map<String, String> beanMap = xmlBuilder.buildXmlMap(beansCollection);
             LogUtil.info("end build spring xml config,size:{}", beanMap.size());
             
             // -------------------- Step 4: 写入文件（Psi / 本地文件） --------------------
             indicator.setText2("写入文件...");
             indicator.setFraction(0.8);
-            writeFiles(projectContext, targetClass, beanMap, beans[0], indicator);
+            writeFiles(projectContext, targetClass, beanMap, beansCollection, indicator);
             
             indicator.setText2("完成");
             indicator.setFraction(1.0);
             LogUtil.info("end write xml file,cost:{} s", CostUtil.end(targetClass.getQualifiedName()) / 1000);
         } catch (Exception e) {
             LogUtil.error("scanAndGenerate error", e);
-            throw e;
+            throw new RuntimeException(e);
         }
     }
 

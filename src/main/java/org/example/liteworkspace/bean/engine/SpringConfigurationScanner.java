@@ -47,9 +47,10 @@ public class SpringConfigurationScanner {
         Set<String> projectScanPackages = scanProjectSourceForComponentScan(project);
         allScanPackages.addAll(projectScanPackages);
 
-        // 2. 扫描依赖库 (JARs) 中的 spring.factories
-        Set<String> jarScanPackages = scanJarsForSpringFactories(project);
-        allScanPackages.addAll(jarScanPackages);
+        // TODO jar 包里面按照配置的方式，不用去扫描
+//        // 2. 扫描依赖库 (JARs) 中的 spring.factories
+//        Set<String> jarScanPackages = scanJarsForSpringFactories(project);
+//        allScanPackages.addAll(jarScanPackages);
 
         return allScanPackages;
     }

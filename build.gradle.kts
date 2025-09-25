@@ -5,42 +5,44 @@ plugins {
 }
 
 group = "org.liteworkspace"
-version = "1.24.3.multi-spring-version"
+version = "1.24.9"
 
 repositories {
+    mavenCentral()
     maven {
         url = uri("https://maven.aliyun.com/repository/public")
     }
 }
 
 dependencies {
-    // Gson 依赖
     implementation("com.google.code.gson:gson:2.10.1")
 }
 
-
-
-// Configure Gradle IntelliJ Plugin
-// Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
+    // 固定 IDE 版本，避免每次构建都去查询最新版
     version.set("2024.1.7")
-    type.set("IC") // Target IDE Platform
-    plugins.set(listOf("com.intellij.java", "JUnit", "java"))
+    type.set("IC") // IntelliJ Community Edition
+    plugins.set(listOf("com.intellij.java", "JUnit"))
+
+    // 关闭自动 update 检查，避免 GitHub NPE
+    updateSinceUntilBuild.set(false)
 }
 
 tasks {
-    // Set the JVM compatibility versions
+    // Java 编译配置
     withType<JavaCompile> {
         sourceCompatibility = "17"
         targetCompatibility = "17"
     }
+
+    // Kotlin 编译配置
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "17"
     }
 
     patchPluginXml {
-        sinceBuild.set("223")
-        untilBuild.set("252.*")
+        sinceBuild.set("241")    // 对应 2024.1.* 版本
+        untilBuild.set("252.*")  // 允许兼容未来小版本
     }
 
     signPlugin {
