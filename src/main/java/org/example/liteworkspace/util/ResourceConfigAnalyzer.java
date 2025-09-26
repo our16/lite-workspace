@@ -12,6 +12,8 @@ import com.intellij.psi.search.searches.AllClassesSearch;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.example.liteworkspace.bean.core.DatasourceConfig;
+import org.example.liteworkspace.dto.ClassSignatureDTO;
+import org.example.liteworkspace.dto.PsiToDtoConverter;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
@@ -33,8 +35,8 @@ public class ResourceConfigAnalyzer {
         return result;
     }
 
-    public Map<String, PsiClass> scanConfigurationClasses(Set<String> packagePrefixes) {
-        Map<String, PsiClass> beanToConfiguration = new HashMap<>();
+    public Map<String, ClassSignatureDTO> scanConfigurationClasses(Set<String> packagePrefixes) {
+        Map<String, ClassSignatureDTO> beanToConfiguration = new HashMap<>();
         Project project = this.project;
 
         Collection<PsiClass> classesToScan = new ArrayList<>();
@@ -70,6 +72,9 @@ public class ResourceConfigAnalyzer {
                 continue;
             }
 
+            // 将配置类转换为DTO
+            ClassSignatureDTO clazzDto = PsiToDtoConverter.convertToClassSignature(clazz);
+
             for (PsiMethod method : clazz.getMethods()) {
                 if (!hasAnnotation(method, "org.springframework.context.annotation.Bean")) {
                     continue;
@@ -81,10 +86,10 @@ public class ResourceConfigAnalyzer {
                 String beanName = getBeanName(method);
                 String returnTypeName = returnType.getCanonicalText();
 
-                beanToConfiguration.put(method.getName(), clazz);
-                beanToConfiguration.put(returnTypeName, clazz);
+                beanToConfiguration.put(method.getName(), clazzDto);
+                beanToConfiguration.put(returnTypeName, clazzDto);
                 if (!beanName.equals(method.getName())) {
-                    beanToConfiguration.put(beanName, clazz);
+                    beanToConfiguration.put(beanName, clazzDto);
                 }
             }
         }

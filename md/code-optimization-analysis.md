@@ -512,7 +512,7 @@
        
        @Override
        public void run() {
-           ApplicationManager.getApplication().runReadAction(() -> {
+           ReadActionUtil.runSync(() -> {
                logger.debug("BeanScannerTask started: {}", clazz.getQualifiedName());
                try {
                    executeTask();

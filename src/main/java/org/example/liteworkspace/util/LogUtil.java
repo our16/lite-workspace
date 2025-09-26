@@ -93,9 +93,7 @@ public class LogUtil {
     }
 
     public static void debug(String str, Object... params) {
-        if (log.isDebugEnabled()) {
-            submit(() -> log.debug(format(str, params)));
-        }
+        submit(() -> log.info(format(str, params)));
     }
 
     public static void shutdown() {

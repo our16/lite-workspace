@@ -253,7 +253,7 @@ public class LiteFileWriter {
                                     String relativePath,
                                     File javaTestDir) throws IOException {
         File testFile = new File(javaTestDir, testClassName + ".java");
-        String methodName = getMethodName(context.getTargetMethod());
+        String methodName = getMethodName(context.findTargetMethod());
         String beanName = decapitalize(className);
         if (testFile.exists()) {
             Project project = context.getProject();

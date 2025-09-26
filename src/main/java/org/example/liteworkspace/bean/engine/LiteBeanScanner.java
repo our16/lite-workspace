@@ -6,6 +6,7 @@ import org.example.liteworkspace.bean.core.BeanDefinition;
 import org.example.liteworkspace.bean.core.BeanRegistry;
 import org.example.liteworkspace.bean.core.context.LiteProjectContext;
 import org.example.liteworkspace.util.LogUtil;
+import org.example.liteworkspace.util.ReadActionUtil;
 
 import java.util.Collection;
 import java.util.Set;
@@ -33,9 +34,12 @@ public class LiteBeanScanner {
         BeanRegistry registry = new BeanRegistry();
         try {
             LogUtil.info("scanAndCollectBeanList start");
-            // 创建根任务
-            BeanScannerTask rootTask = new BeanScannerTask(rootClass, registry, context, visited, normalDependencies);
-            rootTask.run();
+            // 在ReadAction中执行PSI操作
+            ReadActionUtil.runSync(project, () -> {
+                // 创建根任务
+                BeanScannerTask rootTask = new BeanScannerTask(rootClass, registry, context, visited, normalDependencies);
+                rootTask.run();
+            });
         } finally {
             // 关闭线程池
             executorService.shutdown();

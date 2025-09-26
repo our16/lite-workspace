@@ -48,8 +48,8 @@ public class LiteWorkspaceService {
             
             // 使用 runReadAction 确保在正确的线程上下文中创建项目上下文
             final LiteProjectContext[] projectContextHolder = new LiteProjectContext[1];
-            ApplicationManager.getApplication().runReadAction(() -> {
-                projectContextHolder[0] = new LiteProjectContext(project, targetClass, targetMethod, null);
+            ReadActionUtil.runSync(project,() -> {
+                projectContextHolder[0] = new LiteProjectContext(project, targetClass, targetMethod, indicator);
             });
             LiteProjectContext projectContext = projectContextHolder[0];
             LogUtil.info("complete project context init ");
@@ -65,6 +65,7 @@ public class LiteWorkspaceService {
             ReadActionUtil.runSync(project, () -> {
                 beans[0] = beanScanner.scanAndCollectBeanList(targetClass, project);
             });
+
             Collection<BeanDefinition> beansCollection = beans[0];
             LogUtil.info("end scanner relation bean list,size:{}", beansCollection.size());
             
@@ -87,6 +88,9 @@ public class LiteWorkspaceService {
                 // 这里执行 PSI 扫描
                 LogUtil.info("end write xml file,cost:{} s", CostUtil.end(targetClass.getQualifiedName()) / 1000);
             });
+            ReadAction.nonBlocking(() -> {
+                LogUtil.info("end write xml file,cost:{} s", CostUtil.end(targetClass.getQualifiedName()) / 1000);
+            }).executeSynchronously();
         } catch (Exception e) {
             LogUtil.error("scanAndGenerate error", e);
             throw new RuntimeException(e);
@@ -141,7 +145,7 @@ public class LiteWorkspaceService {
                     
                     // 3️⃣ 保存缓存（如果需要）
                     // LiteCacheStorage cacheStorage = new LiteCacheStorage(project);
-                    // cacheStorage.saveConfigurationClasses(projectContext.getSpringContext().getBean2configuration());
+                    // cacheStorage.saveConfigurationClasses(projectContext.getSpringContext().getBean2configurationDtos());
                     // cacheStorage.saveMapperXmlPaths(projectContext.getMyBatisContext().getNamespace2XmlFileMap());
                     // cacheStorage.saveDatasourceConfig(projectContext.getSpringContext().getDatasourceConfig());
                     // cacheStorage.saveSpringScanPackages(projectContext.getSpringContext().getComponentScanPackages());

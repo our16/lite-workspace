@@ -6,6 +6,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.example.liteworkspace.bean.core.BeanDefinition;
 import org.example.liteworkspace.bean.core.DatasourceConfig;
 import org.example.liteworkspace.datasource.SqlSessionConfig;
+import org.example.liteworkspace.dto.ClassSignatureDTO;
 import org.example.liteworkspace.util.MybatisBeanDto;
 
 import java.io.IOException;
@@ -36,11 +37,11 @@ public class LiteCacheStorage {
     /**
      * 保存 Spring @Configuration 类：类全名 -> 文件路径
      */
-    public void saveConfigurationClasses(Map<String, PsiClass> configClasses) {
+    public void saveConfigurationClasses(Map<String, ClassSignatureDTO> configClasses) {
         Map<String, String> classToPath = configClasses.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey, // FQCN
-                        e -> e.getValue().getContainingFile().getVirtualFile().getPath() // 文件路径
+                        e -> e.getValue().getQualifiedName() // 使用DTO中的类名
                 ));
         saveJson("configuration_classes.json", classToPath);
     }
@@ -113,8 +114,8 @@ public class LiteCacheStorage {
     }
 
     public void saveBeanList(Collection<BeanDefinition> beans) {
-        Set<String> beanList = beans.stream().map(BeanDefinition::getSource)
-                .map(item -> item.getContainingFile().getVirtualFile().getPath()).collect(Collectors.toSet());
+        Set<String> beanList = beans.stream().map(BeanDefinition::getSourceDto)
+                .map(ClassSignatureDTO::getQualifiedName).collect(Collectors.toSet());
         saveJson("bean_classes.json", beanList);
     }
 

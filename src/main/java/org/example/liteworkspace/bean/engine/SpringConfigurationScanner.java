@@ -12,6 +12,8 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.AnnotatedElementsSearch;
 import com.intellij.psi.util.PsiUtil;
+import org.example.liteworkspace.util.CostUtil;
+import org.example.liteworkspace.util.LogUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,16 +43,31 @@ public class SpringConfigurationScanner {
      */
     @NotNull
     public Set<String> scanEffectiveComponentScanPackages(@NotNull Project project) {
+        long startTime = System.currentTimeMillis();
+        LogUtil.info("开始扫描Spring组件扫描包路径，项目: {}", project.getName());
+        
         Set<String> allScanPackages = new HashSet<>();
 
-        // 1. 扫描项目源代码中的配置
-        Set<String> projectScanPackages = scanProjectSourceForComponentScan(project);
-        allScanPackages.addAll(projectScanPackages);
+        try {
+            // 1. 扫描项目源代码中的配置
+            LogUtil.debug("开始扫描项目源代码中的配置");
+            Set<String> projectScanPackages = scanProjectSourceForComponentScan(project);
+            LogUtil.debug("从项目源代码中扫描到 {} 个包路径", projectScanPackages.size());
+            allScanPackages.addAll(projectScanPackages);
 
-        // TODO jar 包里面按照配置的方式，不用去扫描
-//        // 2. 扫描依赖库 (JARs) 中的 spring.factories
-//        Set<String> jarScanPackages = scanJarsForSpringFactories(project);
-//        allScanPackages.addAll(jarScanPackages);
+            // TODO jar 包里面按照配置的方式，不用去扫描
+    //        // 2. 扫描依赖库 (JARs) 中的 spring.factories
+    //        Set<String> jarScanPackages = scanJarsForSpringFactories(project);
+    //        allScanPackages.addAll(jarScanPackages);
+            
+            LogUtil.info("Spring组件扫描包路径扫描完成，共找到 {} 个包路径: {}", allScanPackages.size(), allScanPackages);
+        } catch (Exception e) {
+            LogUtil.error("扫描Spring组件扫描包路径时发生错误", e);
+            throw e;
+        } finally {
+            long cost = System.currentTimeMillis() - startTime;
+            LogUtil.info("扫描Spring组件扫描包路径完成，耗时: {} ms", cost);
+        }
 
         return allScanPackages;
     }
@@ -63,22 +80,45 @@ public class SpringConfigurationScanner {
      */
     @NotNull
     private Set<String> scanProjectSourceForComponentScan(@NotNull Project project) {
+        long startTime = System.currentTimeMillis();
+        LogUtil.debug("开始扫描项目源代码中的Spring配置");
+        
         Set<String> scanPackages = new HashSet<>();
+        int initialSize = scanPackages.size();
 
-        ModuleManager moduleManager = ModuleManager.getInstance(project);
-        Module[] modules = moduleManager.getModules();
+        try {
+            ModuleManager moduleManager = ModuleManager.getInstance(project);
+            Module[] modules = moduleManager.getModules();
+            LogUtil.debug("项目中共有 {} 个模块", modules.length);
 
-        for (Module module : modules) {
-            VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots(false);
+            for (Module module : modules) {
+                LogUtil.debug("正在扫描模块: {}", module.getName());
+                VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots(false);
+                LogUtil.debug("模块 {} 中有 {} 个源代码根目录", module.getName(), sourceRoots.length);
 
-            for (VirtualFile sourceRoot : sourceRoots) {
-                // --- 使用索引查找带有特定注解的类 ---
-                collectComponentScanPackagesFromJava(project, module, scanPackages);
-                // --- 修正点结束 ---
+                for (VirtualFile sourceRoot : sourceRoots) {
+                    LogUtil.debug("正在扫描源代码根目录: {}", sourceRoot.getPath());
+                    
+                    // --- 使用索引查找带有特定注解的类 ---
+                    int beforeJavaScan = scanPackages.size();
+                    collectComponentScanPackagesFromJava(project, module, scanPackages);
+                    LogUtil.debug("从Java配置中扫描到 {} 个新的包路径", scanPackages.size() - beforeJavaScan);
+                    // --- 修正点结束 ---
 
-                // 扫描 XML 配置 (这部分保持不变)
-                scanPackages.addAll(getComponentScanPackagesFromXml(sourceRoot));
+                    // 扫描 XML 配置 (这部分保持不变)
+                    int beforeXmlScan = scanPackages.size();
+                    scanPackages.addAll(getComponentScanPackagesFromXml(sourceRoot));
+                    LogUtil.debug("从XML配置中扫描到 {} 个新的包路径", scanPackages.size() - beforeXmlScan);
+                }
             }
+            
+            LogUtil.debug("项目源代码扫描完成，共找到 {} 个包路径", scanPackages.size() - initialSize);
+        } catch (Exception e) {
+            LogUtil.error("扫描项目源代码中的Spring配置时发生错误", e);
+            throw e;
+        } finally {
+            long cost = System.currentTimeMillis() - startTime;
+            LogUtil.debug("扫描项目源代码中的Spring配置完成，耗时: {} ms", cost);
         }
 
         return scanPackages;
@@ -92,17 +132,33 @@ public class SpringConfigurationScanner {
      * @param scanPackages  用于收集扫描包路径的集合
      */
     private void collectComponentScanPackagesFromJava(@NotNull Project project, @NotNull Module module, @NotNull Set<String> scanPackages) {
-        // 创建模块范围的搜索范围
-        GlobalSearchScope moduleScope = GlobalSearchScope.moduleScope(module);
+        long startTime = System.currentTimeMillis();
+        LogUtil.debug("开始从Java配置中收集组件扫描包路径，模块: {}", module.getName());
         
-        // 查找带有 @SpringBootApplication 注解的类
-        findAndProcessAnnotatedClasses(project, moduleScope, SPRING_BOOT_APP_ANNOTATION, scanPackages);
-        
-        // 查找带有 @ComponentScan 注解的类
-        findAndProcessAnnotatedClasses(project, moduleScope, COMPONENT_SCAN_ANNOTATION, scanPackages);
-        
-        // 查找带有 @MapperScan 注解的类
-        findAndProcessAnnotatedClasses(project, moduleScope, MAPPER_SCAN_ANNOTATION, scanPackages);
+        try {
+            // 创建模块范围的搜索范围
+            GlobalSearchScope moduleScope = GlobalSearchScope.moduleScope(module);
+            
+            // 查找带有 @SpringBootApplication 注解的类
+            LogUtil.debug("正在查找带有 @SpringBootApplication 注解的类");
+            findAndProcessAnnotatedClasses(project, moduleScope, SPRING_BOOT_APP_ANNOTATION, scanPackages);
+            
+            // 查找带有 @ComponentScan 注解的类
+            LogUtil.debug("正在查找带有 @ComponentScan 注解的类");
+            findAndProcessAnnotatedClasses(project, moduleScope, COMPONENT_SCAN_ANNOTATION, scanPackages);
+            
+            // 查找带有 @MapperScan 注解的类
+            LogUtil.debug("正在查找带有 @MapperScan 注解的类");
+            findAndProcessAnnotatedClasses(project, moduleScope, MAPPER_SCAN_ANNOTATION, scanPackages);
+            
+            LogUtil.debug("从Java配置中收集组件扫描包路径完成");
+        } catch (Exception e) {
+            LogUtil.error("从Java配置中收集组件扫描包路径时发生错误，模块: " + module.getName(), e);
+            throw e;
+        } finally {
+            long cost = System.currentTimeMillis() - startTime;
+            LogUtil.debug("从Java配置中收集组件扫描包路径完成，耗时: {} ms", cost);
+        }
     }
     
     /**
@@ -115,24 +171,41 @@ public class SpringConfigurationScanner {
      */
     private void findAndProcessAnnotatedClasses(@NotNull Project project, @NotNull GlobalSearchScope searchScope,
                                                @NotNull String annotationName, @NotNull Set<String> scanPackages) {
-        // 使用索引查找所有带有指定注解的类
-        // 首先获取注解类，使用项目范围而不是模块范围，因为注解类可能在依赖库中
-        PsiClass annotationClass = JavaPsiFacade.getInstance(project).findClass(annotationName, GlobalSearchScope.allScope(project));
-        if (annotationClass == null) {
-            // 如果找不到注解类，尝试使用另一种方法查找带有该注解的类
-            findAnnotatedClassesByAnnotationName(project, searchScope, annotationName, scanPackages);
-            return;
-        }
+        long startTime = System.currentTimeMillis();
+        LogUtil.debug("开始查找并处理带有 {} 注解的类", annotationName);
         
-        // 使用索引查找所有带有指定注解的类
-        Collection<PsiClass> annotatedClasses = AnnotatedElementsSearch.searchPsiClasses(
-                annotationClass,
-                searchScope
-        ).findAll();
-        
-        // 处理每个带有注解的类
-        for (PsiClass psiClass : annotatedClasses) {
-            processAnnotatedClass(psiClass, annotationName, scanPackages, project);
+        try {
+            // 使用索引查找所有带有指定注解的类
+            // 首先获取注解类，使用项目范围而不是模块范围，因为注解类可能在依赖库中
+            PsiClass annotationClass = JavaPsiFacade.getInstance(project).findClass(annotationName, GlobalSearchScope.allScope(project));
+            if (annotationClass == null) {
+                LogUtil.warn("找不到注解类: {}，将使用备用方法查找", annotationName);
+                // 如果找不到注解类，尝试使用另一种方法查找带有该注解的类
+                findAnnotatedClassesByAnnotationName(project, searchScope, annotationName, scanPackages);
+                return;
+            }
+            
+            // 使用索引查找所有带有指定注解的类
+            Collection<PsiClass> annotatedClasses = AnnotatedElementsSearch.searchPsiClasses(
+                    annotationClass,
+                    searchScope
+            ).findAll();
+            
+            LogUtil.debug("找到 {} 个带有 {} 注解的类", annotatedClasses.size(), annotationName);
+            
+            // 处理每个带有注解的类
+            for (PsiClass psiClass : annotatedClasses) {
+                LogUtil.debug("正在处理带有 {} 注解的类: {}", annotationName, psiClass.getQualifiedName());
+                processAnnotatedClass(psiClass, annotationName, scanPackages, project);
+            }
+            
+            LogUtil.debug("查找并处理带有 {} 注解的类完成", annotationName);
+        } catch (Exception e) {
+            LogUtil.error("查找并处理带有 " + annotationName + " 注解的类时发生错误", e);
+            throw e;
+        } finally {
+            long cost = System.currentTimeMillis() - startTime;
+            LogUtil.debug("查找并处理带有 {} 注解的类完成，耗时: {} ms", annotationName, cost);
         }
     }
     
@@ -146,18 +219,35 @@ public class SpringConfigurationScanner {
      */
     private void findAnnotatedClassesByAnnotationName(@NotNull Project project, @NotNull GlobalSearchScope searchScope,
                                                     @NotNull String annotationName, @NotNull Set<String> scanPackages) {
-        // 使用 JavaPsiFacade 搜索所有类，然后检查它们是否带有指定的注解
-        JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
+        long startTime = System.currentTimeMillis();
+        LogUtil.debug("开始通过注解名称查找带有 {} 注解的类", annotationName);
         
-        // 获取搜索范围内的所有类
-        PsiClass[] allClasses = javaPsiFacade.findClasses("*", searchScope);
-        
-        for (PsiClass psiClass : allClasses) {
-            // 检查类是否带有指定的注解
-            PsiAnnotation annotation = psiClass.getAnnotation(annotationName);
-            if (annotation != null) {
-                processAnnotatedClass(psiClass, annotationName, scanPackages, project);
+        try {
+            // 使用 JavaPsiFacade 搜索所有类，然后检查它们是否带有指定的注解
+            JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
+            
+            // 获取搜索范围内的所有类
+            PsiClass[] allClasses = javaPsiFacade.findClasses("*", searchScope);
+            LogUtil.debug("搜索范围内共有 {} 个类", allClasses.length);
+            
+            int annotatedClassCount = 0;
+            for (PsiClass psiClass : allClasses) {
+                // 检查类是否带有指定的注解
+                PsiAnnotation annotation = psiClass.getAnnotation(annotationName);
+                if (annotation != null) {
+                    annotatedClassCount++;
+                    LogUtil.debug("找到带有 {} 注解的类: {}", annotationName, psiClass.getQualifiedName());
+                    processAnnotatedClass(psiClass, annotationName, scanPackages, project);
+                }
             }
+            
+            LogUtil.debug("通过注解名称查找完成，共找到 {} 个带有 {} 注解的类", annotatedClassCount, annotationName);
+        } catch (Exception e) {
+            LogUtil.error("通过注解名称查找带有 " + annotationName + " 注解的类时发生错误", e);
+            throw e;
+        } finally {
+            long cost = System.currentTimeMillis() - startTime;
+            LogUtil.debug("通过注解名称查找带有 {} 注解的类完成，耗时: {} ms", annotationName, cost);
         }
     }
     
@@ -190,16 +280,20 @@ public class SpringConfigurationScanner {
      */
     private void processSpringBootApplicationAnnotation(@NotNull PsiClass psiClass, @NotNull Set<String> scanPackages,
                                                       @NotNull Project project) {
+        LogUtil.debug("正在处理 @SpringBootApplication 注解，类: {}", psiClass.getQualifiedName());
+        
         PsiAnnotation springBootAppAnnotation = psiClass.getAnnotation(SPRING_BOOT_APP_ANNOTATION);
         if (springBootAppAnnotation != null) {
             boolean hasExplicitBasePackages = false;
             boolean hasExplicitBasePackageClasses = false;
+            int initialSize = scanPackages.size();
 
             // 检查 @SpringBootApplication 的 basePackages 属性
             PsiAnnotationMemberValue sbBasePackagesValue = springBootAppAnnotation.findDeclaredAttributeValue("basePackages");
             if (sbBasePackagesValue != null) {
                 hasExplicitBasePackages = true;
                 List<String> packages = parseStringArrayOrList(sbBasePackagesValue);
+                LogUtil.debug("从 @SpringBootApplication 的 basePackages 属性中解析到包路径: {}", packages);
                 scanPackages.addAll(packages);
             }
 
@@ -208,6 +302,7 @@ public class SpringConfigurationScanner {
             if (sbBasePackageClassesValue != null) {
                 hasExplicitBasePackageClasses = true;
                 List<String> packageFromClassRefs = parseClassArray(sbBasePackageClassesValue, project);
+                LogUtil.debug("从 @SpringBootApplication 的 basePackageClasses 属性中解析到包路径: {}", packageFromClassRefs);
                 scanPackages.addAll(packageFromClassRefs);
             }
 
@@ -216,9 +311,14 @@ public class SpringConfigurationScanner {
             if (!hasExplicitBasePackages && !hasExplicitBasePackageClasses) {
                 String defaultPackage = getPackageName(psiClass);
                 if (defaultPackage != null && !defaultPackage.isEmpty()) {
+                    LogUtil.debug("@SpringBootApplication 未显式指定扫描包路径，使用默认包路径: {}", defaultPackage);
                     scanPackages.add(defaultPackage);
                 }
             }
+            
+            LogUtil.debug("@SpringBootApplication 处理完成，新增 {} 个包路径", scanPackages.size() - initialSize);
+        } else {
+            LogUtil.warn("类 {} 声明有 @SpringBootApplication 注解但未找到注解实例", psiClass.getQualifiedName());
         }
     }
     
@@ -231,16 +331,20 @@ public class SpringConfigurationScanner {
      */
     private void processComponentScanAnnotation(@NotNull PsiClass psiClass, @NotNull Set<String> scanPackages,
                                               @NotNull Project project) {
+        LogUtil.debug("正在处理 @ComponentScan 注解，类: {}", psiClass.getQualifiedName());
+        
         PsiAnnotation componentScanAnnotation = psiClass.getAnnotation(COMPONENT_SCAN_ANNOTATION);
         if (componentScanAnnotation != null) {
             boolean hasExplicitBasePackages = false;
             boolean hasExplicitBasePackageClasses = false;
+            int initialSize = scanPackages.size();
 
             // 1. 检查 basePackages 属性
             PsiAnnotationMemberValue basePackagesValue = componentScanAnnotation.findDeclaredAttributeValue("basePackages");
             if (basePackagesValue != null) {
                 hasExplicitBasePackages = true;
                 List<String> packages = parseStringArrayOrList(basePackagesValue);
+                LogUtil.debug("从 @ComponentScan 的 basePackages 属性中解析到包路径: {}", packages);
                 scanPackages.addAll(packages);
             }
 
@@ -250,6 +354,7 @@ public class SpringConfigurationScanner {
                 if (valueAttr != null) {
                     hasExplicitBasePackages = true;
                     List<String> packages = parseStringArrayOrList(valueAttr);
+                    LogUtil.debug("从 @ComponentScan 的 value 属性中解析到包路径: {}", packages);
                     scanPackages.addAll(packages);
                 }
             }
@@ -259,6 +364,7 @@ public class SpringConfigurationScanner {
             if (basePackageClassesValue != null) {
                 hasExplicitBasePackageClasses = true;
                 List<String> packageFromClassRefs = parseClassArray(basePackageClassesValue, project);
+                LogUtil.debug("从 @ComponentScan 的 basePackageClasses 属性中解析到包路径: {}", packageFromClassRefs);
                 scanPackages.addAll(packageFromClassRefs);
             }
 
@@ -266,9 +372,14 @@ public class SpringConfigurationScanner {
             if (!hasExplicitBasePackages && !hasExplicitBasePackageClasses) {
                 String defaultPackage = getPackageName(psiClass);
                 if (defaultPackage != null && !defaultPackage.isEmpty()) {
+                    LogUtil.debug("@ComponentScan 未显式指定扫描包路径，使用默认包路径: {}", defaultPackage);
                     scanPackages.add(defaultPackage);
                 }
             }
+            
+            LogUtil.debug("@ComponentScan 处理完成，新增 {} 个包路径", scanPackages.size() - initialSize);
+        } else {
+            LogUtil.warn("类 {} 声明有 @ComponentScan 注解但未找到注解实例", psiClass.getQualifiedName());
         }
     }
     
@@ -281,12 +392,17 @@ public class SpringConfigurationScanner {
      */
     private void processMapperScanAnnotation(@NotNull PsiClass psiClass, @NotNull Set<String> scanPackages,
                                            @NotNull Project project) {
+        LogUtil.debug("正在处理 @MapperScan 注解，类: {}", psiClass.getQualifiedName());
+        
         PsiAnnotation mapperScanAnnotation = psiClass.getAnnotation(MAPPER_SCAN_ANNOTATION);
         if (mapperScanAnnotation != null) {
+            int initialSize = scanPackages.size();
+            
             // 处理 basePackages 属性
             PsiAnnotationMemberValue basePackagesValue = mapperScanAnnotation.findDeclaredAttributeValue("basePackages");
             if (basePackagesValue != null) {
                 List<String> packages = parseStringArrayOrList(basePackagesValue);
+                LogUtil.debug("从 @MapperScan 的 basePackages 属性中解析到包路径: {}", packages);
                 scanPackages.addAll(packages);
             }
             
@@ -294,6 +410,7 @@ public class SpringConfigurationScanner {
             PsiAnnotationMemberValue valueAttr = mapperScanAnnotation.findDeclaredAttributeValue("value");
             if (valueAttr != null) {
                 List<String> packages = parseStringArrayOrList(valueAttr);
+                LogUtil.debug("从 @MapperScan 的 value 属性中解析到包路径: {}", packages);
                 scanPackages.addAll(packages);
             }
             
@@ -301,8 +418,13 @@ public class SpringConfigurationScanner {
             PsiAnnotationMemberValue basePackageClassesValue = mapperScanAnnotation.findDeclaredAttributeValue("basePackageClasses");
             if (basePackageClassesValue != null) {
                 List<String> packageFromClassRefs = parseClassArray(basePackageClassesValue, project);
+                LogUtil.debug("从 @MapperScan 的 basePackageClasses 属性中解析到包路径: {}", packageFromClassRefs);
                 scanPackages.addAll(packageFromClassRefs);
             }
+            
+            LogUtil.debug("@MapperScan 处理完成，新增 {} 个包路径", scanPackages.size() - initialSize);
+        } else {
+            LogUtil.warn("类 {} 声明有 @MapperScan 注解但未找到注解实例", psiClass.getQualifiedName());
         }
     }
 
@@ -315,8 +437,21 @@ public class SpringConfigurationScanner {
      */
     @NotNull
     private Set<String> getComponentScanPackagesFromXml(@NotNull VirtualFile sourceRoot) {
+        long startTime = System.currentTimeMillis();
+        LogUtil.debug("开始从XML配置中获取组件扫描包路径，源代码根目录: {}", sourceRoot.getPath());
+        
         Set<String> scanPackages = new HashSet<>();
-        collectAndParseXmlFiles(sourceRoot, scanPackages);
+        try {
+            collectAndParseXmlFiles(sourceRoot, scanPackages);
+            LogUtil.debug("从XML配置中获取到 {} 个组件扫描包路径", scanPackages.size());
+        } catch (Exception e) {
+            LogUtil.error("从XML配置中获取组件扫描包路径时发生错误，源代码根目录: " + sourceRoot.getPath(), e);
+            throw e;
+        } finally {
+            long cost = System.currentTimeMillis() - startTime;
+            LogUtil.debug("从XML配置中获取组件扫描包路径完成，耗时: {} ms", cost);
+        }
+        
         return scanPackages;
     }
 
@@ -413,15 +548,39 @@ public class SpringConfigurationScanner {
      * 优化：排除mapper.xml文件，只扫描bean依赖相关的XML文件，通过内容判断而非文件名
      */
     private void collectAndParseXmlFiles(VirtualFile directory, Set<String> scanPackages) {
-        for (VirtualFile file : directory.getChildren()) {
-            if (file.isDirectory()) {
-                collectAndParseXmlFiles(file, scanPackages);
-            } else if ("xml".equalsIgnoreCase(file.getExtension())) {
-                // 首先检查是否是Spring配置文件（通过内容判断）
-                if (isSpringConfigurationFile(file)) {
-                    parseXmlFileForComponentScan(file, scanPackages);
+        long startTime = System.currentTimeMillis();
+        LogUtil.debug("开始收集并解析目录下的XML文件: {}", directory.getPath());
+        
+        try {
+            int xmlFileCount = 0;
+            int springConfigFileCount = 0;
+            
+            for (VirtualFile file : directory.getChildren()) {
+                if (file.isDirectory()) {
+                    collectAndParseXmlFiles(file, scanPackages);
+                } else if ("xml".equalsIgnoreCase(file.getExtension())) {
+                    xmlFileCount++;
+                    LogUtil.debug("发现XML文件: {}", file.getPath());
+                    
+                    // 首先检查是否是Spring配置文件（通过内容判断）
+                    if (isSpringConfigurationFile(file)) {
+                        springConfigFileCount++;
+                        LogUtil.debug("识别为Spring配置文件: {}", file.getPath());
+                        parseXmlFileForComponentScan(file, scanPackages);
+                    } else {
+                        LogUtil.debug("跳过非Spring配置XML文件: {}", file.getPath());
+                    }
                 }
             }
+            
+            LogUtil.debug("目录 {} 下的XML文件处理完成，共发现 {} 个XML文件，其中 {} 个是Spring配置文件",
+                         directory.getPath(), xmlFileCount, springConfigFileCount);
+        } catch (Exception e) {
+            LogUtil.error("收集并解析目录下的XML文件时发生错误，目录: " + directory.getPath(), e);
+            throw e;
+        } finally {
+            long cost = System.currentTimeMillis() - startTime;
+            LogUtil.debug("收集并解析目录下的XML文件完成，耗时: {} ms", cost);
         }
     }
 
@@ -430,6 +589,9 @@ public class SpringConfigurationScanner {
      * (此方法保持不变)
      */
     private void parseXmlFileForComponentScan(VirtualFile xmlFile, Set<String> scanPackages) {
+        long startTime = System.currentTimeMillis();
+        LogUtil.debug("开始解析XML文件中的组件扫描配置: {}", xmlFile.getPath());
+        
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setNamespaceAware(true);
@@ -445,6 +607,9 @@ public class SpringConfigurationScanner {
                 componentScanNodes = document.getElementsByTagName("component-scan");
             }
 
+            LogUtil.debug("在XML文件中找到 {} 个 component-scan 节点", componentScanNodes.getLength());
+            int packageCount = 0;
+
             for (int i = 0; i < componentScanNodes.getLength(); i++) {
                 org.w3c.dom.Node node = componentScanNodes.item(i);
                 if (node.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
@@ -452,18 +617,31 @@ public class SpringConfigurationScanner {
                     String basePackageAttr = element.getAttribute("base-package");
                     if (basePackageAttr != null && !basePackageAttr.isEmpty()) {
                         String[] packages = basePackageAttr.split("[,;\\s]+");
+                        LogUtil.debug("从 component-scan 节点解析到 base-package 属性值: {}", basePackageAttr);
+                        
                         for (String pkg : packages) {
                             String trimmedPkg = pkg.trim();
                             if (!trimmedPkg.isEmpty()) {
                                 scanPackages.add(trimmedPkg);
+                                packageCount++;
+                                LogUtil.debug("添加包路径: {}", trimmedPkg);
                             }
                         }
+                    } else {
+                        LogUtil.debug("component-scan 节点没有 base-package 属性或属性值为空");
                     }
                 }
             }
+            
+            LogUtil.debug("XML文件解析完成，共添加 {} 个包路径", packageCount);
         } catch (Exception e) {
+            LogUtil.error("解析XML文件中的组件扫描配置时发生错误，文件: " + xmlFile.getPath(), e);
+            // 保留原有的错误输出
             System.err.println("Error parsing XML file for component scan: " + xmlFile.getPath() + " - " + e.getMessage());
             e.printStackTrace();
+        } finally {
+            long cost = System.currentTimeMillis() - startTime;
+            LogUtil.debug("解析XML文件中的组件扫描配置完成，耗时: {} ms", cost);
         }
     }
 
