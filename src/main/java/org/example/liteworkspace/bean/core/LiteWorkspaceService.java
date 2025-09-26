@@ -11,6 +11,7 @@ import org.example.liteworkspace.bean.core.context.LiteProjectContext;
 import org.example.liteworkspace.bean.engine.*;
 import org.example.liteworkspace.util.CostUtil;
 import org.example.liteworkspace.util.LogUtil;
+import org.example.liteworkspace.util.ReadActionUtil;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,20 +32,15 @@ public class LiteWorkspaceService {
     }
 
     /**
-     * 核心流程：扫描Bean依赖、生成Spring XML、写入文件、保存缓存
-     */
-    public void scanAndGenerate(PsiClass targetClass, PsiMethod targetMethod) {
-        scanAndGenerate(targetClass, targetMethod, null);
-    }
-
-    /**
      * 核心流程：扫描Bean依赖、生成Spring XML、写入文件、保存缓存（带进度指示器）
      */
     public void scanAndGenerate(PsiClass targetClass, PsiMethod targetMethod, ProgressIndicator indicator) {
         Objects.requireNonNull(targetClass, "targetClass不能为空");
-        CostUtil.start(targetClass.getQualifiedName());
-        LogUtil.info("start scanAndGenerate java bean an xml file");
-        
+        ReadActionUtil.runSync(project,() -> {
+            // 这里执行 PSI 扫描
+            CostUtil.start(targetClass.getQualifiedName());
+            LogUtil.info("start scanAndGenerate java bean an xml file");
+        });
         try {
             // -------------------- Step 1: 初始化项目上下文 --------------------
             indicator.setText2("初始化项目上下文...");
@@ -66,10 +62,9 @@ public class LiteWorkspaceService {
             
             // 使用 runReadAction 在后台线程中读取 PSI
             final Collection<BeanDefinition>[] beans = new Collection[]{null};
-            ApplicationManager.getApplication().runReadAction(() -> {
+            ReadActionUtil.runSync(project, () -> {
                 beans[0] = beanScanner.scanAndCollectBeanList(targetClass, project);
             });
-            
             Collection<BeanDefinition> beansCollection = beans[0];
             LogUtil.info("end scanner relation bean list,size:{}", beansCollection.size());
             
@@ -88,7 +83,10 @@ public class LiteWorkspaceService {
             
             indicator.setText2("完成");
             indicator.setFraction(1.0);
-            LogUtil.info("end write xml file,cost:{} s", CostUtil.end(targetClass.getQualifiedName()) / 1000);
+            ReadActionUtil.runSync(project,() -> {
+                // 这里执行 PSI 扫描
+                LogUtil.info("end write xml file,cost:{} s", CostUtil.end(targetClass.getQualifiedName()) / 1000);
+            });
         } catch (Exception e) {
             LogUtil.error("scanAndGenerate error", e);
             throw new RuntimeException(e);

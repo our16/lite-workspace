@@ -11,6 +11,7 @@ import org.example.liteworkspace.bean.core.enums.BeanType;
 import org.example.liteworkspace.bean.core.context.LiteProjectContext;
 import org.example.liteworkspace.util.LogUtil;
 import org.example.liteworkspace.util.MyPsiClassUtil;
+import org.example.liteworkspace.util.ReadActionUtil;
 
 import java.util.*;
 
@@ -43,8 +44,7 @@ public class BeanScannerTask implements Runnable  {
 
     @Override
     public void run() {
-        // 确保在 read-action 中执行 PSI 操作
-        ApplicationManager.getApplication().runReadAction(() -> {
+        ReadActionUtil.runSync(context.getProject(), ()->{
             LogUtil.info("BeanScannerTask started: {}", clazz.getQualifiedName());
             executeTask();
             // 比如 registry.addBean(...);
