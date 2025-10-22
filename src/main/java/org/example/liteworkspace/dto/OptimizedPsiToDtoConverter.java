@@ -85,23 +85,43 @@ public class OptimizedPsiToDtoConverter {
     
     private final CacheStatistics stats = new CacheStatistics();
     
-    // 单例实例
-    private static volatile OptimizedPsiToDtoConverter instance;
+    // 项目级别的实例缓存
+    private static final ConcurrentHashMap<String, OptimizedPsiToDtoConverter> instances = new ConcurrentHashMap<>();
     
-    public static OptimizedPsiToDtoConverter getInstance() {
-        if (instance == null) {
-            synchronized (OptimizedPsiToDtoConverter.class) {
-                if (instance == null) {
-                    instance = new OptimizedPsiToDtoConverter();
-                }
-            }
-        }
-        return instance;
+    public static OptimizedPsiToDtoConverter getInstance(String projectId) {
+        return instances.computeIfAbsent(projectId, id -> {
+            OptimizedPsiToDtoConverter converter = new OptimizedPsiToDtoConverter();
+            converter.projectId = id;
+            return converter;
+        });
     }
+    
+    // 项目标识
+    private String projectId;
     
     private OptimizedPsiToDtoConverter() {
         // 启动后台清理线程
         startCleanupThread();
+    }
+    
+    /**
+     * 清理指定项目的实例
+     */
+    public static void clearInstance(String projectId) {
+        OptimizedPsiToDtoConverter converter = instances.remove(projectId);
+        if (converter != null) {
+            converter.clearAllCache();
+        }
+    }
+    
+    /**
+     * 清理所有实例
+     */
+    public static void clearAllInstances() {
+        for (OptimizedPsiToDtoConverter converter : instances.values()) {
+            converter.clearAllCache();
+        }
+        instances.clear();
     }
     
     /**

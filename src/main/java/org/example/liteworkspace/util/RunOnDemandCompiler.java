@@ -151,33 +151,35 @@ public class RunOnDemandCompiler {
     }
 
     private static void collectImportsAndRelatedFiles(Project project, VirtualFile vf, Set<VirtualFile> resultSet) {
-        PsiFile psiFile = PsiManager.getInstance(project).findFile(vf);
-        if (!(psiFile instanceof PsiJavaFile javaFile)) return;
+        ReadActionUtil.runSync(project, () -> {
+            PsiFile psiFile = PsiManager.getInstance(project).findFile(vf);
+            if (!(psiFile instanceof PsiJavaFile javaFile)) return;
 
-        GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
-        PsiManager psiManager = PsiManager.getInstance(project);
-        Set<String> fqcnSet = new HashSet<>();
+            GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
+            PsiManager psiManager = PsiManager.getInstance(project);
+            Set<String> fqcnSet = new HashSet<>();
 
-        // 提取 import 声明
-        for (PsiImportStatement imp : javaFile.getImportList().getImportStatements()) {
-            String fqcn = imp.getQualifiedName();
-            if (fqcn != null) fqcnSet.add(fqcn);
-        }
+            // 提取 import 声明
+            for (PsiImportStatement imp : javaFile.getImportList().getImportStatements()) {
+                String fqcn = imp.getQualifiedName();
+                if (fqcn != null) fqcnSet.add(fqcn);
+            }
 
-        // 自身类也加进来（避免只编译子类）
-        for (PsiClass cls : javaFile.getClasses()) {
-            if (cls.getQualifiedName() != null) fqcnSet.add(cls.getQualifiedName());
-        }
+            // 自身类也加进来（避免只编译子类）
+            for (PsiClass cls : javaFile.getClasses()) {
+                if (cls.getQualifiedName() != null) fqcnSet.add(cls.getQualifiedName());
+            }
 
-        for (String fqcn : fqcnSet) {
-            PsiClass cls = JavaPsiFacade.getInstance(project).findClass(fqcn, scope);
-            if (cls != null) {
-                PsiFile f = cls.getContainingFile();
-                if (f != null) {
-                    VirtualFile dependentFile = f.getVirtualFile();
-                    if (dependentFile != null) resultSet.add(dependentFile);
+            for (String fqcn : fqcnSet) {
+                PsiClass cls = JavaPsiFacade.getInstance(project).findClass(fqcn, scope);
+                if (cls != null) {
+                    PsiFile f = cls.getContainingFile();
+                    if (f != null) {
+                        VirtualFile dependentFile = f.getVirtualFile();
+                        if (dependentFile != null) resultSet.add(dependentFile);
+                    }
                 }
             }
-        }
+        });
     }
 }

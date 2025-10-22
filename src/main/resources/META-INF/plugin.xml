@@ -115,6 +115,9 @@
         
         <!-- Progress Indicators -->
         <!-- <progressIndicatorProvider implementation="org.example.liteworkspace.progress.LiteWorkspaceProgressProvider"/> -->
+        
+        <!-- Project Listeners -->
+<!--        <projectManagerListener implementation="org.example.liteworkspace.listener.ProjectCleanupListener"/>-->
     </extensions>
 
     <!-- Action Definitions -->

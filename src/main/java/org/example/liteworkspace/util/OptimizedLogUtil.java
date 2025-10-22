@@ -329,17 +329,26 @@ public class OptimizedLogUtil {
     private static final LogStatistics statistics = new LogStatistics();
     private static volatile boolean isShutdown = false;
     
-    // 条件日志记录的谓词
-    private static final Map<String, Predicate<Object[]>> logConditions = new ConcurrentHashMap<>();
+    // 条件日志记录的谓词 - 改为项目级别
+    private static final ConcurrentHashMap<String, Map<String, Predicate<Object[]>>> projectLogConditions = new ConcurrentHashMap<>();
     
     static {
         // 启动日志处理线程
         startLogProcessor();
-        
-        // 添加默认条件
-        addLogCondition("performance", params -> params.length > 0 && params[0] instanceof Number && ((Number) params[0]).doubleValue() > 1000.0);
-        addLogCondition("cache", params -> params.length > 0 && "cache".equals(params[0]));
-        addLogCondition("scan", params -> params.length > 0 && "scan".equals(params[0]));
+    }
+    
+    /**
+     * 获取项目的日志条件
+     */
+    private static Map<String, Predicate<Object[]>> getProjectLogConditions(String projectId) {
+        return projectLogConditions.computeIfAbsent(projectId, id -> {
+            Map<String, Predicate<Object[]>> conditions = new ConcurrentHashMap<>();
+            // 添加默认条件
+            conditions.put("performance", params -> params.length > 0 && params[0] instanceof Number && ((Number) params[0]).doubleValue() > 1000.0);
+            conditions.put("cache", params -> params.length > 0 && "cache".equals(params[0]));
+            conditions.put("scan", params -> params.length > 0 && "scan".equals(params[0]));
+            return conditions;
+        });
     }
     
     /**
@@ -447,22 +456,25 @@ public class OptimizedLogUtil {
     /**
      * 添加日志条件
      */
-    public static void addLogCondition(String name, Predicate<Object[]> condition) {
-        logConditions.put(name, condition);
+    public static void addLogCondition(String projectId, String name, Predicate<Object[]> condition) {
+        Map<String, Predicate<Object[]>> conditions = getProjectLogConditions(projectId);
+        conditions.put(name, condition);
     }
     
     /**
      * 移除日志条件
      */
-    public static void removeLogCondition(String name) {
-        logConditions.remove(name);
+    public static void removeLogCondition(String projectId, String name) {
+        Map<String, Predicate<Object[]>> conditions = getProjectLogConditions(projectId);
+        conditions.remove(name);
     }
     
     /**
      * 检查条件是否满足
      */
-    private static boolean checkCondition(String conditionName, Object[] params) {
-        Predicate<Object[]> condition = logConditions.get(conditionName);
+    private static boolean checkCondition(String projectId, String conditionName, Object[] params) {
+        Map<String, Predicate<Object[]>> conditions = getProjectLogConditions(projectId);
+        Predicate<Object[]> condition = conditions.get(conditionName);
         return condition != null && condition.test(params);
     }
     
@@ -569,8 +581,8 @@ public class OptimizedLogUtil {
     /**
      * 条件日志 - 性能相关
      */
-    public static void logPerformance(String message, Object... params) {
-        if (checkCondition("performance", params)) {
+    public static void logPerformance(String projectId, String message, Object... params) {
+        if (checkCondition(projectId, "performance", params)) {
             info("[PERF] " + message, params);
         }
     }
@@ -578,8 +590,8 @@ public class OptimizedLogUtil {
     /**
      * 条件日志 - 缓存相关
      */
-    public static void logCache(String message, Object... params) {
-        if (checkCondition("cache", params)) {
+    public static void logCache(String projectId, String message, Object... params) {
+        if (checkCondition(projectId, "cache", params)) {
             debug("[CACHE] " + message, params);
         }
     }
@@ -587,8 +599,8 @@ public class OptimizedLogUtil {
     /**
      * 条件日志 - 扫描相关
      */
-    public static void logScan(String message, Object... params) {
-        if (checkCondition("scan", params)) {
+    public static void logScan(String projectId, String message, Object... params) {
+        if (checkCondition(projectId, "scan", params)) {
             info("[SCAN] " + message, params);
         }
     }
@@ -596,8 +608,8 @@ public class OptimizedLogUtil {
     /**
      * 自定义条件日志
      */
-    public static void logIf(String conditionName, String message, Object... params) {
-        if (checkCondition(conditionName, params)) {
+    public static void logIf(String projectId, String conditionName, String message, Object... params) {
+        if (checkCondition(projectId, conditionName, params)) {
             info("[" + conditionName.toUpperCase() + "] " + message, params);
         }
     }
