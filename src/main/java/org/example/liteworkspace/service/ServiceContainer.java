@@ -2,7 +2,6 @@ package org.example.liteworkspace.service;
 
 import com.intellij.openapi.project.Project;
 import org.example.liteworkspace.service.impl.BeanAnalysisServiceImpl;
-import org.example.liteworkspace.service.impl.CacheServiceImpl;
 import org.example.liteworkspace.service.impl.ConfigurationServiceImpl;
 import org.example.liteworkspace.util.LogUtil;
 
@@ -24,7 +23,6 @@ public final class ServiceContainer {
         // 注册服务类型
         serviceTypes.put(BeanAnalysisService.class, "beanAnalysisService");
         serviceTypes.put(ConfigurationService.class, "configurationService");
-        serviceTypes.put(CacheService.class, "cacheService");
     }
     
     private ServiceContainer() {
@@ -47,7 +45,6 @@ public final class ServiceContainer {
             // 注册核心服务
             registerService("beanAnalysisService", new BeanAnalysisServiceImpl(project));
             registerService("configurationService", new ConfigurationServiceImpl());
-            registerService("cacheService", new CacheServiceImpl());
             
             initialized = true;
             LogUtil.info("服务容器初始化完成");
@@ -78,17 +75,6 @@ public final class ServiceContainer {
     public static ConfigurationService getConfigurationService(Project project) {
         ensureInitialized(project);
         return getService("configurationService", ConfigurationService.class);
-    }
-    
-    /**
-     * 获取缓存服务
-     * 
-     * @param project 项目
-     * @return 缓存服务
-     */
-    public static CacheService getCacheService(Project project) {
-        ensureInitialized(project);
-        return getService("cacheService", CacheService.class);
     }
     
     /**

@@ -16,6 +16,7 @@ import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
@@ -31,9 +32,16 @@ public class CustomCompileRunAction extends AnAction {
 
         if (project == null || element == null) return;
 
-        // 1. 增量编译
+        // 1. 获取当前模块
+        Module module = ModuleUtilCore.findModuleForPsiElement(element);
+        if (module == null) {
+            Messages.showErrorDialog("无法确定当前文件所属的模块", "错误");
+            return;
+        }
+
+        // 2. 增量编译
         CompilerManager compilerManager = CompilerManager.getInstance(project);
-        compilerManager.make((Module) project, (aborted, errors, warnings, ctx) -> {
+        compilerManager.make(module, (aborted, errors, warnings, ctx) -> {
             if (errors == 0) {
                 // 2. 调用默认 Run
                 Executor executor = DefaultRunExecutor.getRunExecutorInstance();
@@ -62,4 +70,3 @@ public class CustomCompileRunAction extends AnAction {
     }
 
 }
-

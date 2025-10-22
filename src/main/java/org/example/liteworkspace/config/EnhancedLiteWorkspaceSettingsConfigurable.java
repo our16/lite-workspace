@@ -582,7 +582,7 @@ public class EnhancedLiteWorkspaceSettingsConfigurable implements Configurable {
             mavenHomeField.setText(""); // 从配置服务获取
             gradleHomeField.setText(""); // 从配置服务获取
             enableAutoScanCheckBox.setSelected(true); // 默认值
-            enableCacheCheckBox.setSelected(true); // 默认值
+            enableCacheCheckBox.setSelected(false); // 默认关闭缓存
             enableNotificationCheckBox.setSelected(true); // 默认值
             
             // API设置
@@ -906,7 +906,7 @@ public class EnhancedLiteWorkspaceSettingsConfigurable implements Configurable {
                 
                 // 重置复选框
                 enableAutoScanCheckBox.setSelected(true);
-                enableCacheCheckBox.setSelected(true);
+                enableCacheCheckBox.setSelected(false); // 默认关闭缓存
                 enableNotificationCheckBox.setSelected(true);
                 enableHttpsCheckBox.setSelected(true);
                 enableParallelScanCheckBox.setSelected(true);

@@ -14,7 +14,6 @@ import org.example.liteworkspace.dto.MethodSignatureDTO;
 import org.example.liteworkspace.exception.BeanScanningException;
 import org.example.liteworkspace.exception.ExceptionHandler;
 import org.example.liteworkspace.service.BeanAnalysisService;
-import org.example.liteworkspace.service.CacheService;
 import org.example.liteworkspace.service.ConfigurationService;
 import org.example.liteworkspace.service.ServiceContainer;
 import org.example.liteworkspace.util.CostUtil;
@@ -27,13 +26,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 重构后的Service层：负责协调各个服务完成完整的扫描、生成、写入和缓存流程
+ * 重构后的Service层：负责协调各个服务完成完整的扫描、生成和写入流程
+ * 移除了缓存依赖，避免项目间数据污染
  */
 public class LiteWorkspaceService {
 
     private final Project project;
     private final BeanAnalysisService beanAnalysisService;
-    private final CacheService cacheService;
     private final ConfigurationService configurationService;
 
     public LiteWorkspaceService(Project project) {
@@ -44,12 +43,12 @@ public class LiteWorkspaceService {
         
         // 获取服务实例
         this.beanAnalysisService = ServiceContainer.getBeanAnalysisService(project);
-        this.cacheService = ServiceContainer.getCacheService(project);
         this.configurationService = ServiceContainer.getConfigurationService(project);
     }
 
     /**
-     * 核心流程：扫描Bean依赖、生成Spring XML、写入文件、保存缓存（带进度指示器）
+     * 核心流程：扫描Bean依赖、生成Spring XML、写入文件（带进度指示器）
+     * 移除缓存，每次都重新分析，确保数据准确性
      */
     public void scanAndGenerateWithDto(ClassSignatureDTO targetClassDto, MethodSignatureDTO targetMethodDto, ProgressIndicator indicator) throws BeanScanningException {
         Objects.requireNonNull(targetClassDto, "targetClassDto不能为空");
@@ -59,23 +58,9 @@ public class LiteWorkspaceService {
         LogUtil.info("开始扫描和生成流程: {}", qualifiedName);
         
         try {
-            // 检查缓存
-            String cacheKey = generateCacheKey(targetClassDto, targetMethodDto);
-            BeanAnalysisService.BeanAnalysisResult cachedResult = cacheService.getCachedAnalysisResult(
-                project, cacheKey, BeanAnalysisService.BeanAnalysisResult.class);
-            
-            if (cachedResult != null) {
-                LogUtil.info("使用缓存的分析结果: {}", qualifiedName);
-                generateFilesFromCachedResult(cachedResult, targetClassDto, indicator);
-                return;
-            }
-            
-            // 执行分析
+            // 直接执行分析，不使用缓存
             BeanAnalysisService.BeanAnalysisResult analysisResult = beanAnalysisService.analyzeClassDependencies(
                 project, targetClassDto, targetMethodDto, indicator);
-            
-            // 缓存结果
-            cacheService.cacheAnalysisResult(project, cacheKey, analysisResult);
             
             // 生成文件
             generateFiles(analysisResult, targetClassDto, indicator);
@@ -95,29 +80,6 @@ public class LiteWorkspaceService {
             ExceptionHandler.handle(project, e, "扫描和生成流程失败: " + qualifiedName);
             throw BeanScanningException.scanFailed(qualifiedName, e);
         }
-    }
-    
-    /**
-     * 从缓存结果生成文件
-     */
-    private void generateFilesFromCachedResult(BeanAnalysisService.BeanAnalysisResult cachedResult, 
-                                              ClassSignatureDTO targetClassDto, 
-                                              ProgressIndicator indicator) {
-        LogUtil.info("从缓存生成文件: {}", targetClassDto.getQualifiedName());
-        
-        // 生成Spring XML
-        indicator.setText2("从缓存生成Spring XML配置...");
-        indicator.setFraction(0.6);
-        
-        SpringXmlBuilder xmlBuilder = new SpringXmlBuilder(cachedResult.getProjectContext());
-        Map<String, String> beanMap = xmlBuilder.buildXmlMap(cachedResult.getBeans());
-        
-        // 写入文件
-        indicator.setText2("写入文件...");
-        indicator.setFraction(0.8);
-        
-        PsiClass targetClass = cachedResult.getProjectContext().findTargetClass();
-        writeFiles(cachedResult.getProjectContext(), targetClass, beanMap, cachedResult.getBeans(), indicator);
     }
     
     /**
@@ -179,12 +141,6 @@ public class LiteWorkspaceService {
                         throw new RuntimeException("写入 bean-classes.txt 失败", e);
                     }
                     
-                    // 3️⃣ 缓存Bean定义
-                    if (targetClass != null) {
-                        String cacheKey = "beans_" + targetClass.getQualifiedName();
-                        cacheService.cacheBeanDefinitions(project, cacheKey, beans);
-                    }
-                    
                 } catch (Exception e) {
                     LogUtil.error("写入文件失败", e);
                     // 使用新的异常处理机制
@@ -211,27 +167,7 @@ public class LiteWorkspaceService {
     }
     
     /**
-     * 生成缓存键
-     */
-    private String generateCacheKey(ClassSignatureDTO targetClassDto, MethodSignatureDTO targetMethodDto) {
-        StringBuilder keyBuilder = new StringBuilder();
-        keyBuilder.append("analysis_");
-        keyBuilder.append(targetClassDto.getQualifiedName());
-        
-        if (targetMethodDto != null) {
-            keyBuilder.append("_").append(targetMethodDto.getMethodName());
-            keyBuilder.append("_").append(targetMethodDto.getParameterTypes());
-        }
-        
-        // 添加配置相关的哈希，确保配置变更时缓存失效
-        String configHash = generateConfigHash();
-        keyBuilder.append("_").append(configHash);
-        
-        return keyBuilder.toString();
-    }
-    
-    /**
-     * 生成配置哈希
+     * 生成配置哈希（用于日志记录）
      */
     private String generateConfigHash() {
         // 简单的配置哈希实现，实际项目中可以使用更复杂的哈希算法
@@ -240,21 +176,6 @@ public class LiteWorkspaceService {
             configurationService.getSettings(project).getApiUrl(),
             configurationService.getSettings(project).getModelName()
         ));
-    }
-    
-    /**
-     * 清理缓存
-     */
-    public void clearCache() {
-        cacheService.invalidateAllCache(project);
-        LogUtil.info("清理所有缓存完成");
-    }
-    
-    /**
-     * 获取缓存统计信息
-     */
-    public CacheService.CacheStatistics getCacheStatistics() {
-        return cacheService.getCacheStatistics(project);
     }
     
     /**
@@ -269,9 +190,6 @@ public class LiteWorkspaceService {
      */
     public void shutdown() {
         try {
-            // 持久化缓存
-            cacheService.persistCache(project);
-            
             // 清理服务容器
             ServiceContainer.cleanup();
             

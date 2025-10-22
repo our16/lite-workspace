@@ -11,7 +11,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.example.liteworkspace.cache.LiteCacheStorage;
+import com.intellij.psi.search.GlobalSearchScope;
 import org.example.liteworkspace.util.RunOnDemandCompiler;
 
 import java.util.*;
@@ -65,14 +65,12 @@ public class RunOnDemandAction extends AnAction {
             public void run(ProgressIndicator indicator) {
                 try {
                     String filePath = virtualFile.getPath();
-                    // 5. （可选）加载缓存（如果你想用缓存里的信息做智能推荐，可以在这里使用）
-                    LiteCacheStorage cacheStorage = new LiteCacheStorage(project);
-                    Set<String> springScanPackages = cacheStorage.loadJavaPaths();
-                    List<String> objects = new ArrayList<>(springScanPackages);
-                    objects.add(filePath);
+                    // 5. 直接使用当前文件进行编译运行，避免缓存导致的项目间数据污染
+                    List<String> filesToCompile = new ArrayList<>();
+                    filesToCompile.add(filePath);
                     ApplicationManager.getApplication().invokeLater(() -> {
                         // 6. 调用编译和运行（只传当前类）
-                        RunOnDemandCompiler.run(project, mainClass.trim(), objects);
+                        RunOnDemandCompiler.run(project, mainClass.trim(), filesToCompile);
                     });
                 } catch (Exception ex) {
                     showError(project, "❌ 编译失败：" + ex.getMessage());

@@ -7,6 +7,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -55,14 +56,65 @@ public class RunOnDemandCompiler {
 
             try {
                 Set<String> classpathEntries = new LinkedHashSet<>();
+                
+                // 1. 添加模块输出路径
                 for (Module module : modules) {
-                    VirtualFile output = CompilerModuleExtension.getInstance(module).getCompilerOutputPath();
-                    if (output != null) {
-                        classpathEntries.add(output.getPath());
+                    CompilerModuleExtension compilerExtension = CompilerModuleExtension.getInstance(module);
+                    if (compilerExtension != null) {
+                        // 测试输出路径
+                        VirtualFile testOutput = compilerExtension.getCompilerOutputPathForTests();
+                        if (testOutput != null) {
+                            classpathEntries.add(testOutput.getPath());
+                        }
+                        // 生产输出路径
+                        VirtualFile output = compilerExtension.getCompilerOutputPath();
+                        if (output != null) {
+                            classpathEntries.add(output.getPath());
+                        }
                     }
+                }
+                
+                // 2. 智能查找Maven和Gradle输出目录
+                for (Module module : modules) {
+                    ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
+                    String moduleBasePath = rootManager.getContentRoots()[0].getPath();
+                    
+                    // Maven输出目录
+                    addIfExists(classpathEntries, moduleBasePath + "/target/classes");
+                    addIfExists(classpathEntries, moduleBasePath + "/target/test-classes");
+                    
+                    // Gradle输出目录
+                    addIfExists(classpathEntries, moduleBasePath + "/build/classes/java/main");
+                    addIfExists(classpathEntries, moduleBasePath + "/build/classes/java/test");
+                    addIfExists(classpathEntries, moduleBasePath + "/build/resources/main");
+                    addIfExists(classpathEntries, moduleBasePath + "/build/resources/test");
+                    
+                    // IDEA输出目录
+                    addIfExists(classpathEntries, moduleBasePath + "/out/production/classes");
+                    addIfExists(classpathEntries, moduleBasePath + "/out/test/classes");
                 }
 
                 String classpath = String.join(File.pathSeparator, classpathEntries);
+                System.out.println("[DEBUG] 类路径: " + classpath);
+                System.out.println("[DEBUG] 主类: " + mainClass);
+                
+                // 验证主类文件是否存在
+                boolean mainClassFound = false;
+                for (String classpathEntry : classpathEntries) {
+                    File classFile = new File(classpathEntry, mainClass.replace('.', '/') + ".class");
+                    if (classFile.exists()) {
+                        mainClassFound = true;
+                        System.out.println("[DEBUG] 找到主类文件: " + classFile.getAbsolutePath());
+                        break;
+                    }
+                }
+                
+                if (!mainClassFound) {
+                    System.out.println("[ERROR] 未找到主类文件: " + mainClass);
+                    ConsoleService.print(project, "[ERROR] 未找到主类文件: " + mainClass, ConsoleViewContentType.ERROR_OUTPUT);
+                    return;
+                }
+                
                 List<String> command = Arrays.asList("java", "-cp", classpath, mainClass);
 
                 ProcessBuilder pb = new ProcessBuilder(command);
@@ -85,6 +137,16 @@ public class RunOnDemandCompiler {
             while (scanner.hasNextLine()) {
                 ConsoleService.print(project, scanner.nextLine(), contentType);
             }
+        }
+    }
+
+    /**
+     * 如果路径存在则添加到集合中
+     */
+    private static void addIfExists(Set<String> classpathEntries, String path) {
+        File dir = new File(path);
+        if (dir.exists() && dir.isDirectory()) {
+            classpathEntries.add(path);
         }
     }
 
