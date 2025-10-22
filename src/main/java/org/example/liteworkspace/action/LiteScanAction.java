@@ -19,12 +19,8 @@ import org.example.liteworkspace.dto.PsiToDtoConverter;
 import org.example.liteworkspace.util.CostUtil;
 import org.example.liteworkspace.util.LogUtil;
 import org.example.liteworkspace.util.ReadActionUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class LiteScanAction extends AnAction {
-
-    private static final Logger log = LoggerFactory.getLogger(LiteScanAction.class);
 
     @Override
     public void actionPerformed(AnActionEvent e) {

@@ -3,7 +3,6 @@ package org.example.liteworkspace.service.impl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
-import org.example.liteworkspace.config.ConfigurationManager;
 import org.example.liteworkspace.config.LiteWorkspaceSettings;
 import org.example.liteworkspace.service.ConfigurationService;
 import org.example.liteworkspace.util.LogUtil;
@@ -15,27 +14,20 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * 配置服务实现
+ * 配置服务实现（无缓存版本）
+ * 完全移除缓存机制，避免项目间数据污染
  */
 @Service
 public final class ConfigurationServiceImpl implements ConfigurationService {
     
     private final List<ConfigurationChangeListener> listeners = new CopyOnWriteArrayList<>();
-    private final AtomicReference<LiteWorkspaceSettings> cachedSettings = new AtomicReference<>();
     
     @Override
     public LiteWorkspaceSettings getSettings(Project project) {
-        LiteWorkspaceSettings cached = cachedSettings.get();
-        if (cached != null) {
-            return cached;
-        }
-        
-        LiteWorkspaceSettings settings = LiteWorkspaceSettings.getInstance();
-        cachedSettings.set(settings);
-        return settings;
+        // 直接获取设置，无缓存
+        return LiteWorkspaceSettings.getInstance();
     }
     
     @Override
@@ -62,7 +54,6 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
             try {
                 // 复制设置属性
                 copySettings(settings, oldSettings);
-                cachedSettings.set(oldSettings);
             } catch (Exception e) {
                 LogUtil.error("更新配置失败", e);
                 throw new RuntimeException("更新配置失败", e);
