@@ -48,9 +48,8 @@ public class BeanAnalysisServiceImpl implements BeanAnalysisService {
         
         LiteBeanScanner beanScanner = new LiteBeanScanner(projectContext);
         
-        return ReadActionUtil.computeAsync(project, () -> {
-            return beanScanner.scanAndCollectBeanList(targetClass, project);
-        }).join();
+        // LiteBeanScanner.scanAndCollectBeanList内部已经使用了ReadAction，这里直接调用
+        return beanScanner.scanAndCollectBeanList(targetClass, project);
     }
     
     @Override
@@ -393,18 +392,18 @@ public class BeanAnalysisServiceImpl implements BeanAnalysisService {
             return null;
         }
         
+        // 首先找到包含该方法的类（在ReadAction外完成DTO操作）
+        String classFqn = dto.getClassFqn();
+        String simpleName = classFqn.substring(classFqn.lastIndexOf('.') + 1);
+        String packageName = classFqn.substring(0, classFqn.lastIndexOf('.'));
+        ClassSignatureDTO classDto = new ClassSignatureDTO(classFqn, simpleName,
+                List.of(), null, false, false, false, packageName);
+        PsiClass containingClass = findPsiClassByDto(classDto);
+        if (containingClass == null) {
+            return null;
+        }
+        
         return ReadActionUtil.computeAsync(project, () -> {
-            // 首先找到包含该方法的类
-            String classFqn = dto.getClassFqn();
-            String simpleName = classFqn.substring(classFqn.lastIndexOf('.') + 1);
-            String packageName = classFqn.substring(0, classFqn.lastIndexOf('.'));
-            ClassSignatureDTO classDto = new ClassSignatureDTO(classFqn, simpleName,
-                    List.of(), null, false, false, false, packageName);
-            PsiClass containingClass = findPsiClassByDto(classDto);
-            if (containingClass == null) {
-                return null;
-            }
-            
             // 在类中查找匹配的方法
             for (PsiMethod method : containingClass.getMethods()) {
                 if (dto.getMethodName().equals(method.getName())) {
