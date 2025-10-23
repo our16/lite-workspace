@@ -182,7 +182,7 @@ public class LiteWorkspaceService {
      * 获取服务统计信息
      */
     public ServiceContainer.ServiceStatistics getServiceStatistics() {
-        return ServiceContainer.getServiceStatistics();
+        return ServiceContainer.getServiceStatistics(project);
     }
     
     /**
@@ -191,7 +191,7 @@ public class LiteWorkspaceService {
     public void shutdown() {
         try {
             // 清理服务容器
-            ServiceContainer.cleanup();
+            ServiceContainer.cleanup(project);
             
             LogUtil.info("LiteWorkspaceService关闭完成");
         } catch (Exception e) {
