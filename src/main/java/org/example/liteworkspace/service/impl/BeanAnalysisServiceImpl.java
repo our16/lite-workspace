@@ -40,7 +40,11 @@ public class BeanAnalysisServiceImpl implements BeanAnalysisService {
         Objects.requireNonNull(projectContext, "ProjectContext cannot be null");
         Objects.requireNonNull(targetClass, "TargetClass cannot be null");
         
-        LogUtil.info("开始扫描Bean依赖关系: {}", targetClass.getQualifiedName());
+        // 使用ReadAction包装PSI访问
+        String targetClassName = ReadActionUtil.computeAsync(project, () -> {
+            return targetClass.getQualifiedName();
+        }).join();
+        LogUtil.info("开始扫描Bean依赖关系: {}", targetClassName);
         
         LiteBeanScanner beanScanner = new LiteBeanScanner(projectContext);
         
@@ -84,7 +88,11 @@ public class BeanAnalysisServiceImpl implements BeanAnalysisService {
                 throw new RuntimeException(errorMsg);
             }
             
-            LogUtil.info("成功找到目标类: {}", targetClass.getQualifiedName());
+            // 使用ReadAction包装PSI访问
+            String foundClassName = ReadActionUtil.computeAsync(project, () -> {
+                return targetClass.getQualifiedName();
+            }).join();
+            LogUtil.info("成功找到目标类: {}", foundClassName);
             
             // 查找目标方法（如果指定）
             PsiMethod targetMethod = null;

@@ -90,101 +90,104 @@ public class BeanScannerTask implements Runnable  {
                 return;
             }
             
-            // 1. 解析当前类的 Bean 类型
-            BeanType type = resolveBeanType(clazz);
-            if (type != BeanType.PLAIN) {
-                String beanId = generateBeanId(clazz);
-                LogUtil.info("发现Bean: {}, 类型: {}, ID: {}", qName, type, beanId);
-                if (BeanType.MAPPER_STRUCT == type) {
-                    // mapstruct 生成的类名是原类名加Impl结尾的
-                    registry.register(new BeanDefinition(beanId + "Impl", qName + "Impl", type, clazzDto));
+            // 使用ReadAction包装所有PSI访问
+            ReadActionUtil.runSync(context.getProject(), () -> {
+                // 1. 解析当前类的 Bean 类型
+                BeanType type = resolveBeanType(clazz);
+                if (type != BeanType.PLAIN) {
+                    String beanId = generateBeanId(clazz);
+                    LogUtil.info("发现Bean: {}, 类型: {}, ID: {}", qName, type, beanId);
+                    if (BeanType.MAPPER_STRUCT == type) {
+                        // mapstruct 生成的类名是原类名加Impl结尾的
+                        registry.register(new BeanDefinition(beanId + "Impl", qName + "Impl", type, clazzDto));
+                    } else {
+                        registry.register(new BeanDefinition(beanId, qName, type, clazzDto));
+                    }
+                } else if (this.isConfigBean) {
+                    LogUtil.info("配置Bean: {}, 需要扫描依赖项", qName);
                 } else {
-                    registry.register(new BeanDefinition(beanId, qName, type, clazzDto));
+                    // 不是spring或mybatis管理的直接return
+                    LogUtil.info("类 {} 不是Spring/MyBatis管理的Bean，跳过扫描", qName);
+                    return;
                 }
-            } else if (this.isConfigBean) {
-                LogUtil.info("配置Bean: {}, 需要扫描依赖项", qName);
-            } else {
-                // 不是spring或mybatis管理的直接return
-                LogUtil.info("类 {} 不是Spring/MyBatis管理的Bean，跳过扫描", qName);
-                return;
-            }
 
-            // 2. 提取当前类引用的所有依赖类
-            Set<PsiClass> dependencies = extractDependencies(clazz);
-            LogUtil.info("类 {} 发现 {} 个依赖", qName, dependencies.size());
-            if (dependencies.isEmpty()) {
-                return;
-            }
-
-            // 3. 针对每个依赖创建子任务
-            List<BeanScannerTask> subTasks = new ArrayList<>();
-            Map<String, ClassSignatureDTO> bean2ConfigurationDtos = context.getSpringContext().getBean2configurationDtos();
-
-            for (PsiClass dependency : dependencies) {
-                String depQName = dependency.getQualifiedName();
-                if (depQName == null) {
-                    continue;
+                // 2. 提取当前类引用的所有依赖类
+                Set<PsiClass> dependencies = extractDependencies(clazz);
+                LogUtil.info("类 {} 发现 {} 个依赖", qName, dependencies.size());
+                if (dependencies.isEmpty()) {
+                    return;
                 }
-                LogUtil.info("处理依赖: {}", depQName);
-                // 将依赖类转换为DTO，但不长期保存PSI对象
-                ClassSignatureDTO dependencyDto = PsiToDtoConverter.convertToClassSignature(dependency);
-                LogUtil.debug("依赖类转换为DTO: {}", dependencyDto);
-                
-                BeanType depType = resolveBeanType(dependency);
-                if (depType != BeanType.PLAIN) {
-                    // 如果依赖本身也是一个 Bean，则递归扫描
-                    LogUtil.info("依赖 {} 是Bean，类型: {}", depQName, depType);
+
+                // 3. 针对每个依赖创建子任务
+                List<BeanScannerTask> subTasks = new ArrayList<>();
+                Map<String, ClassSignatureDTO> bean2ConfigurationDtos = context.getSpringContext().getBean2configurationDtos();
+
+                for (PsiClass dependency : dependencies) {
+                    String depQName = dependency.getQualifiedName();
+                    if (depQName == null) {
+                        continue;
+                    }
+                    LogUtil.info("处理依赖: {}", depQName);
                     // 将依赖类转换为DTO，但不长期保存PSI对象
-                    ClassSignatureDTO depDependencyDto = PsiToDtoConverter.convertToClassSignature(dependency);
-                    subTasks.add(new BeanScannerTask(depDependencyDto, registry, context, visited, normalDependencies));
-                } else if (dependency.isInterface()) {
-                    // 查找接口的所有实现类
-                    LogUtil.info("依赖 {} 是接口，查找实现类", depQName);
-                    List<PsiClass> implementations = findImplementations(dependency);
-                    LogUtil.info("接口 {} 找到 {} 个实现类", depQName, implementations.size());
-                    for (PsiClass subClass : implementations) {
-                        String subClassQualifiedName = subClass.getQualifiedName();
-                        // 将实现类转换为DTO，但不长期保存PSI对象
-                        ClassSignatureDTO subClassDto = PsiToDtoConverter.convertToClassSignature(subClass);
-                        LogUtil.debug("实现类转换为DTO: {}", subClassDto);
-                        
-                        if (bean2ConfigurationDtos.containsKey(subClassQualifiedName)) {
-                            // 扫描对应的 configuration 类 - 需要从DTO转换回PSI对象进行进一步处理
-                            ClassSignatureDTO configDto = bean2ConfigurationDtos.get(subClassQualifiedName);
-                            PsiClass relateConfiguration = findPsiClassByDto(configDto);
-                            if (relateConfiguration != null) {
-                                LogUtil.info("实现类 {} 有对应的配置类 {}", subClassQualifiedName, relateConfiguration.getQualifiedName());
-                                subTasks.add(new BeanScannerTask(relateConfiguration, registry, context, visited, normalDependencies));
+                    ClassSignatureDTO dependencyDto = PsiToDtoConverter.convertToClassSignature(dependency);
+                    LogUtil.debug("依赖类转换为DTO: {}", dependencyDto);
+                    
+                    BeanType depType = resolveBeanType(dependency);
+                    if (depType != BeanType.PLAIN) {
+                        // 如果依赖本身也是一个 Bean，则递归扫描
+                        LogUtil.info("依赖 {} 是Bean，类型: {}", depQName, depType);
+                        // 将依赖类转换为DTO，但不长期保存PSI对象
+                        ClassSignatureDTO depDependencyDto = PsiToDtoConverter.convertToClassSignature(dependency);
+                        subTasks.add(new BeanScannerTask(depDependencyDto, registry, context, visited, normalDependencies));
+                    } else if (dependency.isInterface()) {
+                        // 查找接口的所有实现类
+                        LogUtil.info("依赖 {} 是接口，查找实现类", depQName);
+                        List<PsiClass> implementations = findImplementations(dependency);
+                        LogUtil.info("接口 {} 找到 {} 个实现类", depQName, implementations.size());
+                        for (PsiClass subClass : implementations) {
+                            String subClassQualifiedName = subClass.getQualifiedName();
+                            // 将实现类转换为DTO，但不长期保存PSI对象
+                            ClassSignatureDTO subClassDto = PsiToDtoConverter.convertToClassSignature(subClass);
+                            LogUtil.debug("实现类转换为DTO: {}", subClassDto);
+                            
+                            if (bean2ConfigurationDtos.containsKey(subClassQualifiedName)) {
+                                // 扫描对应的 configuration 类 - 需要从DTO转换回PSI对象进行进一步处理
+                                ClassSignatureDTO configDto = bean2ConfigurationDtos.get(subClassQualifiedName);
+                                PsiClass relateConfiguration = findPsiClassByDto(configDto);
+                                if (relateConfiguration != null) {
+                                    LogUtil.info("实现类 {} 有对应的配置类 {}", subClassQualifiedName, relateConfiguration.getQualifiedName());
+                                    subTasks.add(new BeanScannerTask(relateConfiguration, registry, context, visited, normalDependencies));
+                                }
+                                // 自己也加进去是为了找依赖的类
+                                subTasks.add(new BeanScannerTask(subClassDto, registry, context, visited, normalDependencies, true));
+                            } else {
+                                subTasks.add(new BeanScannerTask(subClassDto, registry, context, visited, normalDependencies));
                             }
-                            // 自己也加进去是为了找依赖的类
-                            subTasks.add(new BeanScannerTask(subClassDto, registry, context, visited, normalDependencies, true));
-                        } else {
-                            subTasks.add(new BeanScannerTask(subClassDto, registry, context, visited, normalDependencies));
                         }
+                    } else if (bean2ConfigurationDtos.containsKey(depQName)) {
+                        // 扫描对应的 configuration 类 - 需要从DTO转换回PSI对象进行进一步处理
+                        ClassSignatureDTO configDto = bean2ConfigurationDtos.get(depQName);
+                        PsiClass relateConfiguration = findPsiClassByDto(configDto);
+                        if (relateConfiguration != null) {
+                            LogUtil.info("普通依赖 {} 有对应的配置类 {}", depQName, relateConfiguration.getQualifiedName());
+                            subTasks.add(new BeanScannerTask(relateConfiguration, registry, context, visited, normalDependencies));
+                        }
+                        // 自己也加进去是为了找依赖的类
+                        // 将依赖类转换为DTO，但不长期保存PSI对象
+                        ClassSignatureDTO configDependencyDto = PsiToDtoConverter.convertToClassSignature(dependency);
+                        subTasks.add(new BeanScannerTask(configDependencyDto, registry, context, visited, normalDependencies, true));
+                        normalDependencies.add(depQName);
+                    } else {
+                        // 普通依赖
+                        LogUtil.info("添加普通依赖: {}", depQName);
+                        normalDependencies.add(depQName);
                     }
-                } else if (bean2ConfigurationDtos.containsKey(depQName)) {
-                    // 扫描对应的 configuration 类 - 需要从DTO转换回PSI对象进行进一步处理
-                    ClassSignatureDTO configDto = bean2ConfigurationDtos.get(depQName);
-                    PsiClass relateConfiguration = findPsiClassByDto(configDto);
-                    if (relateConfiguration != null) {
-                        LogUtil.info("普通依赖 {} 有对应的配置类 {}", depQName, relateConfiguration.getQualifiedName());
-                        subTasks.add(new BeanScannerTask(relateConfiguration, registry, context, visited, normalDependencies));
-                    }
-                    // 自己也加进去是为了找依赖的类
-                    // 将依赖类转换为DTO，但不长期保存PSI对象
-                    ClassSignatureDTO configDependencyDto = PsiToDtoConverter.convertToClassSignature(dependency);
-                    subTasks.add(new BeanScannerTask(configDependencyDto, registry, context, visited, normalDependencies, true));
-                    normalDependencies.add(depQName);
-                } else {
-                    // 普通依赖
-                    LogUtil.info("添加普通依赖: {}", depQName);
-                    normalDependencies.add(depQName);
                 }
-            }
 
-            // 4. 使用队列单线程执行子任务，避免死锁
-            LogUtil.info("类 {} 扫描完成，创建 {} 个子任务", qName, subTasks.size());
-            executeSubTasksWithQueue(subTasks);
+                // 4. 使用队列单线程执行子任务，避免死锁
+                LogUtil.info("类 {} 扫描完成，创建 {} 个子任务", qName, subTasks.size());
+                executeSubTasksWithQueue(subTasks);
+            });
         } catch (Exception e) {
             LogUtil.error("扫描类 {} 时发生错误: {}", e, clazzDto.getQualifiedName(), e.getMessage());
             throw new RuntimeException(e);

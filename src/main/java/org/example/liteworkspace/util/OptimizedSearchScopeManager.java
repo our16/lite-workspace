@@ -1,5 +1,6 @@
 package org.example.liteworkspace.util;
 
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -26,10 +27,12 @@ public class OptimizedSearchScopeManager {
      * 获取搜索范围（无缓存版本）
      */
     public GlobalSearchScope getOptimizedSearchScope(PsiClass targetClass) {
-        LogUtil.debug("获取搜索范围: {}", targetClass.getQualifiedName());
-        
-        // 简化实现：直接返回项目范围
-        return GlobalSearchScope.projectScope(project);
+        return ReadAction.compute(() -> {
+            LogUtil.debug("获取搜索范围: {}", targetClass.getQualifiedName());
+            
+            // 简化实现：直接返回项目范围
+            return GlobalSearchScope.projectScope(project);
+        });
     }
     
     /**
@@ -56,14 +59,16 @@ public class OptimizedSearchScopeManager {
      * 获取包名
      */
     private String getPackageName(PsiClass psiClass) {
-        String qualifiedName = psiClass.getQualifiedName();
-        if (qualifiedName != null) {
-            int lastDot = qualifiedName.lastIndexOf('.');
-            if (lastDot > 0) {
-                return qualifiedName.substring(0, lastDot);
+        return ReadAction.compute(() -> {
+            String qualifiedName = psiClass.getQualifiedName();
+            if (qualifiedName != null) {
+                int lastDot = qualifiedName.lastIndexOf('.');
+                if (lastDot > 0) {
+                    return qualifiedName.substring(0, lastDot);
+                }
             }
-        }
-        return "";
+            return "";
+        });
     }
     
     /**

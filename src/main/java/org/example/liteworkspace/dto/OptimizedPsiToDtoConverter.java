@@ -1,5 +1,7 @@
 package org.example.liteworkspace.dto;
 
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.psi.*;
 import org.example.liteworkspace.util.LogUtil;
 
@@ -55,10 +57,12 @@ public class OptimizedPsiToDtoConverter {
             return null;
         }
         
-        LogUtil.debug("转换类: {}", psiClass.getQualifiedName());
-        
-        // 直接执行转换，无缓存
-        return performClassConversion(psiClass);
+        return ReadAction.compute(() -> {
+            LogUtil.debug("转换类: {}", psiClass.getQualifiedName());
+            
+            // 直接执行转换，无缓存
+            return performClassConversion(psiClass);
+        });
     }
     
     /**
@@ -69,10 +73,12 @@ public class OptimizedPsiToDtoConverter {
             return null;
         }
         
-        LogUtil.debug("转换方法: {}", psiMethod.getName());
-        
-        // 直接执行转换，无缓存
-        return performMethodConversion(psiMethod);
+        return ReadAction.compute(() -> {
+            LogUtil.debug("转换方法: {}", psiMethod.getName());
+            
+            // 直接执行转换，无缓存
+            return performMethodConversion(psiMethod);
+        });
     }
     
     /**
@@ -83,10 +89,12 @@ public class OptimizedPsiToDtoConverter {
             return null;
         }
         
-        LogUtil.debug("转换字段: {}", psiField.getName());
-        
-        // 直接执行转换，无缓存
-        return performFieldConversion(psiField);
+        return ReadAction.compute(() -> {
+            LogUtil.debug("转换字段: {}", psiField.getName());
+            
+            // 直接执行转换，无缓存
+            return performFieldConversion(psiField);
+        });
     }
     
     /**
